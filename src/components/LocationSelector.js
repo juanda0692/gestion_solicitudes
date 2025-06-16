@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { regions, subterritories, pdvs } from '../mock/locations';
 
+/**
+ * Componente encargado de seleccionar la ubicación de un PDV.
+ *
+ * Utiliza datos simulados (regiones, subterritorios y PDV). Al
+ * conectar con el backend, estos datos deberían obtenerse mediante
+ * peticiones al API.
+ */
+
 const LocationSelector = ({ onSelectPdv, selectedChannel }) => {
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedSubterritory, setSelectedSubterritory] = useState('');
@@ -8,6 +16,7 @@ const LocationSelector = ({ onSelectPdv, selectedChannel }) => {
   const [availablePdvs, setAvailablePdvs] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
 
+  // Cuando cambia la región cargamos los subterritorios disponibles
   useEffect(() => {
     if (selectedRegion) {
       setAvailableSubterritories(subterritories[selectedRegion] || []);
@@ -20,6 +29,7 @@ const LocationSelector = ({ onSelectPdv, selectedChannel }) => {
     }
   }, [selectedRegion]);
 
+  // Cada vez que cambia el subterritorio se filtran los PDV
   useEffect(() => {
     if (selectedSubterritory) {
       setAvailablePdvs(pdvs[selectedSubterritory] || []);
@@ -34,6 +44,7 @@ const LocationSelector = ({ onSelectPdv, selectedChannel }) => {
       <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Selecciona Ubicación</h2>
 
       <div className="mb-4">
+        {/* Lista de regiones - reemplazar con datos del backend */}
         <label htmlFor="region-select" className="block text-gray-700 text-sm font-bold mb-2">Región:</label>
         <select
           id="region-select"
@@ -50,6 +61,7 @@ const LocationSelector = ({ onSelectPdv, selectedChannel }) => {
 
       {selectedRegion && (
         <div className="mb-4">
+          {/* Subterritorios de la región seleccionada */}
           <label htmlFor="subterritory-select" className="block text-gray-700 text-sm font-bold mb-2">Subterritorio:</label>
           <select
             id="subterritory-select"
@@ -67,6 +79,7 @@ const LocationSelector = ({ onSelectPdv, selectedChannel }) => {
 
       {selectedSubterritory && (
         <div className="mb-6">
+          {/* Búsqueda y selección de PDV dentro del subterritorio */}
           <label htmlFor="pdv-search" className="block text-gray-700 text-sm font-bold mb-2">Buscar PDV:</label>
           <input
             type="text"

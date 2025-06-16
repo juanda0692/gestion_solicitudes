@@ -1,5 +1,12 @@
 import React, { useState, useEffect } from 'react';
 
+/**
+ * Utilidades para manejar información persistente utilizando
+ * `localStorage`. Estas funciones se usan como sustitutas de un
+ * backend real durante las pruebas y pueden ser reemplazadas por
+ * llamadas a servicios externos en el futuro.
+ */
+
 // Función para crear un hook de almacenamiento local
 export const useLocalStorage = (key, initialValue) => {
   // Obtener el valor inicial del localStorage o usar el valor predeterminado

@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { getStorageItem, setStorageItem } from '../utils/storage';
 
+/**
+ * Formulario para actualizar los datos de un Punto de Venta.
+ *
+ * Los cambios se almacenan de forma local como ejemplo. Al
+ * conectar con un servicio real, las funciones de carga y guardado
+ * deben invocar las API correspondientes.
+ */
+
 const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
   const [pdvData, setPdvData] = useState({
     contactName: '',
@@ -33,6 +41,8 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
     }));
   };
 
+  // Guarda los cambios en localStorage y notifica al componente padre.
+  // Sustituir por una petición POST/PUT al backend cuando esté disponible.
   const handleSubmit = () => {
     setStorageItem(`pdv-${selectedPdvId}-data`, pdvData);
 

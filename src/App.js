@@ -1,4 +1,17 @@
 import React, { useState } from 'react';
+
+/**
+ * Componente principal de la aplicación.
+ *
+ * Maneja la navegación entre pantallas y guarda en estado la
+ * selección actual del usuario (trade, canal, PDV, etc.).
+ *
+ * Todas las acciones que finalmente requerirán comunicación con el
+ * backend (solicitud de material, actualización de PDV, consulta de
+ * registros) se resuelven aquí usando datos simulados almacenados en
+ * localStorage. Al conectar con un API real, estas funciones serán los
+ * puntos de entrada para realizar llamadas HTTP.
+ */
 import LayoutHeader from './components/LayoutHeader';
 import LayoutFooter from './components/LayoutFooter';
 import ChannelSelector from './components/ChannelSelector';
@@ -11,44 +24,63 @@ import ChannelRequests from './components/ChannelRequests';
 import { getStorageItem, setStorageItem } from './utils/storage';
 
 const App = () => {
-  const [currentPage, setCurrentPage] = useState('home'); // 'home', 'trade-nacional', 'trade-regional', 'channel-select', 'location-select', 'pdv-actions', 'request-material', 'update-pdv', 'previous-requests', 'channel-requests', 'confirm-request', 'confirm-update'
-  const [selectedTradeType, setSelectedTradeType] = useState(''); // 'nacional' o 'regional'
+  // Página o vista que se está mostrando actualmente
+  // (home, selección de canal, formulario, etc.)
+  const [currentPage, setCurrentPage] = useState('home');
+
+  // Tipo de trade seleccionado ("nacional" o "regional")
+  const [selectedTradeType, setSelectedTradeType] = useState('');
+
+  // Identificador del canal seleccionado
   const [selectedChannelId, setSelectedChannelId] = useState('');
+
+  // Identificador del PDV seleccionado
   const [selectedPdvId, setSelectedPdvId] = useState('');
+
+  // Mensaje para la pantalla de confirmación
   const [confirmationMessage, setConfirmationMessage] = useState('');
 
+  // Usuario selecciona si trabajará con Trade Nacional o Regional
   const handleSelectTrade = (type) => {
     setSelectedTradeType(type);
     setCurrentPage('channel-select');
   };
 
+  // Después de elegir un canal, pasamos a seleccionar ubicación
   const handleSelectChannel = (channelId) => {
     setSelectedChannelId(channelId);
     setCurrentPage('location-select');
   };
 
+  // Al escoger el PDV se habilitan las acciones disponibles
   const handleSelectPdv = (pdvId) => {
     setSelectedPdvId(pdvId);
     setCurrentPage('pdv-actions');
   };
 
+  // Navegar al formulario de solicitud de material POP
   const handleRequestMaterial = () => {
     setCurrentPage('request-material');
   };
 
+  // Navegar al formulario de actualización de información del PDV
   const handleUpdatePdv = () => {
     setCurrentPage('update-pdv');
   };
 
+  // Mostrar solicitudes o actualizaciones previas realizadas para el PDV
   const handleViewRequests = () => {
     setCurrentPage('previous-requests');
   };
 
+  // Consultar todas las solicitudes hechas en un canal específico
   const handleViewChannelRequests = (channelId) => {
     setSelectedChannelId(channelId);
     setCurrentPage('channel-requests');
   };
 
+  // Confirmación de carrito: aquí se guardan los datos en localStorage.
+  // Reemplazar esta lógica por una llamada al backend al integrar APIs.
   const handleConfirmRequest = (requestDetails) => {
     const requestWithDate = { ...requestDetails, date: new Date().toISOString() };
     console.log('Solicitud de Material Confirmada:', requestWithDate);
@@ -58,12 +90,16 @@ const App = () => {
     setCurrentPage('confirm-request');
   };
 
+  // Se ejecuta al confirmar el formulario de actualización de PDV.
+  // Actualmente se guarda en localStorage y muestra confirmación.
+  // Con backend, aquí se enviaría la información actualizada.
   const handleUpdateConfirm = (updatedData) => {
     console.log('Datos del PDV Actualizados:', updatedData);
     setConfirmationMessage('¡Los datos del PDV han sido actualizados correctamente!');
     setCurrentPage('confirm-update');
   };
 
+  // Vuelve a la pantalla inicial y limpia la selección actual
   const handleGoHome = () => {
     setCurrentPage('home');
     setSelectedTradeType('');
@@ -72,6 +108,7 @@ const App = () => {
     setConfirmationMessage('');
   };
 
+  // Devuelve el título que debe mostrar el encabezado según la vista actual
   const getHeaderTitle = () => {
     switch (currentPage) {
       case 'home':
@@ -101,6 +138,7 @@ const App = () => {
     }
   };
 
+  // Navegación inversa según la página en la que estemos
   const handleBack = () => {
     switch (currentPage) {
       case 'channel-select':
@@ -132,10 +170,12 @@ const App = () => {
   };
 
   return (
+    // Contenedor general con encabezado fijo y área de contenido
     <div className="min-h-screen bg-tigo-light flex flex-col">
       <LayoutHeader title={getHeaderTitle()} onBack={currentPage !== 'home' ? handleBack : null} />
 
       <main className="flex-grow p-4 flex items-center justify-center">
+        {/* Vista de inicio con selección de tipo de trade */}
         {currentPage === 'home' && (
           <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto text-center">
             <h2 className="text-3xl font-bold text-gray-800 mb-6">Bienvenido</h2>
@@ -156,14 +196,17 @@ const App = () => {
           </div>
         )}
 
+        {/* Listado de canales disponibles */}
         {currentPage === 'channel-select' && (
           <ChannelSelector onSelectChannel={handleSelectChannel} onViewChannelRequests={handleViewChannelRequests} />
         )}
 
+        {/* Selección de región, subterritorio y PDV */}
         {currentPage === 'location-select' && (
           <LocationSelector onSelectPdv={handleSelectPdv} selectedChannel={selectedChannelId} />
         )}
 
+        {/* Acciones disponibles para el PDV */}
         {currentPage === 'pdv-actions' && (
           <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto text-center">
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">Acciones para {selectedPdvId}</h2>
@@ -190,22 +233,27 @@ const App = () => {
           </div>
         )}
 
+        {/* Formulario para solicitar material */}
         {currentPage === 'request-material' && (
           <MaterialRequestForm onConfirmRequest={handleConfirmRequest} selectedPdvId={selectedPdvId} selectedChannelId={selectedChannelId} />
         )}
 
+        {/* Formulario para actualizar información del PDV */}
         {currentPage === 'update-pdv' && (
           <PdvUpdateForm selectedPdvId={selectedPdvId} onUpdateConfirm={handleUpdateConfirm} />
         )}
 
+        {/* Historial de solicitudes para el PDV */}
         {currentPage === 'previous-requests' && (
           <PreviousRequests pdvId={selectedPdvId} onBack={handleBack} />
         )}
 
+        {/* Historial de solicitudes por canal */}
         {currentPage === 'channel-requests' && (
           <ChannelRequests channelId={selectedChannelId} onBack={handleBack} />
         )}
 
+        {/* Mensaje de confirmación de acciones */}
         {(currentPage === 'confirm-request' || currentPage === 'confirm-update') && (
           <ConfirmationMessage message={confirmationMessage} onGoHome={handleGoHome} />
         )}

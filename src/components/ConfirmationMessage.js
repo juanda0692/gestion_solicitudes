@@ -1,5 +1,11 @@
 import React from 'react';
 
+/**
+ * Muestra un mensaje de confirmación después de enviar una
+ * solicitud o actualización. Al pulsar el botón se vuelve al
+ * inicio de la aplicación.
+ */
+
 const ConfirmationMessage = ({ message, onGoHome }) => {
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto mt-8 text-center">
