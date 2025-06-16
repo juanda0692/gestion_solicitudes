@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { materials } from '../mock/materials';
 
-const MaterialRequestForm = ({ onConfirmRequest, selectedPdvId, onBackToPdvActions }) => {
+const MaterialRequestForm = ({ onConfirmRequest, selectedPdvId, selectedChannelId }) => {
   const [selectedMaterial, setSelectedMaterial] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [selectedMeasures, setSelectedMeasures] = useState('');
   const [notes, setNotes] = useState('');
   const [cart, setCart] = useState([]);
+  const [materialSearch, setMaterialSearch] = useState('');
 
   const availableMeasures = [
     { id: 'medida-1', name: '60x90 cm' },
@@ -52,6 +53,7 @@ const MaterialRequestForm = ({ onConfirmRequest, selectedPdvId, onBackToPdvActio
     if (cart.length > 0) {
       onConfirmRequest({
         pdvId: selectedPdvId,
+        channelId: selectedChannelId,
         items: cart,
       });
     } else {
@@ -66,6 +68,15 @@ const MaterialRequestForm = ({ onConfirmRequest, selectedPdvId, onBackToPdvActio
         <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Solicitar Material POP</h2>
 
         <div className="mb-4">
+          <label htmlFor="material-search" className="block text-gray-700 text-sm font-bold mb-2">Buscar Material:</label>
+          <input
+            type="text"
+            id="material-search"
+            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 mb-2"
+            placeholder="Ingresa nombre del material"
+            value={materialSearch}
+            onChange={(e) => setMaterialSearch(e.target.value)}
+          />
           <label htmlFor="material-select" className="block text-gray-700 text-sm font-bold mb-2">Material:</label>
           <select
             id="material-select"
@@ -74,9 +85,11 @@ const MaterialRequestForm = ({ onConfirmRequest, selectedPdvId, onBackToPdvActio
             onChange={(e) => setSelectedMaterial(e.target.value)}
           >
             <option value="">Selecciona un material</option>
-            {materials.map((material) => (
-              <option key={material.id} value={material.id}>{material.name}</option>
-            ))}
+            {materials
+              .filter((material) => material.name.toLowerCase().includes(materialSearch.toLowerCase()))
+              .map((material) => (
+                <option key={material.id} value={material.id}>{material.name}</option>
+              ))}
           </select>
         </div>
 

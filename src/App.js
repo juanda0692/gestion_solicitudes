@@ -6,10 +6,11 @@ import MaterialRequestForm from './components/MaterialRequestForm';
 import PdvUpdateForm from './components/PdvUpdateForm';
 import ConfirmationMessage from './components/ConfirmationMessage';
 import PreviousRequests from './components/PreviousRequests';
+import ChannelRequests from './components/ChannelRequests';
 import { getStorageItem, setStorageItem } from './utils/storage';
 
 const App = () => {
-  const [currentPage, setCurrentPage] = useState('home'); // 'home', 'trade-nacional', 'trade-regional', 'channel-select', 'location-select', 'pdv-actions', 'request-material', 'update-pdv', 'previous-requests', 'confirm-request', 'confirm-update'
+  const [currentPage, setCurrentPage] = useState('home'); // 'home', 'trade-nacional', 'trade-regional', 'channel-select', 'location-select', 'pdv-actions', 'request-material', 'update-pdv', 'previous-requests', 'channel-requests', 'confirm-request', 'confirm-update'
   const [selectedTradeType, setSelectedTradeType] = useState(''); // 'nacional' o 'regional'
   const [selectedChannelId, setSelectedChannelId] = useState('');
   const [selectedPdvId, setSelectedPdvId] = useState('');
@@ -40,6 +41,11 @@ const App = () => {
 
   const handleViewRequests = () => {
     setCurrentPage('previous-requests');
+  };
+
+  const handleViewChannelRequests = (channelId) => {
+    setSelectedChannelId(channelId);
+    setCurrentPage('channel-requests');
   };
 
   const handleConfirmRequest = (requestDetails) => {
@@ -83,6 +89,8 @@ const App = () => {
         return 'Actualizar PDV';
       case 'previous-requests':
         return 'Solicitudes Anteriores';
+      case 'channel-requests':
+        return 'Solicitudes por Canal';
       case 'confirm-request':
       case 'confirm-update':
         return 'Confirmación';
@@ -108,6 +116,9 @@ const App = () => {
         break;
       case 'previous-requests':
         setCurrentPage('pdv-actions');
+        break;
+      case 'channel-requests':
+        setCurrentPage('channel-select');
         break;
       case 'confirm-request':
       case 'confirm-update':
@@ -144,7 +155,7 @@ const App = () => {
         )}
 
         {currentPage === 'channel-select' && (
-          <ChannelSelector onSelectChannel={handleSelectChannel} />
+          <ChannelSelector onSelectChannel={handleSelectChannel} onViewChannelRequests={handleViewChannelRequests} />
         )}
 
         {currentPage === 'location-select' && (
@@ -178,7 +189,7 @@ const App = () => {
         )}
 
         {currentPage === 'request-material' && (
-          <MaterialRequestForm onConfirmRequest={handleConfirmRequest} selectedPdvId={selectedPdvId} />
+          <MaterialRequestForm onConfirmRequest={handleConfirmRequest} selectedPdvId={selectedPdvId} selectedChannelId={selectedChannelId} />
         )}
 
         {currentPage === 'update-pdv' && (
@@ -187,6 +198,10 @@ const App = () => {
 
         {currentPage === 'previous-requests' && (
           <PreviousRequests pdvId={selectedPdvId} onBack={handleBack} />
+        )}
+
+        {currentPage === 'channel-requests' && (
+          <ChannelRequests channelId={selectedChannelId} onBack={handleBack} />
         )}
 
         {(currentPage === 'confirm-request' || currentPage === 'confirm-update') && (
