@@ -33,7 +33,7 @@ const ChannelRequests = ({ channelId, onBack }) => {
 
       <button
         onClick={onBack}
-        className="w-full mt-6 bg-blue-500 text-white py-3 px-4 rounded-lg shadow-md hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105"
+        className="w-full mt-6 bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all duration-300 ease-in-out transform hover:scale-105"
       >
         Volver
       </button>

@@ -48,7 +48,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
           type="text"
           id="contactName"
           name="contactName"
-          className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+          className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200"
           value={pdvData.contactName}
           onChange={handleChange}
         />
@@ -60,7 +60,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
           type="tel"
           id="contactPhone"
           name="contactPhone"
-          className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+          className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200"
           value={pdvData.contactPhone}
           onChange={handleChange}
         />
@@ -71,7 +71,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
         <textarea
           id="address"
           name="address"
-          className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 resize-none"
+          className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200 resize-none"
           rows="3"
           value={pdvData.address}
           onChange={handleChange}
@@ -83,7 +83,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
         <textarea
           id="notes"
           name="notes"
-          className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 resize-none"
+          className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200 resize-none"
           rows="3"
           value={pdvData.notes}
           onChange={handleChange}
