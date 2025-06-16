@@ -5,9 +5,11 @@ import LocationSelector from './components/LocationSelector';
 import MaterialRequestForm from './components/MaterialRequestForm';
 import PdvUpdateForm from './components/PdvUpdateForm';
 import ConfirmationMessage from './components/ConfirmationMessage';
+import PreviousRequests from './components/PreviousRequests';
+import { getStorageItem, setStorageItem } from './utils/storage';
 
 const App = () => {
-  const [currentPage, setCurrentPage] = useState('home'); // 'home', 'trade-nacional', 'trade-regional', 'channel-select', 'location-select', 'request-material', 'update-pdv', 'confirm-request', 'confirm-update'
+  const [currentPage, setCurrentPage] = useState('home'); // 'home', 'trade-nacional', 'trade-regional', 'channel-select', 'location-select', 'pdv-actions', 'request-material', 'update-pdv', 'previous-requests', 'confirm-request', 'confirm-update'
   const [selectedTradeType, setSelectedTradeType] = useState(''); // 'nacional' o 'regional'
   const [selectedChannelId, setSelectedChannelId] = useState('');
   const [selectedPdvId, setSelectedPdvId] = useState('');
@@ -36,8 +38,14 @@ const App = () => {
     setCurrentPage('update-pdv');
   };
 
+  const handleViewRequests = () => {
+    setCurrentPage('previous-requests');
+  };
+
   const handleConfirmRequest = (requestDetails) => {
     console.log('Solicitud de Material Confirmada:', requestDetails);
+    const existing = getStorageItem('material-requests') || [];
+    setStorageItem('material-requests', [...existing, requestDetails]);
     setConfirmationMessage('¡Tu solicitud de material ha sido enviada con éxito!');
     setCurrentPage('confirm-request');
   };
@@ -73,6 +81,8 @@ const App = () => {
         return 'Solicitar Material';
       case 'update-pdv':
         return 'Actualizar PDV';
+      case 'previous-requests':
+        return 'Solicitudes Anteriores';
       case 'confirm-request':
       case 'confirm-update':
         return 'Confirmación';
@@ -94,6 +104,9 @@ const App = () => {
         break;
       case 'request-material':
       case 'update-pdv':
+        setCurrentPage('pdv-actions');
+        break;
+      case 'previous-requests':
         setCurrentPage('pdv-actions');
         break;
       case 'confirm-request':
@@ -154,6 +167,12 @@ const App = () => {
               >
                 Actualizar Datos del PDV
               </button>
+              <button
+                onClick={handleViewRequests}
+                className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg shadow-md hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105"
+              >
+                Ver Solicitudes Anteriores
+              </button>
             </div>
           </div>
         )}
@@ -166,6 +185,10 @@ const App = () => {
           <PdvUpdateForm selectedPdvId={selectedPdvId} onUpdateConfirm={handleUpdateConfirm} />
         )}
 
+        {currentPage === 'previous-requests' && (
+          <PreviousRequests pdvId={selectedPdvId} onBack={handleBack} />
+        )}
+
         {(currentPage === 'confirm-request' || currentPage === 'confirm-update') && (
           <ConfirmationMessage message={confirmationMessage} onGoHome={handleGoHome} />
         )}
@@ -175,5 +198,3 @@ const App = () => {
 };
 
 export default App;
-
-// DONE
