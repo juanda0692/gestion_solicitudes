@@ -1,6 +1,15 @@
 import React, { useState } from 'react';
 import { materials } from '../mock/materials';
 
+/**
+ * Formulario para solicitar material POP.
+ *
+ * Utiliza un pequeño "carrito" para acumular ítems antes de confirmar.
+ * Actualmente trabaja con datos simulados. Para la integración,
+ * reemplazar la obtención de `materials` y enviar el carrito al backend
+ * dentro de `handleConfirmCart`.
+ */
+
 const MaterialRequestForm = ({ onConfirmRequest, selectedPdvId, selectedChannelId }) => {
   const [selectedMaterial, setSelectedMaterial] = useState('');
   const [quantity, setQuantity] = useState(1);
@@ -17,6 +26,7 @@ const MaterialRequestForm = ({ onConfirmRequest, selectedPdvId, selectedChannelI
     { id: 'medida-5', name: 'Personalizado' },
   ];
 
+  // Agrega el material seleccionado al carrito
   const handleAddToCart = () => {
     if (selectedMaterial && quantity > 0 && selectedMeasures) {
       const materialDetails = materials.find(m => m.id === selectedMaterial);
@@ -41,16 +51,20 @@ const MaterialRequestForm = ({ onConfirmRequest, selectedPdvId, selectedChannelI
     }
   };
 
+  // Elimina un elemento del carrito
   const handleRemoveFromCart = (itemId) => {
     setCart((prevCart) => prevCart.filter((item) => item.id !== itemId));
   };
 
+  // Vacía por completo el carrito
   const handleClearCart = () => {
     setCart([]);
   };
 
+  // Al confirmar se llama a `onConfirmRequest` con todos los datos del carrito
   const handleConfirmCart = () => {
     if (cart.length > 0) {
+      // Aquí se podría enviar el contenido del carrito a un servicio REST
       onConfirmRequest({
         pdvId: selectedPdvId,
         channelId: selectedChannelId,

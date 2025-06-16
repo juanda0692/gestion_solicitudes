@@ -1,5 +1,11 @@
 import React from 'react';
 
+/**
+ * Encabezado común de la aplicación.
+ * Muestra el logo de Tigo y un botón de retroceso cuando
+ * `onBack` está definido.
+ */
+
 const LayoutHeader = ({ title, onBack }) => {
   return (
     <header className="bg-tigo-blue text-white p-4 shadow-md flex items-center">
@@ -17,3 +23,4 @@ const LayoutHeader = ({ title, onBack }) => {
 };
 
 export default LayoutHeader;
+

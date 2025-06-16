@@ -1,6 +1,15 @@
 import React from 'react';
 import { getStorageItem } from '../utils/storage';
 
+/**
+ * Muestra el historial de solicitudes de material y actualizaciones
+ * guardadas en localStorage para un PDV concreto.
+ *
+ * Al conectar con el backend, se debería reemplazar la lectura de
+ * localStorage por peticiones a la API.
+ */
+
+// `pdvId` identifica el punto de venta y `onBack` vuelve a la pantalla anterior
 const PreviousRequests = ({ pdvId, onBack }) => {
   const materialRequests = getStorageItem('material-requests') || [];
   const updateRequests = getStorageItem('pdv-update-requests') || [];
@@ -62,3 +71,4 @@ const PreviousRequests = ({ pdvId, onBack }) => {
 };
 
 export default PreviousRequests;
+

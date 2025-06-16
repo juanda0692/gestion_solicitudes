@@ -2,6 +2,14 @@ import React from 'react';
 import { getStorageItem } from '../utils/storage';
 import { channels } from '../mock/channels';
 
+/**
+ * Lista de solicitudes realizadas por canal.
+ *
+ * Los datos provienen de localStorage como ejemplo. Para la
+ * integración real se deberá consultar el backend y obtener la
+ * información filtrada por `channelId`.
+ */
+
 const ChannelRequests = ({ channelId, onBack }) => {
   const requests = getStorageItem('material-requests') || [];
   const channelRequests = requests.filter((req) => req.channelId === channelId);
@@ -43,3 +51,4 @@ const ChannelRequests = ({ channelId, onBack }) => {
 };
 
 export default ChannelRequests;
+
