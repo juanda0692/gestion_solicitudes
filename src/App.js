@@ -50,9 +50,10 @@ const App = () => {
   };
 
   const handleConfirmRequest = (requestDetails) => {
-    console.log('Solicitud de Material Confirmada:', requestDetails);
+    const requestWithDate = { ...requestDetails, date: new Date().toISOString() };
+    console.log('Solicitud de Material Confirmada:', requestWithDate);
     const existing = getStorageItem('material-requests') || [];
-    setStorageItem('material-requests', [...existing, requestDetails]);
+    setStorageItem('material-requests', [...existing, requestWithDate]);
     setConfirmationMessage('¡Tu solicitud de material ha sido enviada con éxito!');
     setCurrentPage('confirm-request');
   };

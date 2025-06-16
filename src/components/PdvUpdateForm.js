@@ -35,6 +35,15 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
 
   const handleSubmit = () => {
     setStorageItem(`pdv-${selectedPdvId}-data`, pdvData);
+
+    const updates = getStorageItem('pdv-update-requests') || [];
+    const updateEntry = {
+      pdvId: selectedPdvId,
+      data: pdvData,
+      date: new Date().toISOString(),
+    };
+    setStorageItem('pdv-update-requests', [...updates, updateEntry]);
+
     onUpdateConfirm(pdvData);
   };
 

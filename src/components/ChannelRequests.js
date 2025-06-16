@@ -19,6 +19,7 @@ const ChannelRequests = ({ channelId, onBack }) => {
           {channelRequests.map((req, index) => (
             <li key={index} className="bg-gray-50 p-3 rounded-lg shadow-sm">
               <p className="font-semibold text-gray-800">PDV: {req.pdvId}</p>
+              <p className="text-sm text-gray-600 mb-2">Fecha: {new Date(req.date).toLocaleDateString()}</p>
               <ul className="ml-4 list-disc">
                 {req.items.map((item) => (
                   <li key={item.id}>
