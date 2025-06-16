@@ -7,7 +7,7 @@ const ConfirmationMessage = ({ message, onGoHome }) => {
       <p className="text-gray-700 text-lg mb-6">{message}</p>
       <button
         onClick={onGoHome}
-        className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg shadow-md hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105"
+        className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all duration-300 ease-in-out transform hover:scale-105"
       >
         Volver al Inicio
       </button>

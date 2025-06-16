@@ -72,7 +72,7 @@ const MaterialRequestForm = ({ onConfirmRequest, selectedPdvId, selectedChannelI
           <input
             type="text"
             id="material-search"
-            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 mb-2"
+            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200 mb-2"
             placeholder="Ingresa nombre del material"
             value={materialSearch}
             onChange={(e) => setMaterialSearch(e.target.value)}
@@ -80,7 +80,7 @@ const MaterialRequestForm = ({ onConfirmRequest, selectedPdvId, selectedChannelI
           <label htmlFor="material-select" className="block text-gray-700 text-sm font-bold mb-2">Material:</label>
           <select
             id="material-select"
-            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200"
             value={selectedMaterial}
             onChange={(e) => setSelectedMaterial(e.target.value)}
           >
@@ -97,7 +97,7 @@ const MaterialRequestForm = ({ onConfirmRequest, selectedPdvId, selectedChannelI
           <label htmlFor="measures-select" className="block text-gray-700 text-sm font-bold mb-2">Medidas:</label>
           <select
             id="measures-select"
-            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200"
             value={selectedMeasures}
             onChange={(e) => setSelectedMeasures(e.target.value)}
           >
@@ -113,7 +113,7 @@ const MaterialRequestForm = ({ onConfirmRequest, selectedPdvId, selectedChannelI
           <input
             type="number"
             id="quantity-input"
-            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200"
             value={quantity}
             onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
             min="1"
@@ -124,7 +124,7 @@ const MaterialRequestForm = ({ onConfirmRequest, selectedPdvId, selectedChannelI
           <label htmlFor="notes-textarea" className="block text-gray-700 text-sm font-bold mb-2">Notas Adicionales:</label>
           <textarea
             id="notes-textarea"
-            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 resize-none"
+            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200 resize-none"
             rows="3"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
@@ -133,7 +133,7 @@ const MaterialRequestForm = ({ onConfirmRequest, selectedPdvId, selectedChannelI
 
         <button
           onClick={handleAddToCart}
-          className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg shadow-md hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105"
+          className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all duration-300 ease-in-out transform hover:scale-105"
         >
           Agregar al Carrito
         </button>

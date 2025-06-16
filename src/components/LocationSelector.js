@@ -37,7 +37,7 @@ const LocationSelector = ({ onSelectPdv, selectedChannel }) => {
         <label htmlFor="region-select" className="block text-gray-700 text-sm font-bold mb-2">Región:</label>
         <select
           id="region-select"
-          className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+          className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200"
           value={selectedRegion}
           onChange={(e) => setSelectedRegion(e.target.value)}
         >
@@ -53,7 +53,7 @@ const LocationSelector = ({ onSelectPdv, selectedChannel }) => {
           <label htmlFor="subterritory-select" className="block text-gray-700 text-sm font-bold mb-2">Subterritorio:</label>
           <select
             id="subterritory-select"
-            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200"
             value={selectedSubterritory}
             onChange={(e) => setSelectedSubterritory(e.target.value)}
           >
@@ -71,7 +71,7 @@ const LocationSelector = ({ onSelectPdv, selectedChannel }) => {
           <input
             type="text"
             id="pdv-search"
-            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 mb-4"
+            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200 mb-4"
             placeholder="Ingresa nombre o código"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -79,7 +79,7 @@ const LocationSelector = ({ onSelectPdv, selectedChannel }) => {
           <label htmlFor="pdv-select" className="block text-gray-700 text-sm font-bold mb-2">Punto de Venta (PDV):</label>
           <select
             id="pdv-select"
-            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200"
+          className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200"
             onChange={(e) => onSelectPdv(e.target.value)}
           >
             <option value="">Selecciona un PDV</option>

@@ -140,13 +140,13 @@ const App = () => {
             <div className="space-y-4">
               <button
                 onClick={() => handleSelectTrade('nacional')}
-                className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg shadow-md hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105"
+                className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all duration-300 ease-in-out transform hover:scale-105"
               >
                 TRADE NACIONAL
               </button>
               <button
                 onClick={() => handleSelectTrade('regional')}
-                className="w-full bg-purple-500 text-white py-3 px-4 rounded-lg shadow-md hover:bg-purple-600 transition-all duration-300 ease-in-out transform hover:scale-105"
+                className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all duration-300 ease-in-out transform hover:scale-105"
               >
                 TRADE REGIONAL
               </button>
@@ -180,7 +180,7 @@ const App = () => {
               </button>
               <button
                 onClick={handleViewRequests}
-                className="w-full bg-blue-500 text-white py-3 px-4 rounded-lg shadow-md hover:bg-blue-600 transition-all duration-300 ease-in-out transform hover:scale-105"
+                className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all duration-300 ease-in-out transform hover:scale-105"
               >
                 Ver Solicitudes Anteriores
               </button>
