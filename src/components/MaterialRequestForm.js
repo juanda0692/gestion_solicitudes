@@ -172,7 +172,7 @@ const MaterialRequestForm = ({ onConfirmRequest, selectedPdvId, selectedChannelI
               </button>
               <button
                 onClick={handleConfirmCart}
-                className="flex-1 bg-green-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-green-600 transition-all duration-300 ease-in-out transform hover:scale-105"
+                className="flex-1 bg-tigo-cyan text-white py-2 px-4 rounded-lg shadow-md hover:bg-[#00a7d6] transition-all duration-300 ease-in-out transform hover:scale-105"
               >
                 Confirmar Solicitud Completa
               </button>

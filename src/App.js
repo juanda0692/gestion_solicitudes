@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import LayoutHeader from './components/LayoutHeader';
+import LayoutFooter from './components/LayoutFooter';
 import ChannelSelector from './components/ChannelSelector';
 import LocationSelector from './components/LocationSelector';
 import MaterialRequestForm from './components/MaterialRequestForm';
@@ -130,7 +131,7 @@ const App = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
+    <div className="min-h-screen bg-tigo-light flex flex-col">
       <LayoutHeader title={getHeaderTitle()} onBack={currentPage !== 'home' ? handleBack : null} />
 
       <main className="flex-grow p-4 flex items-center justify-center">
@@ -208,6 +209,7 @@ const App = () => {
           <ConfirmationMessage message={confirmationMessage} onGoHome={handleGoHome} />
         )}
       </main>
+      <LayoutFooter />
     </div>
   );
 };
