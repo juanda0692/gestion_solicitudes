@@ -92,7 +92,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
 
       <button
         onClick={handleSubmit}
-        className="w-full bg-purple-500 text-white py-3 px-4 rounded-lg shadow-md hover:bg-purple-600 transition-all duration-300 ease-in-out transform hover:scale-105"
+        className="w-full bg-tigo-cyan text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00a7d6] transition-all duration-300 ease-in-out transform hover:scale-105"
       >
         Guardar Cambios
       </button>
