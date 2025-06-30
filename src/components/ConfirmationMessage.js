@@ -6,17 +6,27 @@ import React from 'react';
  * inicio de la aplicación.
  */
 
-const ConfirmationMessage = ({ message, onGoHome }) => {
+const ConfirmationMessage = ({ message, onGoHome, onStayInChannel }) => {
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto mt-8 text-center">
       <h2 className="text-3xl font-bold text-green-600 mb-4">¡Éxito!</h2>
       <p className="text-gray-700 text-lg mb-6">{message}</p>
-      <button
-        onClick={onGoHome}
-        className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all duration-300 ease-in-out transform hover:scale-105"
-      >
-        Volver al Inicio
-      </button>
+      <div className="space-y-4">
+        {onStayInChannel && (
+          <button
+            onClick={onStayInChannel}
+            className="w-full bg-tigo-cyan text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00a7d6] transition-all"
+          >
+            Volver al Canal
+          </button>
+        )}
+        <button
+          onClick={onGoHome}
+          className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all duration-300 ease-in-out transform hover:scale-105"
+        >
+          Volver al Inicio
+        </button>
+      </div>
     </div>
   );
 };
