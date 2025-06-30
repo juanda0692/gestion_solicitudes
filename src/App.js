@@ -21,6 +21,10 @@ import PdvUpdateForm from './components/PdvUpdateForm';
 import ConfirmationMessage from './components/ConfirmationMessage';
 import PreviousRequests from './components/PreviousRequests';
 import ChannelRequests from './components/ChannelRequests';
+import HomeMenu from './components/HomeMenu';
+import CampaignsMenu from './components/CampaignsMenu';
+import CreateCampaignForm from './components/CreateCampaignForm';
+import ManageCampaigns from './components/ManageCampaigns';
 import { getStorageItem, setStorageItem } from './utils/storage';
 
 const App = () => {
@@ -36,6 +40,11 @@ const App = () => {
 
   // Identificador del PDV seleccionado
   const [selectedPdvId, setSelectedPdvId] = useState('');
+  const [selectedPdvName, setSelectedPdvName] = useState('');
+  const [selectedRegionId, setSelectedRegionId] = useState('');
+  const [selectedRegionName, setSelectedRegionName] = useState('');
+  const [selectedSubId, setSelectedSubId] = useState('');
+  const [selectedSubName, setSelectedSubName] = useState('');
 
   // Mensaje para la pantalla de confirmación
   const [confirmationMessage, setConfirmationMessage] = useState('');
@@ -53,8 +62,20 @@ const App = () => {
   };
 
   // Al escoger el PDV se habilitan las acciones disponibles
-  const handleSelectPdv = (pdvId) => {
+  const handleSelectPdv = ({
+    pdvId,
+    pdvName,
+    regionId,
+    regionName,
+    subterritoryId,
+    subterritoryName,
+  }) => {
     setSelectedPdvId(pdvId);
+    setSelectedPdvName(pdvName);
+    setSelectedRegionId(regionId);
+    setSelectedRegionName(regionName);
+    setSelectedSubId(subterritoryId);
+    setSelectedSubName(subterritoryName);
     setCurrentPage('pdv-actions');
   };
 
@@ -77,6 +98,24 @@ const App = () => {
   const handleViewChannelRequests = (channelId) => {
     setSelectedChannelId(channelId);
     setCurrentPage('channel-requests');
+  };
+
+  // Exporta en un archivo JSON las solicitudes y actualizaciones del PDV
+  const handleExportData = () => {
+    const materialRequests = getStorageItem('material-requests') || [];
+    const updateRequests = getStorageItem('pdv-update-requests') || [];
+    const data = {
+      pdvId: selectedPdvId,
+      materialRequests: materialRequests.filter((r) => r.pdvId === selectedPdvId),
+      updateRequests: updateRequests.filter((r) => r.pdvId === selectedPdvId),
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${selectedPdvId}-data.json`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   // Confirmación de carrito: aquí se guardan los datos en localStorage.
@@ -105,6 +144,11 @@ const App = () => {
     setSelectedTradeType('');
     setSelectedChannelId('');
     setSelectedPdvId('');
+    setSelectedPdvName('');
+    setSelectedRegionId('');
+    setSelectedRegionName('');
+    setSelectedSubId('');
+    setSelectedSubName('');
     setConfirmationMessage('');
   };
 
@@ -121,11 +165,17 @@ const App = () => {
       case 'location-select':
         return 'Selección de Ubicación';
       case 'pdv-actions':
-        return `Acciones para ${selectedPdvId}`;
+        return `Acciones para ${selectedPdvName || selectedPdvId}`;
       case 'request-material':
         return 'Solicitar Material';
       case 'update-pdv':
         return 'Actualizar PDV';
+      case 'campaigns-menu':
+        return 'Campañas';
+      case 'create-campaign':
+        return 'Crear Campaña';
+      case 'manage-campaigns':
+        return 'Gestionar Campañas';
       case 'previous-requests':
         return 'Solicitudes Anteriores';
       case 'channel-requests':
@@ -160,6 +210,13 @@ const App = () => {
       case 'channel-requests':
         setCurrentPage('channel-select');
         break;
+      case 'campaigns-menu':
+        setCurrentPage('pdv-actions');
+        break;
+      case 'create-campaign':
+      case 'manage-campaigns':
+        setCurrentPage('campaigns-menu');
+        break;
       case 'confirm-request':
       case 'confirm-update':
         setCurrentPage('home');
@@ -177,23 +234,7 @@ const App = () => {
       <main className="flex-grow p-4 flex items-center justify-center">
         {/* Vista de inicio con selección de tipo de trade */}
         {currentPage === 'home' && (
-          <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto text-center">
-            <h2 className="text-3xl font-bold text-gray-800 mb-6">Bienvenido</h2>
-            <div className="space-y-4">
-              <button
-                onClick={() => handleSelectTrade('nacional')}
-                className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all duration-300 ease-in-out transform hover:scale-105"
-              >
-                TRADE NACIONAL
-              </button>
-              <button
-                onClick={() => handleSelectTrade('regional')}
-                className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all duration-300 ease-in-out transform hover:scale-105"
-              >
-                TRADE REGIONAL
-              </button>
-            </div>
-          </div>
+          <HomeMenu onSelectTrade={handleSelectTrade} />
         )}
 
         {/* Listado de canales disponibles */}
@@ -209,7 +250,7 @@ const App = () => {
         {/* Acciones disponibles para el PDV */}
         {currentPage === 'pdv-actions' && (
           <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto text-center">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Acciones para {selectedPdvId}</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Acciones para {selectedPdvName}</h2>
             <div className="space-y-4">
               <button
                 onClick={handleRequestMaterial}
@@ -229,13 +270,37 @@ const App = () => {
               >
                 Ver Solicitudes Anteriores
               </button>
+              {selectedTradeType === 'nacional' && (
+                <>
+                  <button
+                    onClick={() => setCurrentPage('campaigns-menu')}
+                    className="w-full bg-indigo-500 text-white py-3 px-4 rounded-lg shadow-md hover:bg-indigo-600 transition-all duration-300 ease-in-out transform hover:scale-105"
+                  >
+                    Campañas
+                  </button>
+                  <button
+                    onClick={handleExportData}
+                    className="w-full bg-gray-600 text-white py-3 px-4 rounded-lg shadow-md hover:bg-gray-700 transition-all duration-300 ease-in-out transform hover:scale-105"
+                  >
+                    Exportar Datos
+                  </button>
+                </>
+              )}
             </div>
           </div>
         )}
 
         {/* Formulario para solicitar material */}
         {currentPage === 'request-material' && (
-          <MaterialRequestForm onConfirmRequest={handleConfirmRequest} selectedPdvId={selectedPdvId} selectedChannelId={selectedChannelId} />
+          <MaterialRequestForm
+            onConfirmRequest={handleConfirmRequest}
+            selectedPdvId={selectedPdvId}
+            selectedPdvName={selectedPdvName}
+            selectedRegionName={selectedRegionName}
+            selectedSubName={selectedSubName}
+            selectedChannelId={selectedChannelId}
+            tradeType={selectedTradeType}
+          />
         )}
 
         {/* Formulario para actualizar información del PDV */}
@@ -253,9 +318,28 @@ const App = () => {
           <ChannelRequests channelId={selectedChannelId} onBack={handleBack} />
         )}
 
+        {/* Menú de campañas */}
+        {currentPage === 'campaigns-menu' && (
+          <CampaignsMenu onCreate={() => setCurrentPage('create-campaign')} onManage={() => setCurrentPage('manage-campaigns')} />
+        )}
+
+        {/* Crear campaña */}
+        {currentPage === 'create-campaign' && (
+          <CreateCampaignForm onBack={handleBack} />
+        )}
+
+        {/* Gestionar campañas */}
+        {currentPage === 'manage-campaigns' && (
+          <ManageCampaigns onBack={handleBack} />
+        )}
+
         {/* Mensaje de confirmación de acciones */}
         {(currentPage === 'confirm-request' || currentPage === 'confirm-update') && (
-          <ConfirmationMessage message={confirmationMessage} onGoHome={handleGoHome} />
+          <ConfirmationMessage
+            message={confirmationMessage}
+            onGoHome={handleGoHome}
+            onStayInChannel={() => setCurrentPage('location-select')}
+          />
         )}
       </main>
       <LayoutFooter />

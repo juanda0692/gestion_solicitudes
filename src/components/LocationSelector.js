@@ -92,8 +92,22 @@ const LocationSelector = ({ onSelectPdv, selectedChannel }) => {
           <label htmlFor="pdv-select" className="block text-gray-700 text-sm font-bold mb-2">Punto de Venta (PDV):</label>
           <select
             id="pdv-select"
-          className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200"
-            onChange={(e) => onSelectPdv(e.target.value)}
+            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200"
+            onChange={(e) => {
+              const value = e.target.value;
+              if (!value) return;
+              const regionName = regions.find(r => r.id === selectedRegion)?.name || '';
+              const subName = availableSubterritories.find(s => s.id === selectedSubterritory)?.name || '';
+              const pdvName = availablePdvs.find(p => p.id === value)?.name || '';
+              onSelectPdv({
+                pdvId: value,
+                pdvName,
+                regionId: selectedRegion,
+                regionName,
+                subterritoryId: selectedSubterritory,
+                subterritoryName: subName,
+              });
+            }}
           >
             <option value="">Selecciona un PDV</option>
             {availablePdvs
