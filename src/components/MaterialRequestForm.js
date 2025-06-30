@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { materials } from '../mock/materials';
+import { campaigns } from '../mock/campaigns';
 
 /**
  * Formulario para solicitar material POP.
@@ -10,13 +11,27 @@ import { materials } from '../mock/materials';
  * dentro de `handleConfirmCart`.
  */
 
-const MaterialRequestForm = ({ onConfirmRequest, selectedPdvId, selectedChannelId }) => {
+const zones = ['Fachada', 'Zona de experiencia', 'Mesas asesores'];
+const priorities = ['Prioridad 1', 'Prioridad 2', 'Prioridad 3'];
+
+const MaterialRequestForm = ({
+  onConfirmRequest,
+  selectedPdvId,
+  selectedPdvName,
+  selectedRegionName,
+  selectedSubName,
+  selectedChannelId,
+  tradeType,
+}) => {
   const [selectedMaterial, setSelectedMaterial] = useState('');
   const [quantity, setQuantity] = useState(1);
   const [selectedMeasures, setSelectedMeasures] = useState('');
   const [notes, setNotes] = useState('');
   const [cart, setCart] = useState([]);
   const [materialSearch, setMaterialSearch] = useState('');
+  const [selectedZones, setSelectedZones] = useState([]);
+  const [selectedPriority, setSelectedPriority] = useState('');
+  const [selectedCampaigns, setSelectedCampaigns] = useState([]);
 
   const availableMeasures = [
     { id: 'medida-1', name: '60x90 cm' },
@@ -67,6 +82,9 @@ const MaterialRequestForm = ({ onConfirmRequest, selectedPdvId, selectedChannelI
       // Aquí se podría enviar el contenido del carrito a un servicio REST
       onConfirmRequest({
         pdvId: selectedPdvId,
+        zones: selectedZones,
+        priority: selectedPriority,
+        campaigns: selectedCampaigns,
         channelId: selectedChannelId,
         items: cart,
       });
@@ -76,10 +94,13 @@ const MaterialRequestForm = ({ onConfirmRequest, selectedPdvId, selectedChannelI
   };
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-lg max-w-2xl mx-auto mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className={`p-6 bg-white rounded-xl shadow-lg mx-auto mt-8 grid gap-8 ${tradeType === 'regional' ? 'max-w-4xl md:grid-cols-3' : 'max-w-2xl md:grid-cols-2'}`}> 
       {/* Sección de Formulario de Solicitud */}
-      <div>
-        <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Solicitar Material POP</h2>
+      <div className="md:col-span-2">
+        <h2 className="text-2xl font-semibold text-gray-800 mb-2 text-center">Solicitar Material POP</h2>
+        <p className="text-center text-sm text-gray-600 mb-4">
+          PDV: {selectedPdvName} - {selectedSubName} - {selectedRegionName}
+        </p>
 
         <div className="mb-4">
           <label htmlFor="material-search" className="block text-gray-700 text-sm font-bold mb-2">Buscar Material:</label>
@@ -194,6 +215,66 @@ const MaterialRequestForm = ({ onConfirmRequest, selectedPdvId, selectedChannelI
           </div>
         )}
       </div>
+
+      {tradeType === 'regional' && (
+        <div className="space-y-4">
+          <div>
+            <h3 className="font-semibold mb-2">Zona</h3>
+            {zones.map((z) => (
+              <label key={z} className="block">
+                <input
+                  type="checkbox"
+                  className="mr-2"
+                  checked={selectedZones.includes(z)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedZones([...selectedZones, z]);
+                    } else {
+                      setSelectedZones(selectedZones.filter((s) => s !== z));
+                    }
+                  }}
+                />
+                {z}
+              </label>
+            ))}
+          </div>
+          <div>
+            <h3 className="font-semibold mb-2">Nombre de la prioridad</h3>
+            <select
+              className="w-full bg-gray-100 border border-gray-300 py-2 px-3 rounded-lg"
+              value={selectedPriority}
+              onChange={(e) => setSelectedPriority(e.target.value)}
+            >
+              <option value="">Seleccione</option>
+              {priorities.map((p) => (
+                <option key={p} value={p}>{p}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <h3 className="font-semibold mb-2">Campaña</h3>
+            <div className="max-h-40 overflow-y-auto space-y-1">
+              {campaigns.map((c) => (
+                <label key={c.id} className="block">
+                  <input
+                    type="checkbox"
+                    className="mr-2"
+                    checked={selectedCampaigns.includes(c.id)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedCampaigns([...selectedCampaigns, c.id]);
+                      } else {
+                        setSelectedCampaigns(selectedCampaigns.filter((id) => id !== c.id));
+                      }
+                    }}
+                  />
+                  {c.name}
+                </label>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
