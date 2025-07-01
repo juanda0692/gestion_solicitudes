@@ -10,6 +10,9 @@ Actualmente todos los datos se encuentran en archivos **mock** y se persisten te
 - **src/components/** – Conjunto de componentes para cada vista (selección de canal, formularios, listados, etc.).
 - **src/mock/** – Datos estáticos de ejemplo (canales, ubicaciones y materiales).
 - **src/utils/storage.js** – Utilidades para leer y escribir en `localStorage`.
+- **src/mock/campaigns.js** – Campañas de ejemplo usadas en el selector.
+- **src/components/HomeMenu.js** – Pantalla de inicio mejorada con bienvenida.
+- **src/components/CampaignsMenu.js** – Acceso a la creación y gestión de campañas.
 
 ## Conexión con backend
 

@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { campaigns as defaultCampaigns } from '../mock/campaigns';
 
+/**
+ * Panel para editar o eliminar campañas existentes.
+ * Los cambios se guardan en localStorage durante la prueba.
+ */
 const ManageCampaigns = ({ onBack }) => {
   const [list, setList] = useState([]);
 
