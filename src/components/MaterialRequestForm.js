@@ -320,68 +320,68 @@ const MaterialRequestForm = ({
               value={selectedPriority}
               onChange={(e) => setSelectedPriority(e.target.value)}
             >
-              <option value="">Seleccione</option>
-              {priorities.map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="relative">
-            <h3 className="font-semibold mb-2">Campaña</h3>
-            <button
-              type="button"
-              onClick={() => setShowCampaigns((v) => !v)}
-              className="w-full bg-gray-100 border border-gray-300 py-2 px-3 rounded-lg text-left flex justify-between items-center"
-            >
-              <span>
-                {selectedCampaigns.length > 0
-                  ? `${selectedCampaigns.length} seleccionada${selectedCampaigns.length > 1 ? 's' : ''}`
-                  : 'Selecciona campañas'}
-              </span>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth="2"
-                stroke="currentColor"
-                className="w-4 h-4"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19 9l-7 7-7-7"
-                />
-              </svg>
-            </button>
-            {showCampaigns && (
-              <div className="absolute z-10 bg-white border border-gray-300 rounded-lg mt-2 w-full max-h-40 overflow-y-auto p-2 shadow-lg">
-                {campaignList.map((c) => (
-                  <label key={c.id} className="block cursor-pointer">
-                    <input
-                      type="checkbox"
-                      className="mr-2"
-                      checked={selectedCampaigns.includes(c.id)}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedCampaigns([...selectedCampaigns, c.id]);
-                        } else {
-                          setSelectedCampaigns(
-                            selectedCampaigns.filter((id) => id !== c.id),
-                          );
-                        }
-                      }}
-                    />
-                    {c.name}
-                  </label>
+                <option value="">Seleccione</option>
+                {priorities.map((p) => (
+                  <option key={p} value={p}>
+                    {p}
+                  </option>
                 ))}
-              </div>
-            )}
+              </select>
+            </div>
+            <div className="relative">
+              <h3 className="font-semibold mb-2">Campaña</h3>
+              <button
+                type="button"
+                onClick={() => setShowCampaigns((v) => !v)}
+                className="w-full bg-gray-100 border border-gray-300 py-2 px-3 rounded-lg text-left flex justify-between items-center"
+              >
+                <span>
+                  {selectedCampaigns.length > 0
+                    ? `${selectedCampaigns.length} seleccionada${selectedCampaigns.length > 1 ? 's' : ''}`
+                    : 'Selecciona campañas'}
+                </span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="2"
+                  stroke="currentColor"
+                  className="w-4 h-4"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19 9l-7 7-7-7"
+                  />
+                </svg>
+              </button>
+              {showCampaigns && (
+                <div className="absolute z-10 bg-white border border-gray-300 rounded-lg mt-2 w-full max-h-40 overflow-y-auto p-2 shadow-lg">
+                  {campaignList.map((c) => (
+                    <label key={c.id} className="block cursor-pointer">
+                      <input
+                        type="checkbox"
+                        className="mr-2"
+                        checked={selectedCampaigns.includes(c.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedCampaigns([...selectedCampaigns, c.id]);
+                          } else {
+                            setSelectedCampaigns(
+                              selectedCampaigns.filter((id) => id !== c.id),
+                            );
+                          }
+                        }}
+                      />
+                      {c.name}
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
   );
 };
 

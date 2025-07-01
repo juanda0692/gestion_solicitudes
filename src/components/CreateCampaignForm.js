@@ -5,7 +5,6 @@ import { campaigns } from '../mock/campaigns';
  * Formulario para crear una campaña nueva.
  * Guarda temporalmente la información en localStorage.
  */
-
 const CreateCampaignForm = ({ onBack }) => {
   const [name, setName] = useState('');
   const handleSubmit = () => {
