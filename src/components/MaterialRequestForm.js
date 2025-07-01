@@ -35,6 +35,8 @@ const MaterialRequestForm = ({
   const [showCampaigns, setShowCampaigns] = useState(false);
   const [campaignList, setCampaignList] = useState([]);
 
+  // Medidas predefinidas. Pueden ampliarse según necesidades del negocio.
+
   const availableMeasures = [
     { id: 'medida-1', name: '60x90 cm' },
     { id: 'medida-2', name: 'A5 (14.8x21 cm)' },
@@ -43,6 +45,7 @@ const MaterialRequestForm = ({
     { id: 'medida-5', name: 'Personalizado' },
   ];
 
+  // Cargar campañas guardadas localmente para mostrarlas en el desplegable.
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('campaigns'));
     setCampaignList(stored || defaultCampaigns);

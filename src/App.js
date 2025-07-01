@@ -122,7 +122,7 @@ const App = () => {
   // Reemplazar esta lógica por una llamada al backend al integrar APIs.
   const handleConfirmRequest = (requestDetails) => {
     const requestWithDate = { ...requestDetails, date: new Date().toISOString() };
-    console.log('Solicitud de Material Confirmada:', requestWithDate);
+    // console.log('Solicitud de Material Confirmada:', requestWithDate);
     const existing = getStorageItem('material-requests') || [];
     setStorageItem('material-requests', [...existing, requestWithDate]);
     setConfirmationMessage('¡Tu solicitud de material ha sido enviada con éxito!');
@@ -133,7 +133,7 @@ const App = () => {
   // Actualmente se guarda en localStorage y muestra confirmación.
   // Con backend, aquí se enviaría la información actualizada.
   const handleUpdateConfirm = (updatedData) => {
-    console.log('Datos del PDV Actualizados:', updatedData);
+    // console.log('Datos del PDV Actualizados:', updatedData);
     setConfirmationMessage('¡Los datos del PDV han sido actualizados correctamente!');
     setCurrentPage('confirm-update');
   };

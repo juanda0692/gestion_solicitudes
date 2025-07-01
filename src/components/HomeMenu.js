@@ -9,7 +9,7 @@ const HomeMenu = ({ onSelectTrade }) => {
       <p className="text-sm text-gray-600">{today}</p>
       <div className="bg-tigo-light p-4 rounded-lg text-gray-800">
         <p className="font-semibold mb-2">Informe de la base de destinatarios</p>
-        <p>Here podrá realizar solicitudes de material, campañas y consultar información clave para la gestión comercial. Este sistema fue creado para reducir errores en procesos de distribución y logística.</p>
+        <p>Aquí podrá realizar solicitudes de material, campañas y consultar información clave para la gestión comercial. Este sistema fue creado para reducir errores en procesos de distribución y logística.</p>
       </div>
       <div className="space-y-4">
         <button

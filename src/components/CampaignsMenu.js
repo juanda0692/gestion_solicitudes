@@ -1,5 +1,11 @@
 import React from 'react';
 
+/**
+ * Menú principal de campañas.
+ *
+ * Desde aquí se accede a la creación o gestión de campañas.
+ */
+
 const CampaignsMenu = ({ onCreate, onManage }) => (
   <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto text-center">
     <h2 className="text-2xl font-semibold text-gray-800 mb-6">Campañas</h2>
