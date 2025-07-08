@@ -3,7 +3,6 @@ import { materials } from '../mock/materials';
 
 import { campaigns as defaultCampaigns } from '../mock/campaigns';
 
-import { campaigns } from '../mock/campaigns';
 
 
 /**
@@ -119,13 +118,7 @@ const MaterialRequestForm = ({
     <div
       className={`p-6 bg-white rounded-xl shadow-lg mx-auto mt-8 grid gap-8 ${tradeType === 'regional' ? 'max-w-4xl md:grid-cols-3' : 'max-w-2xl md:grid-cols-2'}`}
     >
-      {/* Sección de Formulario de Solicitud */}
-      <div className="md:col-span-2">
-        <h2 className="text-2xl font-semibold text-gray-800 mb-2 text-center">
-          Solicitar Material POP
-        </h2>
 
-    <div className={`p-6 bg-white rounded-xl shadow-lg mx-auto mt-8 grid gap-8 ${tradeType === 'regional' ? 'max-w-4xl md:grid-cols-3' : 'max-w-2xl md:grid-cols-2'}`}> 
       {/* Sección de Formulario de Solicitud */}
       <div className="md:col-span-2">
         <h2 className="text-2xl font-semibold text-gray-800 mb-2 text-center">Solicitar Material POP</h2>
@@ -398,37 +391,6 @@ const MaterialRequestForm = ({
         )}
       </div>
 
-              <option value="">Seleccione</option>
-              {priorities.map((p) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <h3 className="font-semibold mb-2">Campaña</h3>
-            <div className="max-h-40 overflow-y-auto space-y-1">
-              {campaigns.map((c) => (
-                <label key={c.id} className="block">
-                  <input
-                    type="checkbox"
-                    className="mr-2"
-                    checked={selectedCampaigns.includes(c.id)}
-                    onChange={(e) => {
-                      if (e.target.checked) {
-                        setSelectedCampaigns([...selectedCampaigns, c.id]);
-                      } else {
-                        setSelectedCampaigns(selectedCampaigns.filter((id) => id !== c.id));
-                      }
-                    }}
-                  />
-                  {c.name}
-                </label>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
 
   );
 };
