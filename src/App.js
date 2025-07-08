@@ -117,6 +117,11 @@ const App = () => {
     setCurrentPage('export-data');
   };
 
+  // Navegar directamente al formulario de creación de campaña
+  const handleCreateCampaign = () => {
+    setCurrentPage('create-campaign');
+  };
+
   // Exporta información de solicitudes y actualizaciones filtrando por canal,
   // puntos de venta y materiales. Se utiliza desde la pantalla de Export Data.
   const performExport = ({ channelId, pdvIds = [], materialIds = [] }) => {
@@ -310,7 +315,15 @@ const App = () => {
 
         {/* Listado de canales disponibles */}
         {isLoggedIn && currentPage === 'channel-select' && (
-          <ChannelSelector onSelectChannel={handleSelectChannel} />
+          <ChannelSelector
+            onSelectChannel={handleSelectChannel}
+            onCreateCampaign={
+              selectedTradeType === 'nacional' ? handleCreateCampaign : undefined
+            }
+            onExportData={
+              selectedTradeType === 'nacional' ? handleExportData : undefined
+            }
+          />
         )}
 
         {/* Menú del canal seleccionado */}
@@ -350,22 +363,6 @@ const App = () => {
               >
                 Ver Solicitudes Anteriores
               </button>
-              {selectedTradeType === 'nacional' && (
-                <>
-                  <button
-                    onClick={() => setCurrentPage('campaigns-menu')}
-                    className="w-full bg-indigo-500 text-white py-3 px-4 rounded-lg shadow-md hover:bg-indigo-600 transition-all duration-300 ease-in-out transform hover:scale-105"
-                  >
-                    Campañas
-                  </button>
-                  <button
-                    onClick={handleExportData}
-                    className="w-full bg-gray-600 text-white py-3 px-4 rounded-lg shadow-md hover:bg-gray-700 transition-all duration-300 ease-in-out transform hover:scale-105"
-                  >
-                    Exportar Datos
-                  </button>
-                </>
-              )}
             </div>
           </div>
         )}
@@ -405,7 +402,7 @@ const App = () => {
 
         {/* Crear campaña */}
         {isLoggedIn && currentPage === 'create-campaign' && (
-          <CreateCampaignForm onBack={handleBack} />
+          <CreateCampaignForm onBack={() => setCurrentPage('channel-select')} />
         )}
 
         {/* Gestionar campañas */}
