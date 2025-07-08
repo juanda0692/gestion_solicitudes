@@ -6,7 +6,7 @@ import React from 'react';
  * `onBack` está definido.
  */
 
-const LayoutHeader = ({ title, onBack }) => {
+const LayoutHeader = ({ title, onBack, onLogout }) => {
   return (
     <header className="bg-tigo-blue text-white p-4 shadow-md flex items-center">
       <img src="/tigo-logo.svg" alt="Tigo Logo" className="h-8 w-auto mr-4" />
@@ -18,6 +18,9 @@ const LayoutHeader = ({ title, onBack }) => {
         </button>
       )}
       <h1 className="text-xl md:text-2xl font-semibold flex-grow text-center">{title}</h1>
+      {onLogout && (
+        <button onClick={onLogout} className="ml-4 text-white text-sm">Cerrar sesión</button>
+      )}
     </header>
   );
 };

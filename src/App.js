@@ -25,12 +25,16 @@ import HomeMenu from './components/HomeMenu';
 import CampaignsMenu from './components/CampaignsMenu';
 import CreateCampaignForm from './components/CreateCampaignForm';
 import ManageCampaigns from './components/ManageCampaigns';
+import LoginScreen from './components/LoginScreen';
 import { getStorageItem, setStorageItem } from './utils/storage';
 
 const App = () => {
+  // Controla si el usuario ha iniciado sesión
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   // Página o vista que se está mostrando actualmente
   // (home, selección de canal, formulario, etc.)
-  const [currentPage, setCurrentPage] = useState('home');
+  const [currentPage, setCurrentPage] = useState('login');
 
   // Tipo de trade seleccionado ("nacional" o "regional")
   const [selectedTradeType, setSelectedTradeType] = useState('');
@@ -152,9 +156,24 @@ const App = () => {
     setConfirmationMessage('');
   };
 
+  // Al iniciar sesión correctamente mostramos la página principal
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+    setCurrentPage('home');
+  };
+
+  // Cerrar sesión y volver al login
+  const handleLogout = () => {
+    handleGoHome();
+    setIsLoggedIn(false);
+    setCurrentPage('login');
+  };
+
   // Devuelve el título que debe mostrar el encabezado según la vista actual
   const getHeaderTitle = () => {
     switch (currentPage) {
+      case 'login':
+        return 'Inicio de Sesión';
       case 'home':
         return 'Base de Destinatarios';
       case 'trade-nacional':
@@ -229,26 +248,34 @@ const App = () => {
   return (
     // Contenedor general con encabezado fijo y área de contenido
     <div className="min-h-screen bg-tigo-light flex flex-col">
-      <LayoutHeader title={getHeaderTitle()} onBack={currentPage !== 'home' ? handleBack : null} />
+      <LayoutHeader
+        title={getHeaderTitle()}
+        onBack={isLoggedIn && currentPage !== 'home' ? handleBack : null}
+        onLogout={isLoggedIn ? handleLogout : null}
+      />
 
       <main className="flex-grow p-4 flex items-center justify-center">
+        {!isLoggedIn && (
+          <LoginScreen onLogin={handleLogin} />
+        )}
+
         {/* Vista de inicio con selección de tipo de trade */}
-        {currentPage === 'home' && (
+        {isLoggedIn && currentPage === 'home' && (
           <HomeMenu onSelectTrade={handleSelectTrade} />
         )}
 
         {/* Listado de canales disponibles */}
-        {currentPage === 'channel-select' && (
+        {isLoggedIn && currentPage === 'channel-select' && (
           <ChannelSelector onSelectChannel={handleSelectChannel} onViewChannelRequests={handleViewChannelRequests} />
         )}
 
         {/* Selección de región, subterritorio y PDV */}
-        {currentPage === 'location-select' && (
+        {isLoggedIn && currentPage === 'location-select' && (
           <LocationSelector onSelectPdv={handleSelectPdv} selectedChannel={selectedChannelId} />
         )}
 
         {/* Acciones disponibles para el PDV */}
-        {currentPage === 'pdv-actions' && (
+        {isLoggedIn && currentPage === 'pdv-actions' && (
           <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto text-center">
             <h2 className="text-2xl font-semibold text-gray-800 mb-6">Acciones para {selectedPdvName}</h2>
             <div className="space-y-4">
@@ -291,7 +318,7 @@ const App = () => {
         )}
 
         {/* Formulario para solicitar material */}
-        {currentPage === 'request-material' && (
+        {isLoggedIn && currentPage === 'request-material' && (
           <MaterialRequestForm
             onConfirmRequest={handleConfirmRequest}
             selectedPdvId={selectedPdvId}
@@ -304,37 +331,37 @@ const App = () => {
         )}
 
         {/* Formulario para actualizar información del PDV */}
-        {currentPage === 'update-pdv' && (
+        {isLoggedIn && currentPage === 'update-pdv' && (
           <PdvUpdateForm selectedPdvId={selectedPdvId} onUpdateConfirm={handleUpdateConfirm} />
         )}
 
         {/* Historial de solicitudes para el PDV */}
-        {currentPage === 'previous-requests' && (
+        {isLoggedIn && currentPage === 'previous-requests' && (
           <PreviousRequests pdvId={selectedPdvId} onBack={handleBack} />
         )}
 
         {/* Historial de solicitudes por canal */}
-        {currentPage === 'channel-requests' && (
+        {isLoggedIn && currentPage === 'channel-requests' && (
           <ChannelRequests channelId={selectedChannelId} onBack={handleBack} />
         )}
 
         {/* Menú de campañas */}
-        {currentPage === 'campaigns-menu' && (
+        {isLoggedIn && currentPage === 'campaigns-menu' && (
           <CampaignsMenu onCreate={() => setCurrentPage('create-campaign')} onManage={() => setCurrentPage('manage-campaigns')} />
         )}
 
         {/* Crear campaña */}
-        {currentPage === 'create-campaign' && (
+        {isLoggedIn && currentPage === 'create-campaign' && (
           <CreateCampaignForm onBack={handleBack} />
         )}
 
         {/* Gestionar campañas */}
-        {currentPage === 'manage-campaigns' && (
+        {isLoggedIn && currentPage === 'manage-campaigns' && (
           <ManageCampaigns onBack={handleBack} />
         )}
 
         {/* Mensaje de confirmación de acciones */}
-        {(currentPage === 'confirm-request' || currentPage === 'confirm-update') && (
+        {isLoggedIn && (currentPage === 'confirm-request' || currentPage === 'confirm-update') && (
           <ConfirmationMessage
             message={confirmationMessage}
             onGoHome={handleGoHome}
