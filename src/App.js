@@ -27,7 +27,9 @@ import CreateCampaignForm from './components/CreateCampaignForm';
 import ManageCampaigns from './components/ManageCampaigns';
 import ExportData from './components/ExportData';
 import LoginScreen from './components/LoginScreen';
+import ChannelMenu from './components/ChannelMenu';
 import { getStorageItem, setStorageItem } from './utils/storage';
+import { channels } from './mock/channels';
 
 const App = () => {
   // Controla si el usuario ha iniciado sesión
@@ -60,9 +62,14 @@ const App = () => {
     setCurrentPage('channel-select');
   };
 
-  // Después de elegir un canal, pasamos a seleccionar ubicación
+  // Después de elegir un canal se muestra el menú de canal
   const handleSelectChannel = (channelId) => {
     setSelectedChannelId(channelId);
+    setCurrentPage('channel-menu');
+  };
+
+  // Desde el menú del canal se continúa a la selección de ubicación
+  const handleManageChannel = () => {
     setCurrentPage('location-select');
   };
 
@@ -208,6 +215,8 @@ const App = () => {
         return `Gestión ${selectedTradeType === 'nacional' ? 'Nacional' : 'Regional'}`;
       case 'channel-select':
         return 'Selección de Canal';
+      case 'channel-menu':
+        return `Canal ${channels.find((c) => c.id === selectedChannelId)?.name || selectedChannelId}`;
       case 'location-select':
         return 'Selección de Ubicación';
       case 'pdv-actions':
@@ -242,6 +251,9 @@ const App = () => {
       case 'channel-select':
         setCurrentPage('home');
         break;
+      case 'channel-menu':
+        setCurrentPage('channel-select');
+        break;
       case 'location-select':
         setCurrentPage('channel-select');
         break;
@@ -256,7 +268,7 @@ const App = () => {
         setCurrentPage('pdv-actions');
         break;
       case 'channel-requests':
-        setCurrentPage('channel-select');
+        setCurrentPage('channel-menu');
         break;
       case 'campaigns-menu':
         setCurrentPage('pdv-actions');
@@ -298,7 +310,16 @@ const App = () => {
 
         {/* Listado de canales disponibles */}
         {isLoggedIn && currentPage === 'channel-select' && (
-          <ChannelSelector onSelectChannel={handleSelectChannel} onViewChannelRequests={handleViewChannelRequests} />
+          <ChannelSelector onSelectChannel={handleSelectChannel} />
+        )}
+
+        {/* Menú del canal seleccionado */}
+        {isLoggedIn && currentPage === 'channel-menu' && (
+          <ChannelMenu
+            channelId={selectedChannelId}
+            onSelectPdv={handleManageChannel}
+            onViewRequests={() => handleViewChannelRequests(selectedChannelId)}
+          />
         )}
 
         {/* Selección de región, subterritorio y PDV */}
