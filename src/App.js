@@ -299,6 +299,7 @@ const App = () => {
     <div className="min-h-screen bg-tigo-light flex flex-col">
       <LayoutHeader
         title={getHeaderTitle()}
+        onLogoClick={isLoggedIn ? handleGoHome : null}
         onBack={isLoggedIn && currentPage !== 'home' ? handleBack : null}
         onLogout={isLoggedIn ? handleLogout : null}
       />

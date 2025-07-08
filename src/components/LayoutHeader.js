@@ -1,4 +1,5 @@
 import React from 'react';
+import TigoLogo from '../assets/TigoLogo';
 
 /**
  * Encabezado común de la aplicación.
@@ -6,10 +7,12 @@ import React from 'react';
  * `onBack` está definido.
  */
 
-const LayoutHeader = ({ title, onBack, onLogout }) => {
+const LayoutHeader = ({ title, onBack, onLogout, onLogoClick }) => {
   return (
     <header className="bg-tigo-blue text-white p-4 shadow-md flex items-center">
-      <img src="/tigo-logo.svg" alt="Tigo Logo" className="h-8 w-auto mr-4" />
+      <button onClick={onLogoClick} className="mr-4 focus:outline-none">
+        <TigoLogo className="h-8 w-auto" />
+      </button>
       {onBack && (
         <button onClick={onBack} className="text-white text-2xl mr-4">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor" className="w-6 h-6">
