@@ -25,6 +25,7 @@ import HomeMenu from './components/HomeMenu';
 import CampaignsMenu from './components/CampaignsMenu';
 import CreateCampaignForm from './components/CreateCampaignForm';
 import ManageCampaigns from './components/ManageCampaigns';
+import ExportData from './components/ExportData';
 import LoginScreen from './components/LoginScreen';
 import { getStorageItem, setStorageItem } from './utils/storage';
 
@@ -104,20 +105,46 @@ const App = () => {
     setCurrentPage('channel-requests');
   };
 
-  // Exporta en un archivo JSON las solicitudes y actualizaciones del PDV
+  // Navegar a la pantalla de exportación de datos
   const handleExportData = () => {
+    setCurrentPage('export-data');
+  };
+
+  // Exporta información de solicitudes y actualizaciones filtrando por canal,
+  // puntos de venta y materiales. Se utiliza desde la pantalla de Export Data.
+  const performExport = ({ channelId, pdvIds = [], materialIds = [] }) => {
     const materialRequests = getStorageItem('material-requests') || [];
     const updateRequests = getStorageItem('pdv-update-requests') || [];
+
+    let filteredMaterial = materialRequests.filter((r) => r.channelId === channelId);
+    if (pdvIds.length > 0) {
+      filteredMaterial = filteredMaterial.filter((r) => pdvIds.includes(r.pdvId));
+    }
+    let filteredUpdates = updateRequests.filter((r) => r.channelId === channelId);
+    if (pdvIds.length > 0) {
+      filteredUpdates = filteredUpdates.filter((r) => pdvIds.includes(r.pdvId));
+    }
+
+    if (materialIds.length > 0) {
+      filteredMaterial = filteredMaterial.map((req) => ({
+        ...req,
+        items: req.items.filter((i) => materialIds.includes(i.material.id)),
+      }));
+    }
+
     const data = {
-      pdvId: selectedPdvId,
-      materialRequests: materialRequests.filter((r) => r.pdvId === selectedPdvId),
-      updateRequests: updateRequests.filter((r) => r.pdvId === selectedPdvId),
+      channelId,
+      materialRequests: filteredMaterial,
+      updateRequests: filteredUpdates,
     };
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], {
+      type: 'application/json',
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${selectedPdvId}-data.json`;
+    a.download = `${channelId}-data.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -195,6 +222,8 @@ const App = () => {
         return 'Crear Campaña';
       case 'manage-campaigns':
         return 'Gestionar Campañas';
+      case 'export-data':
+        return 'Exportar Datos';
       case 'previous-requests':
         return 'Solicitudes Anteriores';
       case 'channel-requests':
@@ -235,6 +264,9 @@ const App = () => {
       case 'create-campaign':
       case 'manage-campaigns':
         setCurrentPage('campaigns-menu');
+        break;
+      case 'export-data':
+        setCurrentPage('pdv-actions');
         break;
       case 'confirm-request':
       case 'confirm-update':
@@ -358,6 +390,11 @@ const App = () => {
         {/* Gestionar campañas */}
         {isLoggedIn && currentPage === 'manage-campaigns' && (
           <ManageCampaigns onBack={handleBack} />
+        )}
+
+        {/* Exportar datos */}
+        {isLoggedIn && currentPage === 'export-data' && (
+          <ExportData onBack={handleBack} onExport={performExport} />
         )}
 
         {/* Mensaje de confirmación de acciones */}
