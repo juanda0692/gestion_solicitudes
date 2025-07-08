@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { materials } from '../mock/materials';
-
 import { campaigns as defaultCampaigns } from '../mock/campaigns';
+import { channels } from '../mock/channels';
+import ContextInfo from './ContextInfo';
 
 
 
@@ -14,7 +15,9 @@ import { campaigns as defaultCampaigns } from '../mock/campaigns';
  * dentro de `handleConfirmCart`.
  */
 
+// Zonas disponibles para solicitar material
 const zones = ['Fachada', 'Zona de experiencia', 'Mesas asesores'];
+// Prioridades definidas por el negocio
 const priorities = ['Prioridad 1', 'Prioridad 2', 'Prioridad 3'];
 
 const MaterialRequestForm = ({
@@ -26,23 +29,23 @@ const MaterialRequestForm = ({
   selectedChannelId,
   tradeType,
 }) => {
-  const [selectedMaterial, setSelectedMaterial] = useState('');
-  const [quantity, setQuantity] = useState(1);
-  const [selectedMeasures, setSelectedMeasures] = useState('');
-  const [notes, setNotes] = useState('');
-  const [cart, setCart] = useState([]);
-  const [materialSearch, setMaterialSearch] = useState('');
-  const [selectedZones, setSelectedZones] = useState([]);
-  const [selectedPriority, setSelectedPriority] = useState('');
-  const [selectedCampaigns, setSelectedCampaigns] = useState([]);
+  const channelName = channels.find((c) => c.id === selectedChannelId)?.name || selectedChannelId;
+  // Estado del formulario
+  const [selectedMaterial, setSelectedMaterial] = useState(''); // ID del material elegido
+  const [quantity, setQuantity] = useState(1); // Cantidad solicitada
+  const [selectedMeasures, setSelectedMeasures] = useState(''); // Medidas del material
+  const [notes, setNotes] = useState(''); // Notas adicionales del usuario
+  const [cart, setCart] = useState([]); // Carrito con todos los ítems seleccionados
+  const [materialSearch, setMaterialSearch] = useState(''); // Texto de búsqueda de materiales
+  const [selectedZones, setSelectedZones] = useState([]); // Zonas elegidas
+  const [selectedPriority, setSelectedPriority] = useState(''); // Nivel de prioridad
+  const [selectedCampaigns, setSelectedCampaigns] = useState([]); // Campañas vinculadas
 
-  const [showCampaigns, setShowCampaigns] = useState(false);
-  const [campaignList, setCampaignList] = useState([]);
+  const [showCampaigns, setShowCampaigns] = useState(false); // Controla la vista del desplegable
+  const [campaignList, setCampaignList] = useState([]); // Lista disponible de campañas
+  const [campaignSearch, setCampaignSearch] = useState(''); // Texto para filtrar campañas
 
-  // Medidas predefinidas. Pueden ampliarse según necesidades del negocio.
-
-
-
+  // Medidas predefinidas para el selector de medidas
   const availableMeasures = [
     { id: 'medida-1', name: '60x90 cm' },
     { id: 'medida-2', name: 'A5 (14.8x21 cm)' },
@@ -50,14 +53,13 @@ const MaterialRequestForm = ({
     { id: 'medida-4', name: '200x80 cm' },
     { id: 'medida-5', name: 'Personalizado' },
   ];
-
-  // Cargar campañas guardadas localmente para mostrarlas en el desplegable.
+  // Cargar campañas guardadas localmente para mostrarlas en el desplegable
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('campaigns'));
     setCampaignList(stored || defaultCampaigns);
   }, []);
 
-  // Agrega el material seleccionado al carrito
+  // Agrega el material actual al carrito de la solicitud
   const handleAddToCart = () => {
     if (selectedMaterial && quantity > 0 && selectedMeasures) {
       const materialDetails = materials.find((m) => m.id === selectedMaterial);
@@ -91,12 +93,12 @@ const MaterialRequestForm = ({
     setCart((prevCart) => prevCart.filter((item) => item.id !== itemId));
   };
 
-  // Vacía por completo el carrito
+  // Vacía por completo el carrito de materiales
   const handleClearCart = () => {
     setCart([]);
   };
 
-  // Al confirmar se llama a `onConfirmRequest` con todos los datos del carrito
+  // Envía la solicitud al componente padre cuando el carrito tiene información
   const handleConfirmCart = () => {
     if (cart.length > 0) {
       // Aquí se podría enviar el contenido del carrito a un servicio REST
@@ -124,7 +126,7 @@ const MaterialRequestForm = ({
         <h2 className="text-2xl font-semibold text-gray-800 mb-2 text-center">Solicitar Material POP</h2>
 
         <p className="text-center text-sm text-gray-600 mb-4">
-          PDV: {selectedPdvName} - {selectedSubName} - {selectedRegionName}
+          PDV: {selectedPdvName} - {selectedSubName} - {selectedRegionName} - Canal: {channelName}
         </p>
 
         <div className="mb-4">
@@ -234,8 +236,14 @@ const MaterialRequestForm = ({
         </button>
       </div>
 
-      {/* Sección del Carrito */}
+      {/* Sección del Carrito y contexto */}
       <div className="border-l border-gray-200 pl-8 md:pl-4">
+        <ContextInfo
+          pdvName={selectedPdvName}
+          subterritoryName={selectedSubName}
+          regionName={selectedRegionName}
+          channelId={selectedChannelId}
+        />
         <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
           Carrito de Solicitud ({cart.length})
         </h2>
@@ -365,25 +373,36 @@ const MaterialRequestForm = ({
               </button>
               {showCampaigns && (
                 <div className="absolute z-10 bg-white border border-gray-300 rounded-lg mt-2 w-full max-h-40 overflow-y-auto p-2 shadow-lg">
-                  {campaignList.map((c) => (
-                    <label key={c.id} className="block cursor-pointer">
-                      <input
-                        type="checkbox"
-                        className="mr-2"
-                        checked={selectedCampaigns.includes(c.id)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setSelectedCampaigns([...selectedCampaigns, c.id]);
-                          } else {
-                            setSelectedCampaigns(
-                              selectedCampaigns.filter((id) => id !== c.id),
-                            );
-                          }
-                        }}
-                      />
-                      {c.name}
-                    </label>
-                  ))}
+                  <input
+                    type="text"
+                    placeholder="Buscar campaña"
+                    value={campaignSearch}
+                    onChange={(e) => setCampaignSearch(e.target.value)}
+                    className="w-full mb-2 bg-gray-100 border border-gray-300 p-1 rounded"
+                  />
+                  {campaignList
+                    .filter((c) =>
+                      c.name.toLowerCase().includes(campaignSearch.toLowerCase()),
+                    )
+                    .map((c) => (
+                      <label key={c.id} className="block cursor-pointer">
+                        <input
+                          type="checkbox"
+                          className="mr-2"
+                          checked={selectedCampaigns.includes(c.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedCampaigns([...selectedCampaigns, c.id]);
+                            } else {
+                              setSelectedCampaigns(
+                                selectedCampaigns.filter((id) => id !== c.id),
+                              );
+                            }
+                          }}
+                        />
+                        {c.name}
+                      </label>
+                    ))}
                 </div>
               )}
             </div>
