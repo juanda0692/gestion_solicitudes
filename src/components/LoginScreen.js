@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import TigoLogo from '../assets/TigoLogo';
 
 /**
  * Pantalla de inicio de sesión.
@@ -22,7 +23,7 @@ const LoginScreen = ({ onLogin }) => {
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto text-center space-y-4">
-      <img src="/tigo-logo.svg" alt="Tigo Logo" className="h-12 mx-auto" />
+      <TigoLogo className="h-12 mx-auto" />
       <h2 className="text-2xl font-semibold text-gray-800">Iniciar Sesión</h2>
       {error && <p className="text-red-600 text-sm">{error}</p>}
       <input

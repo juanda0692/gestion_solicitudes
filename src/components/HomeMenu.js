@@ -1,6 +1,7 @@
 import React from 'react';
 import NacionalPlaceholder from '../assets/NacionalPlaceholder';
 import RegionalPlaceholder from '../assets/RegionalPlaceholder';
+import TigoLogo from '../assets/TigoLogo';
 
 const HomeMenu = ({ onSelectTrade }) => {
   const today = new Date().toLocaleDateString();
@@ -8,7 +9,7 @@ const HomeMenu = ({ onSelectTrade }) => {
   return (
     <div className="w-full max-w-4xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
       <div className="text-center p-6 space-y-2">
-        <img src="/tigo-logo.svg" alt="Tigo" className="h-12 mx-auto" />
+        <TigoLogo className="h-12 mx-auto" />
         <h2 className="text-3xl font-bold text-gray-800">BASE DE DESTINATARIOS</h2>
         <p className="text-sm text-gray-600">{today}</p>
         <p className="text-gray-700 max-w-2xl mx-auto">

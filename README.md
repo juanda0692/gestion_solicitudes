@@ -12,6 +12,8 @@ Actualmente todos los datos se encuentran en archivos **mock** y se persisten te
 - **src/utils/storage.js** – Utilidades para leer y escribir en `localStorage`.
 - **src/mock/campaigns.js** – Campañas de ejemplo usadas en el selector.
 - **src/components/HomeMenu.js** – Pantalla de inicio mejorada con bienvenida.
+- **src/assets/TigoLogo.js** – Representación SVG del logo usada en el encabezado.
+- El logo en el encabezado funciona como botón para volver al menú principal.
 - **src/components/CampaignsMenu.js** – Acceso a la creación y gestión de campañas.
 - **src/components/CreateCampaignForm.js** – Formulario para parametrizar campañas.
 - **src/components/ManageCampaigns.js** – Panel para editar campañas existentes.
