@@ -13,12 +13,18 @@ Actualmente todos los datos se encuentran en archivos **mock** y se persisten te
 - **src/mock/campaigns.js** – Campañas de ejemplo usadas en el selector.
 - **src/components/HomeMenu.js** – Pantalla de inicio mejorada con bienvenida.
 - **src/components/CampaignsMenu.js** – Acceso a la creación y gestión de campañas.
+- **src/components/CreateCampaignForm.js** – Formulario para parametrizar campañas.
+- **src/components/ManageCampaigns.js** – Panel para editar campañas existentes.
 
 ## Conexión con backend
 
 1. **Carga de datos**: Los archivos de `src/mock` deben sustituirse por peticiones HTTP. Cada componente indica en sus comentarios dónde realizar esas llamadas.
 2. **Envío de solicitudes**: Las funciones `handleConfirmRequest` y `handleUpdateConfirm` dentro de `App.js` son los puntos principales para enviar información al servidor.
 3. **Históricos**: `PreviousRequests` y `ChannelRequests` leen datos del almacenamiento local; reemplazar por consultas al backend que filtren por PDV o canal.
+
+## Gestión de campañas
+
+El menú **Campañas** permite crear campañas asignando prioridad, canales y materiales a partir de los archivos de `src/mock`. Las campañas se almacenan en `localStorage` para efectos de prueba. Desde el backend se deberá implementar la persistencia y actualización real de estos datos.
 
 ## Puesta en marcha
 

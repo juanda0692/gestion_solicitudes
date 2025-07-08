@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { campaigns as defaultCampaigns } from '../mock/campaigns';
+import { channels } from '../mock/channels';
+import { materials } from '../mock/materials';
 
 /**
  * Panel para editar o eliminar campañas existentes.
@@ -19,20 +21,80 @@ const ManageCampaigns = ({ onBack }) => {
     localStorage.setItem('campaigns', JSON.stringify(updated));
   };
 
+  const updateCampaign = (index, field, value) => {
+    const updated = [...list];
+    updated[index] = { ...updated[index], [field]: value };
+    setList(updated);
+    localStorage.setItem('campaigns', JSON.stringify(updated));
+  };
+
+  const toggleArrayValue = (array = [], value) =>
+    array.includes(value)
+      ? array.filter((v) => v !== value)
+      : [...array, value];
+
   return (
-    <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto">
+    <div className="p-6 bg-white rounded-xl shadow-lg max-w-xl mx-auto">
       <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Gestionar campañas</h2>
       {list.length === 0 ? (
         <p className="text-center text-gray-600">No hay campañas.</p>
       ) : (
-        <ul className="space-y-2 mb-4">
-          {list.map((c) => (
-            <li key={c.id} className="flex justify-between items-center bg-gray-50 p-2 rounded">
-              <span>{c.name}</span>
-              <button onClick={() => handleDelete(c.id)} className="text-red-500">Eliminar</button>
-            </li>
+        <div className="space-y-4 mb-4">
+          {list.map((c, idx) => (
+            <div key={c.id} className="border p-3 rounded">
+              <input
+                className="w-full mb-2 bg-gray-100 border border-gray-300 py-1 px-2 rounded"
+                value={c.name}
+                onChange={(e) => updateCampaign(idx, 'name', e.target.value)}
+              />
+              <div className="mb-2">
+                <h3 className="font-semibold text-sm">Prioridad</h3>
+                <select
+                  className="w-full bg-gray-100 border border-gray-300 py-1 px-2 rounded"
+                  value={c.priority}
+                  onChange={(e) => updateCampaign(idx, 'priority', e.target.value)}
+                >
+                  <option value="1">Prioridad 1</option>
+                  <option value="2">Prioridad 2</option>
+                  <option value="3">Prioridad 3</option>
+                </select>
+              </div>
+              <div className="mb-2">
+                <h3 className="font-semibold text-sm">Canales</h3>
+                {channels.map((ch) => (
+                  <label key={ch.id} className="block">
+                    <input
+                      type="checkbox"
+                      className="mr-2"
+                      checked={(c.channels || []).includes(ch.id)}
+                      onChange={() =>
+                        updateCampaign(idx, 'channels', toggleArrayValue(c.channels, ch.id))
+                      }
+                    />
+                    {ch.name}
+                  </label>
+                ))}
+              </div>
+              <div className="mb-2">
+                <h3 className="font-semibold text-sm">Materiales</h3>
+                {materials.map((m) => (
+                  <label key={m.id} className="block">
+                    <input
+                      type="checkbox"
+                      className="mr-2"
+                      checked={(c.materials || []).includes(m.id)}
+                      onChange={() =>
+                        updateCampaign(idx, 'materials', toggleArrayValue(c.materials, m.id))
+                      }
+                    />
+                    {m.name}
+                  </label>
+                ))}
+              </div>
+              <button onClick={() => handleDelete(c.id)} className="text-red-500 mt-2">Eliminar</button>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
       <button onClick={onBack} className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all">
         Volver
