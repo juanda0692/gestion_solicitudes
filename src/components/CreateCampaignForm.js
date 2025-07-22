@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { campaigns } from '../mock/campaigns';
 import { channels } from '../mock/channels';
 import { materials } from '../mock/materials';
+import MaterialSelectorModal from './MaterialSelectorModal';
 
 /**
  * Formulario para crear una campaña nueva.
@@ -16,8 +17,10 @@ const CreateCampaignForm = ({ onBack }) => {
   const [selectedChannels, setSelectedChannels] = useState([]);
   // Materiales asignados
   const [selectedMaterials, setSelectedMaterials] = useState([]);
-  // Búsqueda de materiales para filtrar la lista
+  // Búsqueda de materiales para filtrar la lista en el modal
   const [materialSearch, setMaterialSearch] = useState('');
+  // Control de visibilidad del modal de materiales
+  const [showMaterials, setShowMaterials] = useState(false);
 
   // Guarda la campaña en localStorage
   const handleSubmit = () => {
@@ -36,6 +39,11 @@ const CreateCampaignForm = ({ onBack }) => {
     localStorage.setItem('campaigns', JSON.stringify([...stored, newCampaign]));
     onBack();
   };
+  const toggleMaterial = (id) =>
+    setSelectedMaterials((prev) =>
+      prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id],
+    );
+
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto space-y-4">
       <h2 className="text-2xl font-semibold text-gray-800 text-center">Crear campaña</h2>
@@ -84,35 +92,32 @@ const CreateCampaignForm = ({ onBack }) => {
 
       <div>
         <h3 className="font-semibold mb-2">Materiales</h3>
-        <input
-          type="text"
-          placeholder="Buscar material"
-          value={materialSearch}
-          onChange={(e) => setMaterialSearch(e.target.value)}
-          className="w-full mb-2 bg-gray-100 border border-gray-300 py-1 px-2 rounded"
-        />
-        <div className="max-h-40 overflow-y-auto border border-gray-200 p-2 rounded">
-          {materials
-            .filter((m) => m.name.toLowerCase().includes(materialSearch.toLowerCase()))
-            .map((m) => (
-              <label key={m.id} className="block cursor-pointer">
-                <input
-                  type="checkbox"
-                  className="mr-2"
-                  checked={selectedMaterials.includes(m.id)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      setSelectedMaterials([...selectedMaterials, m.id]);
-                    } else {
-                      setSelectedMaterials(selectedMaterials.filter((id) => id !== m.id));
-                    }
-                  }}
-                />
-                {m.name}
-              </label>
+        <button
+          type="button"
+          onClick={() => setShowMaterials(true)}
+          className="w-full bg-gray-100 border border-gray-300 py-2 px-3 rounded-lg hover:bg-gray-200"
+        >
+          Seleccionar materiales
+        </button>
+        {selectedMaterials.length > 0 && (
+          <ul className="mt-2 list-disc list-inside text-sm text-gray-700">
+            {selectedMaterials.map((id) => (
+              <li key={id}>{materials.find((m) => m.id === id)?.name || id}</li>
             ))}
-        </div>
+          </ul>
+        )}
       </div>
+
+      {showMaterials && (
+        <MaterialSelectorModal
+          materials={materials}
+          selectedMaterials={selectedMaterials}
+          onToggle={toggleMaterial}
+          search={materialSearch}
+          setSearch={setMaterialSearch}
+          onClose={() => setShowMaterials(false)}
+        />
+      )}
 
       <div className="space-y-4">
         <button
