@@ -28,6 +28,7 @@ import ManageCampaigns from './components/ManageCampaigns';
 import ExportData from './components/ExportData';
 import LoginScreen from './components/LoginScreen';
 import ChannelMenu from './components/ChannelMenu';
+import Sidebar from './components/Sidebar';
 import { getStorageItem, setStorageItem } from './utils/storage';
 import { channels } from './mock/channels';
 
@@ -304,7 +305,19 @@ const App = () => {
         onLogout={isLoggedIn ? handleLogout : null}
       />
 
-      <main className="flex-grow p-4 flex items-center justify-center">
+      <div className="flex flex-grow">
+        {isLoggedIn && currentPage !== 'login' && (
+          <Sidebar
+            onHome={handleGoHome}
+            onChannels={() => setCurrentPage('channel-select')}
+            onCampaigns={() => setCurrentPage('campaigns-menu')}
+            onExport={handleExportData}
+            onLogout={handleLogout}
+            showManagement={selectedTradeType === 'nacional'}
+          />
+        )}
+
+        <main className="flex-grow p-4 flex items-center justify-center">
         {!isLoggedIn && (
           <LoginScreen onLogin={handleLogin} />
         )}
@@ -424,7 +437,8 @@ const App = () => {
             onStayInChannel={() => setCurrentPage('location-select')}
           />
         )}
-      </main>
+        </main>
+      </div>
       <LayoutFooter />
     </div>
   );
