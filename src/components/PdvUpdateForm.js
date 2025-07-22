@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { getStorageItem, setStorageItem } from '../utils/storage';
+import {
+  getStorageItem,
+  setStorageItem,
+  removeStorageItem,
+} from '../utils/storage';
 
 /**
  * Formulario para actualizar los datos de un Punto de Venta.
@@ -22,7 +26,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
   const [addingField, setAddingField] = useState(false);
   const [newFieldLabel, setNewFieldLabel] = useState('');
   const [newFieldValue, setNewFieldValue] = useState('');
-  const [defaultFields, setDefaultFields] = useState([]);
+  const [pdvDefaults, setPdvDefaults] = useState(null);
 
   useEffect(() => {
     // Cargar datos existentes del PDV si los hay
@@ -46,6 +50,12 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
         notes: '',
         additionalFields: [],
       });
+    }
+    const storedDefaults = getStorageItem(`pdv-${selectedPdvId}-defaults`);
+    if (storedDefaults) {
+      setPdvDefaults(storedDefaults);
+    } else {
+      setPdvDefaults(null);
     }
   }, [selectedPdvId]);
 
@@ -79,50 +89,35 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
     setAddingField(false);
   };
 
-  const saveDefaultField = (fieldName, label, value) => {
-    setDefaultFields((prev) => {
-      const existingIndex = prev.findIndex((f) => f.fieldName === fieldName);
-      const newField = { fieldName, label, value };
-      if (existingIndex >= 0) {
-        const updated = [...prev];
-        updated[existingIndex] = newField;
-        return updated;
-      }
-      return [...prev, newField];
-    });
+  const savePdvDefaults = (data) => {
+    setPdvDefaults(data);
+    setStorageItem(`pdv-${selectedPdvId}-defaults`, data);
   };
 
-  const handleSaveField = (fieldName, label) => {
-    saveDefaultField(fieldName, label, pdvData[fieldName]);
+  const handleSaveField = (fieldName) => {
     setEditingField(null);
   };
 
-  const handleSaveAdditionalField = (index) => {
-    const field = pdvData.additionalFields[index];
-    saveDefaultField(`additional-${index}`, field.label, field.value);
+  const handleSaveAdditionalField = () => {
     setEditingField(null);
   };
 
-  const applyDefaultField = (field) => {
-    if (field.fieldName.startsWith('additional-')) {
-      const index = parseInt(field.fieldName.split('-')[1], 10);
-      setPdvData((prevData) => {
-        const updated = [...prevData.additionalFields];
-        if (updated[index]) {
-          updated[index] = { ...updated[index], value: field.value };
-          return { ...prevData, additionalFields: updated };
-        }
-        return prevData;
-      });
-    } else {
-      setPdvData((prevData) => ({ ...prevData, [field.fieldName]: field.value }));
+  const handleApplyDefaults = () => {
+    if (pdvDefaults) {
+      setPdvData(pdvDefaults);
     }
+  };
+
+  const handleClearDefaults = () => {
+    removeStorageItem(`pdv-${selectedPdvId}-defaults`);
+    setPdvDefaults(null);
   };
 
   // Guarda los cambios en localStorage y notifica al componente padre.
   // Sustituir por una petición POST/PUT al backend cuando esté disponible.
   const handleSubmit = () => {
     setStorageItem(`pdv-${selectedPdvId}-data`, pdvData);
+    savePdvDefaults(pdvData);
 
     const updates = getStorageItem('pdv-update-requests') || [];
     const updateEntry = {
@@ -161,7 +156,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
           )}
           <div className="flex justify-end mt-2">
             <button
-              onClick={() => handleSaveField(fieldName, label)}
+              onClick={() => handleSaveField(fieldName)}
               className="bg-green-500 text-white py-1 px-3 rounded-md"
             >
               Guardar
@@ -183,19 +178,21 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
   );
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto mt-8">
+    <div className="p-6 bg-white rounded-xl shadow-lg mx-auto mt-8 max-w-3xl">
       <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
         Actualizar Datos del PDV
       </h2>
 
-      {renderField('Nombre de Contacto', 'contactName')}
-      {renderField('Teléfono de Contacto', 'contactPhone')}
-      {renderField('Ciudad', 'city')}
-      {renderField('Dirección', 'address', true)}
-      {renderField('Notas Internas', 'notes', true)}
+      <div className="md:flex md:space-x-6">
+        <div className="flex-1">
+          {renderField('Nombre de Contacto', 'contactName')}
+          {renderField('Teléfono de Contacto', 'contactPhone')}
+          {renderField('Ciudad', 'city')}
+          {renderField('Dirección', 'address', true)}
+          {renderField('Notas Internas', 'notes', true)}
 
-      {pdvData.additionalFields.map((field, index) => (
-        <div className="mb-4" key={index}>
+          {pdvData.additionalFields.map((field, index) => (
+            <div className="mb-4" key={index}>
           <label className="block text-gray-700 text-sm font-bold mb-2">
             {field.label}:
           </label>
@@ -219,7 +216,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
               />
               <div className="flex justify-end mt-2">
                 <button
-                  onClick={() => handleSaveAdditionalField(index)}
+                  onClick={handleSaveAdditionalField}
                   className="bg-green-500 text-white py-1 px-3 rounded-md"
                 >
                   Guardar
@@ -286,35 +283,57 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
         </div>
       )}
 
-      {defaultFields.length > 0 && (
-        <div className="mt-6 p-4 bg-gray-50 border rounded-lg">
-          <h3 className="text-lg font-semibold mb-2">Campos predeterminados</h3>
-          {defaultFields.map((field, idx) => (
-            <div
-              key={idx}
-              className="flex items-center justify-between mb-2 text-sm"
-            >
-              <div>
-                <span className="font-medium">{field.label}:</span>{' '}
-                <span className="text-gray-700">{field.value}</span>
-              </div>
+
+          <button
+            onClick={handleSubmit}
+            className="w-full bg-tigo-cyan text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00a7d6] transition-all duration-300 ease-in-out transform hover:scale-105"
+          >
+            Guardar Cambios
+          </button>
+        </div>
+
+        {pdvDefaults && (
+          <div className="mt-6 md:mt-0 md:w-1/3 bg-gray-50 border rounded-lg p-4">
+            <h3 className="text-lg font-semibold mb-2">Datos predeterminados del PDV</h3>
+            <ul className="text-sm space-y-1">
+              <li>
+                <span className="font-medium">Nombre de Contacto:</span>{' '}
+                {pdvDefaults.contactName || '-'}
+              </li>
+              <li>
+                <span className="font-medium">Teléfono de Contacto:</span>{' '}
+                {pdvDefaults.contactPhone || '-'}
+              </li>
+              <li>
+                <span className="font-medium">Ciudad:</span> {pdvDefaults.city || '-'}
+              </li>
+              <li>
+                <span className="font-medium">Dirección:</span>{' '}
+                {pdvDefaults.address || '-'}
+              </li>
+              <li>
+                <span className="font-medium">Notas Internas:</span>{' '}
+                {pdvDefaults.notes || '-'}
+              </li>
+            </ul>
+            <div className="mt-4 space-y-2">
               <button
-                onClick={() => applyDefaultField(field)}
-                className="text-tigo-blue underline"
+                onClick={handleApplyDefaults}
+                className="w-full bg-green-500 text-white py-2 px-4 rounded-md"
               >
-                Aplicar
+                Aplicar datos predeterminados
+              </button>
+              <button
+                onClick={handleClearDefaults}
+                className="w-full bg-red-500 text-white py-2 px-4 rounded-md"
+              >
+                Eliminar datos predeterminados
               </button>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+        )}
 
-      <button
-        onClick={handleSubmit}
-        className="w-full bg-tigo-cyan text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00a7d6] transition-all duration-300 ease-in-out transform hover:scale-105"
-      >
-        Guardar Cambios
-      </button>
+      </div>
     </div>
   );
 };
