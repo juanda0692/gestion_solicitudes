@@ -8,12 +8,14 @@ import {
 /**
  * Formulario para actualizar los datos de un Punto de Venta.
  *
- * Los cambios se almacenan de forma local como ejemplo. Al
- * conectar con un servicio real, las funciones de carga y guardado
- * deben invocar las API correspondientes.
+ * Los datos se guardan de manera local utilizando localStorage.
+ * Al conectar con un servicio real, estas funciones deben invocar
+ * las API correspondientes.
  */
 
 const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
+  /* ----------------------------- Estados ----------------------------- */
+  // Información editable del PDV
   const [pdvData, setPdvData] = useState({
     contactName: '',
     contactPhone: '',
@@ -22,15 +24,18 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
     notes: '',
     additionalFields: [],
   });
+  // Campo que se está editando actualmente
   const [editingField, setEditingField] = useState(null);
+  // Controla la visualización del formulario para agregar campos extra
   const [addingField, setAddingField] = useState(false);
   const [newFieldLabel, setNewFieldLabel] = useState('');
   const [newFieldValue, setNewFieldValue] = useState('');
-  const [defaultFields, setDefaultFields] = useState([]);
+  // Datos predeterminados almacenados para el PDV
   const [pdvDefaults, setPdvDefaults] = useState(null);
 
+  /* ---------------------------- Efectos ------------------------------ */
+  // Carga datos guardados del PDV y sus valores predeterminados
   useEffect(() => {
-    // Cargar datos existentes del PDV si los hay
     const storedPdvData = getStorageItem(`pdv-${selectedPdvId}-data`);
     if (storedPdvData) {
       setPdvData({
@@ -42,7 +47,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
         additionalFields: storedPdvData.additionalFields || [],
       });
     } else {
-      // Resetear si no hay datos previos
+      // Reiniciar si no existen datos previos
       setPdvData({
         contactName: '',
         contactPhone: '',
@@ -52,36 +57,34 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
         additionalFields: [],
       });
     }
+
     const storedDefaults = getStorageItem(`pdv-${selectedPdvId}-defaults`);
-    if (storedDefaults) {
-      setPdvDefaults(storedDefaults);
-    } else {
-      setPdvDefaults(null);
-    }
+    setPdvDefaults(storedDefaults || null);
   }, [selectedPdvId]);
 
+  /* --------------------------- Handlers ------------------------------ */
+  // Actualiza un campo del formulario principal
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setPdvData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    setPdvData((prev) => ({ ...prev, [name]: value }));
   };
 
+  // Actualiza un campo adicional creado por el usuario
   const handleAdditionalFieldChange = (index, key, value) => {
-    setPdvData((prevData) => {
-      const updated = [...prevData.additionalFields];
+    setPdvData((prev) => {
+      const updated = [...prev.additionalFields];
       updated[index] = { ...updated[index], [key]: value };
-      return { ...prevData, additionalFields: updated };
+      return { ...prev, additionalFields: updated };
     });
   };
 
+  // Agrega un nuevo campo adicional al formulario
   const handleAddField = () => {
     if (!newFieldLabel.trim()) return;
-    setPdvData((prevData) => ({
-      ...prevData,
+    setPdvData((prev) => ({
+      ...prev,
       additionalFields: [
-        ...prevData.additionalFields,
+        ...prev.additionalFields,
         { label: newFieldLabel, value: newFieldValue },
       ],
     }));
@@ -90,53 +93,36 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
     setAddingField(false);
   };
 
+  // Guarda los datos predeterminados del PDV en localStorage
   const savePdvDefaults = (data) => {
     setPdvDefaults(data);
     setStorageItem(`pdv-${selectedPdvId}-defaults`, data);
   };
 
-
-  const handleSaveField = (fieldName) => {
-
-  const savePdvDefaults = (data) => {
-    setPdvDefaults(data);
-    setStorageItem(`pdv-${selectedPdvId}-defaults`, data);
-  };
-
-  const handleSaveField = (fieldName, label) => {
-    saveDefaultField(fieldName, label, pdvData[fieldName]);
-
+  // Finaliza la edición de un campo
+  const handleSaveField = () => {
     setEditingField(null);
-    savePdvDefaults(pdvData);
   };
 
+  // Finaliza la edición de un campo adicional
   const handleSaveAdditionalField = () => {
     setEditingField(null);
-    savePdvDefaults(pdvData);
   };
 
+  // Aplica los valores predeterminados almacenados al formulario
   const handleApplyDefaults = () => {
     if (pdvDefaults) {
       setPdvData(pdvDefaults);
     }
   };
 
-
-
-  const handleApplyDefaults = () => {
-    if (pdvDefaults) {
-      setPdvData(pdvDefaults);
-    }
-  };
-
-
+  // Elimina los valores predeterminados guardados
   const handleClearDefaults = () => {
     removeStorageItem(`pdv-${selectedPdvId}-defaults`);
     setPdvDefaults(null);
   };
 
-  // Guarda los cambios en localStorage y notifica al componente padre.
-  // Sustituir por una petición POST/PUT al backend cuando esté disponible.
+  // Guarda la información editada y notifica al componente padre
   const handleSubmit = () => {
     setStorageItem(`pdv-${selectedPdvId}-data`, pdvData);
     savePdvDefaults(pdvData);
@@ -152,9 +138,13 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
     onUpdateConfirm(pdvData);
   };
 
+  /* ---------------------------- Render ------------------------------- */
+  // Devuelve un bloque editable con su respectiva etiqueta
   const renderField = (label, fieldName, multiline = false) => (
     <div className="mb-4">
-      <label className="block text-gray-700 text-sm font-bold mb-2">{label}:</label>
+      <label className="block text-gray-700 text-sm font-bold mb-2">
+        {label}:
+      </label>
       {editingField === fieldName ? (
         <>
           {multiline ? (
@@ -178,7 +168,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
           )}
           <div className="flex justify-end mt-2">
             <button
-              onClick={() => handleSaveField(fieldName)}
+              onClick={handleSaveField}
               className="bg-green-500 text-white py-1 px-3 rounded-md"
             >
               Guardar
@@ -215,117 +205,93 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
 
           {pdvData.additionalFields.map((field, index) => (
             <div className="mb-4" key={index}>
-          <label className="block text-gray-700 text-sm font-bold mb-2">
-            {field.label}:
-          </label>
-          {editingField === `additional-${index}` ? (
-            <>
-              <input
-                type="text"
-                className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200 mb-2"
-                value={field.label}
-                onChange={(e) =>
-                  handleAdditionalFieldChange(index, 'label', e.target.value)
-                }
-              />
-              <input
-                type="text"
-                className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200"
-                value={field.value}
-                onChange={(e) =>
-                  handleAdditionalFieldChange(index, 'value', e.target.value)
-                }
-              />
-              <div className="flex justify-end mt-2">
-                <button
-                  onClick={handleSaveAdditionalField}
-                  className="bg-green-500 text-white py-1 px-3 rounded-md"
-                >
-                  Guardar
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="flex items-center justify-between bg-gray-100 border border-gray-300 rounded-lg py-2 px-3">
-              <span className="text-gray-900">{field.value || '-'}</span>
-              <button
-                onClick={() => setEditingField(`additional-${index}`)}
-                className="text-tigo-blue text-sm underline"
-              >
-                Editar
-              </button>
-            </div>
-          )}
-        </div>
-      ))}
-
-      {addingField ? (
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Nombre del Campo"
-            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200 mb-2"
-            value={newFieldLabel}
-            onChange={(e) => setNewFieldLabel(e.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Valor"
-            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200 mb-2"
-            value={newFieldValue}
-            onChange={(e) => setNewFieldValue(e.target.value)}
-          />
-          <div className="flex justify-end mt-2 space-x-2">
-            <button
-              onClick={() => {
-                setAddingField(false);
-                setNewFieldLabel('');
-                setNewFieldValue('');
-              }}
-              className="bg-gray-300 text-gray-700 py-1 px-3 rounded-md"
-            >
-              Cancelar
-            </button>
-            <button
-              onClick={handleAddField}
-              className="bg-green-500 text-white py-1 px-3 rounded-md"
-            >
-              Agregar
-            </button>
-          </div>
-        </div>
-      ) : (
-        <div className="mb-4">
-          <button
-            onClick={() => setAddingField(true)}
-            className="bg-tigo-cyan text-white py-2 px-4 rounded-lg shadow-md hover:bg-[#00a7d6] transition-all duration-300"
-          >
-            Agregar Campo
-          </button>
-        </div>
-      )}
-
-
-          {defaultFields.length > 0 && (
-            <div className="mt-6 p-4 bg-gray-50 border rounded-lg">
-              <h3 className="text-lg font-semibold mb-2">Campos predeterminados</h3>
-              {defaultFields.map((field, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between mb-2 text-sm"
-                >
-                  <div>
-                    <span className="font-medium">{field.label}:</span>{' '}
-                    <span className="text-gray-700">{field.value}</span>
+              <label className="block text-gray-700 text-sm font-bold mb-2">
+                {field.label}:
+              </label>
+              {editingField === `additional-${index}` ? (
+                <>
+                  <input
+                    type="text"
+                    className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200 mb-2"
+                    value={field.label}
+                    onChange={(e) =>
+                      handleAdditionalFieldChange(index, 'label', e.target.value)
+                    }
+                  />
+                  <input
+                    type="text"
+                    className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200"
+                    value={field.value}
+                    onChange={(e) =>
+                      handleAdditionalFieldChange(index, 'value', e.target.value)
+                    }
+                  />
+                  <div className="flex justify-end mt-2">
+                    <button
+                      onClick={handleSaveAdditionalField}
+                      className="bg-green-500 text-white py-1 px-3 rounded-md"
+                    >
+                      Guardar
+                    </button>
                   </div>
+                </>
+              ) : (
+                <div className="flex items-center justify-between bg-gray-100 border border-gray-300 rounded-lg py-2 px-3">
+                  <span className="text-gray-900">{field.value || '-'}</span>
                   <button
-                    onClick={() => applyDefaultField(field)}
-                    className="text-tigo-blue underline"
+                    onClick={() => setEditingField(`additional-${index}`)}
+                    className="text-tigo-blue text-sm underline"
                   >
-                    Aplicar
+                    Editar
                   </button>
                 </div>
-              ))}
+              )}
+            </div>
+          ))}
+
+          {addingField ? (
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Nombre del Campo"
+                className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200 mb-2"
+                value={newFieldLabel}
+                onChange={(e) => setNewFieldLabel(e.target.value)}
+              />
+              <input
+                type="text"
+                placeholder="Valor"
+                className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200 mb-2"
+                value={newFieldValue}
+                onChange={(e) => setNewFieldValue(e.target.value)}
+              />
+              <div className="flex justify-end mt-2 space-x-2">
+                <button
+                  onClick={() => {
+                    setAddingField(false);
+                    setNewFieldLabel('');
+                    setNewFieldValue('');
+                  }}
+                  className="bg-gray-300 text-gray-700 py-1 px-3 rounded-md"
+                >
+                  Cancelar
+                </button>
+                <button
+                  onClick={handleAddField}
+                  className="bg-green-500 text-white py-1 px-3 rounded-md"
+                >
+                  Agregar
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="mb-4">
+              <button
+                onClick={() => setAddingField(true)}
+                className="bg-tigo-cyan text-white py-2 px-4 rounded-lg shadow-md hover:bg-[#00a7d6] transition-all duration-300"
+              >
+                Agregar Campo
+              </button>
             </div>
           )}
 
@@ -362,18 +328,6 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
               </li>
             </ul>
             <div className="mt-4 space-y-2">
-
-              <button
-                onClick={handleApplyDefaults}
-                className="w-full bg-green-500 text-white py-2 px-4 rounded-md"
-              >
-                Aplicar datos predeterminados
-              </button>
-              <button
-                onClick={handleClearDefaults}
-                className="w-full bg-red-500 text-white py-2 px-4 rounded-md"
-              >
-
               <button
                 onClick={handleApplyDefaults}
                 className="w-full bg-green-500 text-white py-2 px-4 rounded-md"
@@ -389,7 +343,6 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
             </div>
           </div>
         )}
-
       </div>
     </div>
   );
