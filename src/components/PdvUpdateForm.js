@@ -90,18 +90,13 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
     setAddingField(false);
   };
 
-  const saveDefaultField = (fieldName, label, value) => {
-    setDefaultFields((prev) => {
-      const existingIndex = prev.findIndex((f) => f.fieldName === fieldName);
-      const newField = { fieldName, label, value };
-      if (existingIndex >= 0) {
-        const updated = [...prev];
-        updated[existingIndex] = newField;
-        return updated;
-      }
-      return [...prev, newField];
-    });
+  const savePdvDefaults = (data) => {
+    setPdvDefaults(data);
+    setStorageItem(`pdv-${selectedPdvId}-defaults`, data);
   };
+
+
+  const handleSaveField = (fieldName) => {
 
   const savePdvDefaults = (data) => {
     setPdvDefaults(data);
@@ -110,31 +105,14 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
 
   const handleSaveField = (fieldName, label) => {
     saveDefaultField(fieldName, label, pdvData[fieldName]);
+
     setEditingField(null);
     savePdvDefaults(pdvData);
   };
 
-  const handleSaveAdditionalField = (index) => {
-    const field = pdvData.additionalFields[index];
-    saveDefaultField(`additional-${index}`, field.label, field.value);
+  const handleSaveAdditionalField = () => {
     setEditingField(null);
     savePdvDefaults(pdvData);
-  };
-
-  const applyDefaultField = (field) => {
-    if (field.fieldName.startsWith('additional-')) {
-      const index = parseInt(field.fieldName.split('-')[1], 10);
-      setPdvData((prevData) => {
-        const updated = [...prevData.additionalFields];
-        if (updated[index]) {
-          updated[index] = { ...updated[index], value: field.value };
-          return { ...prevData, additionalFields: updated };
-        }
-        return prevData;
-      });
-    } else {
-      setPdvData((prevData) => ({ ...prevData, [field.fieldName]: field.value }));
-    }
   };
 
   const handleApplyDefaults = () => {
@@ -142,6 +120,15 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
       setPdvData(pdvDefaults);
     }
   };
+
+
+
+  const handleApplyDefaults = () => {
+    if (pdvDefaults) {
+      setPdvData(pdvDefaults);
+    }
+  };
+
 
   const handleClearDefaults = () => {
     removeStorageItem(`pdv-${selectedPdvId}-defaults`);
@@ -191,7 +178,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
           )}
           <div className="flex justify-end mt-2">
             <button
-              onClick={() => handleSaveField(fieldName, label)}
+              onClick={() => handleSaveField(fieldName)}
               className="bg-green-500 text-white py-1 px-3 rounded-md"
             >
               Guardar
@@ -251,7 +238,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
               />
               <div className="flex justify-end mt-2">
                 <button
-                  onClick={() => handleSaveAdditionalField(index)}
+                  onClick={handleSaveAdditionalField}
                   className="bg-green-500 text-white py-1 px-3 rounded-md"
                 >
                   Guardar
@@ -318,6 +305,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
         </div>
       )}
 
+
           {defaultFields.length > 0 && (
             <div className="mt-6 p-4 bg-gray-50 border rounded-lg">
               <h3 className="text-lg font-semibold mb-2">Campos predeterminados</h3>
@@ -374,6 +362,18 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
               </li>
             </ul>
             <div className="mt-4 space-y-2">
+
+              <button
+                onClick={handleApplyDefaults}
+                className="w-full bg-green-500 text-white py-2 px-4 rounded-md"
+              >
+                Aplicar datos predeterminados
+              </button>
+              <button
+                onClick={handleClearDefaults}
+                className="w-full bg-red-500 text-white py-2 px-4 rounded-md"
+              >
+
               <button
                 onClick={handleApplyDefaults}
                 className="w-full bg-green-500 text-white py-2 px-4 rounded-md"
