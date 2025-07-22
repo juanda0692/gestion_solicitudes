@@ -3,6 +3,8 @@ import { materials } from '../mock/materials';
 import { campaigns as defaultCampaigns } from '../mock/campaigns';
 import { channels } from '../mock/channels';
 import ContextInfo from './ContextInfo';
+import SingleSelectModal from './SingleSelectModal';
+import PreviousCampaignsModal from './PreviousCampaignsModal';
 
 
 
@@ -31,27 +33,31 @@ const MaterialRequestForm = ({
 }) => {
   const channelName = channels.find((c) => c.id === selectedChannelId)?.name || selectedChannelId;
   // Estado del formulario
-  const [selectedMaterial, setSelectedMaterial] = useState(''); // ID del material elegido
-  const [quantity, setQuantity] = useState(1); // Cantidad solicitada
-  const [selectedMeasures, setSelectedMeasures] = useState(''); // Medidas del material
-  const [notes, setNotes] = useState(''); // Notas adicionales del usuario
-  const [cart, setCart] = useState([]); // Carrito con todos los ítems seleccionados
-  const [materialSearch, setMaterialSearch] = useState(''); // Texto de búsqueda de materiales
-  const [selectedZones, setSelectedZones] = useState([]); // Zonas elegidas
-  const [selectedPriority, setSelectedPriority] = useState(''); // Nivel de prioridad
-  const [selectedCampaigns, setSelectedCampaigns] = useState([]); // Campañas vinculadas
+  const [selectedMaterial, setSelectedMaterial] = useState('');
+  const [quantity, setQuantity] = useState(1);
+  const [selectedMeasures, setSelectedMeasures] = useState('');
+  const [customMeasure, setCustomMeasure] = useState('');
+  const [notes, setNotes] = useState('');
+  const [cart, setCart] = useState([]);
+  const [materialSearch, setMaterialSearch] = useState('');
+  const [selectedZones, setSelectedZones] = useState([]);
+  const [selectedPriority, setSelectedPriority] = useState('');
+  const [selectedCampaign, setSelectedCampaign] = useState('');
 
-  const [showCampaigns, setShowCampaigns] = useState(false); // Controla la vista del desplegable
-  const [campaignList, setCampaignList] = useState([]); // Lista disponible de campañas
-  const [campaignSearch, setCampaignSearch] = useState(''); // Texto para filtrar campañas
+  const [campaignList, setCampaignList] = useState([]);
+  const [campaignSearch, setCampaignSearch] = useState('');
+  const [showMaterialModal, setShowMaterialModal] = useState(false);
+  const [showCampaignModal, setShowCampaignModal] = useState(false);
+  const [showPreviousModal, setShowPreviousModal] = useState(false);
 
   // Medidas predefinidas para el selector de medidas
   const availableMeasures = [
-    { id: 'medida-1', name: '60x90 cm' },
-    { id: 'medida-2', name: 'A5 (14.8x21 cm)' },
-    { id: 'medida-3', name: '20x30 cm' },
-    { id: 'medida-4', name: '200x80 cm' },
-    { id: 'medida-5', name: 'Personalizado' },
+    { id: '1/2', name: '1/2' },
+    { id: '1/4', name: '1/4' },
+    { id: '1/8', name: '1/8' },
+    { id: '15x15', name: '15x15' },
+    { id: '30x30', name: '30x30' },
+    { id: 'otro', name: 'Otro' },
   ];
   // Cargar campañas guardadas localmente para mostrarlas en el desplegable
   useEffect(() => {
@@ -61,11 +67,12 @@ const MaterialRequestForm = ({
 
   // Agrega el material actual al carrito de la solicitud
   const handleAddToCart = () => {
-    if (selectedMaterial && quantity > 0 && selectedMeasures) {
+    if (selectedMaterial && quantity > 0 && (selectedMeasures || customMeasure)) {
       const materialDetails = materials.find((m) => m.id === selectedMaterial);
-      const measureDetails = availableMeasures.find(
-        (m) => m.id === selectedMeasures,
-      );
+      const measureDetails =
+        selectedMeasures === 'otro'
+          ? { id: 'otro', name: customMeasure || 'Personalizado' }
+          : availableMeasures.find((m) => m.id === selectedMeasures);
       setCart((prevCart) => [
         ...prevCart,
         {
@@ -80,6 +87,7 @@ const MaterialRequestForm = ({
       setSelectedMaterial('');
       setQuantity(1);
       setSelectedMeasures('');
+      setCustomMeasure('');
       setNotes('');
     } else {
       alert(
@@ -98,6 +106,18 @@ const MaterialRequestForm = ({
     setCart([]);
   };
 
+  const handleAddPreviousItems = (req) => {
+    const newItems = req.items.map((item) => ({
+      ...item,
+      id: `${item.material.id}-${Date.now()}-${Math.random()}`,
+    }));
+    setCart((prev) => [...prev, ...newItems]);
+    if (req.campaigns && req.campaigns.length > 0 && !selectedCampaign) {
+      setSelectedCampaign(req.campaigns[0]);
+    }
+    setShowPreviousModal(false);
+  };
+
   // Envía la solicitud al componente padre cuando el carrito tiene información
   const handleConfirmCart = () => {
     if (cart.length > 0) {
@@ -106,7 +126,7 @@ const MaterialRequestForm = ({
         pdvId: selectedPdvId,
         zones: selectedZones,
         priority: selectedPriority,
-        campaigns: selectedCampaigns,
+        campaigns: selectedCampaign ? [selectedCampaign] : [],
         channelId: selectedChannelId,
         items: cart,
       });
@@ -130,45 +150,16 @@ const MaterialRequestForm = ({
         </p>
 
         <div className="mb-4">
-          <label
-            htmlFor="material-search"
-            className="block text-gray-700 text-sm font-bold mb-2"
+          <h3 className="font-semibold mb-2">Material</h3>
+          <button
+            type="button"
+            onClick={() => setShowMaterialModal(true)}
+            className="w-full bg-gray-100 border border-gray-300 py-2 px-3 rounded-lg text-left"
           >
-            Buscar Material:
-          </label>
-          <input
-            type="text"
-            id="material-search"
-            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200 mb-2"
-            placeholder="Ingresa nombre del material"
-            value={materialSearch}
-            onChange={(e) => setMaterialSearch(e.target.value)}
-          />
-          <label
-            htmlFor="material-select"
-            className="block text-gray-700 text-sm font-bold mb-2"
-          >
-            Material:
-          </label>
-          <select
-            id="material-select"
-            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200"
-            value={selectedMaterial}
-            onChange={(e) => setSelectedMaterial(e.target.value)}
-          >
-            <option value="">Selecciona un material</option>
-            {materials
-              .filter((material) =>
-                material.name
-                  .toLowerCase()
-                  .includes(materialSearch.toLowerCase()),
-              )
-              .map((material) => (
-                <option key={material.id} value={material.id}>
-                  {material.name}
-                </option>
-              ))}
-          </select>
+            {selectedMaterial
+              ? materials.find((m) => m.id === selectedMaterial)?.name
+              : 'Seleccionar material'}
+          </button>
         </div>
 
         <div className="mb-4">
@@ -191,6 +182,15 @@ const MaterialRequestForm = ({
               </option>
             ))}
           </select>
+          {selectedMeasures === 'otro' && (
+            <input
+              type="text"
+              className="mt-2 w-full bg-gray-100 border border-gray-300 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all"
+              placeholder="Especifica las medidas"
+              value={customMeasure}
+              onChange={(e) => setCustomMeasure(e.target.value)}
+            />
+          )}
         </div>
 
         <div className="mb-4">
@@ -233,6 +233,12 @@ const MaterialRequestForm = ({
           className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all duration-300 ease-in-out transform hover:scale-105"
         >
           Agregar al Carrito
+        </button>
+        <button
+          onClick={() => setShowPreviousModal(true)}
+          className="w-full mt-2 bg-indigo-500 text-white py-3 px-4 rounded-lg shadow-md hover:bg-indigo-600 transition-all duration-300 ease-in-out transform hover:scale-105"
+        >
+          Solicitar campañas anteriores
         </button>
       </div>
 
@@ -344,72 +350,55 @@ const MaterialRequestForm = ({
                 ))}
               </select>
             </div>
-            <div className="relative">
+            <div>
               <h3 className="font-semibold mb-2">Campaña</h3>
               <button
                 type="button"
-                onClick={() => setShowCampaigns((v) => !v)}
-                className="w-full bg-gray-100 border border-gray-300 py-2 px-3 rounded-lg text-left flex justify-between items-center"
+                onClick={() => setShowCampaignModal(true)}
+                className="w-full bg-gray-100 border border-gray-300 py-2 px-3 rounded-lg text-left"
               >
-                <span>
-                  {selectedCampaigns.length > 0
-                    ? `${selectedCampaigns.length} seleccionada${selectedCampaigns.length > 1 ? 's' : ''}`
-                    : 'Selecciona campañas'}
-                </span>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth="2"
-                  stroke="currentColor"
-                  className="w-4 h-4"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19 9l-7 7-7-7"
-                  />
-                </svg>
+                {selectedCampaign
+                  ? campaignList.find((c) => c.id === selectedCampaign)?.name
+                  : 'Selecciona una campaña'}
               </button>
-              {showCampaigns && (
-                <div className="absolute z-10 bg-white border border-gray-300 rounded-lg mt-2 w-full max-h-40 overflow-y-auto p-2 shadow-lg">
-                  <input
-                    type="text"
-                    placeholder="Buscar campaña"
-                    value={campaignSearch}
-                    onChange={(e) => setCampaignSearch(e.target.value)}
-                    className="w-full mb-2 bg-gray-100 border border-gray-300 p-1 rounded"
-                  />
-                  {campaignList
-                    .filter((c) =>
-                      c.name.toLowerCase().includes(campaignSearch.toLowerCase()),
-                    )
-                    .map((c) => (
-                      <label key={c.id} className="block cursor-pointer">
-                        <input
-                          type="checkbox"
-                          className="mr-2"
-                          checked={selectedCampaigns.includes(c.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedCampaigns([...selectedCampaigns, c.id]);
-                            } else {
-                              setSelectedCampaigns(
-                                selectedCampaigns.filter((id) => id !== c.id),
-                              );
-                            }
-                          }}
-                        />
-                        {c.name}
-                      </label>
-                    ))}
-                </div>
-              )}
             </div>
           </div>
         )}
       </div>
 
+      {showMaterialModal && (
+        <SingleSelectModal
+          title="Seleccionar material"
+          items={materials}
+          selectedId={selectedMaterial}
+          onSelect={setSelectedMaterial}
+          search={materialSearch}
+          setSearch={setMaterialSearch}
+          onClose={() => setShowMaterialModal(false)}
+          placeholder="Buscar material"
+        />
+      )}
+
+      {showCampaignModal && (
+        <SingleSelectModal
+          title="Seleccionar campaña"
+          items={campaignList}
+          selectedId={selectedCampaign}
+          onSelect={setSelectedCampaign}
+          search={campaignSearch}
+          setSearch={setCampaignSearch}
+          onClose={() => setShowCampaignModal(false)}
+          placeholder="Buscar campaña"
+        />
+      )}
+
+      {showPreviousModal && (
+        <PreviousCampaignsModal
+          pdvId={selectedPdvId}
+          onSelect={handleAddPreviousItems}
+          onClose={() => setShowPreviousModal(false)}
+        />
+      )}
 
   );
 };
