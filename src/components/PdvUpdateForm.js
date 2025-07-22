@@ -26,6 +26,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
   const [addingField, setAddingField] = useState(false);
   const [newFieldLabel, setNewFieldLabel] = useState('');
   const [newFieldValue, setNewFieldValue] = useState('');
+  const [defaultFields, setDefaultFields] = useState([]);
   const [pdvDefaults, setPdvDefaults] = useState(null);
 
   useEffect(() => {
@@ -94,12 +95,24 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
     setStorageItem(`pdv-${selectedPdvId}-defaults`, data);
   };
 
+
   const handleSaveField = (fieldName) => {
+
+  const savePdvDefaults = (data) => {
+    setPdvDefaults(data);
+    setStorageItem(`pdv-${selectedPdvId}-defaults`, data);
+  };
+
+  const handleSaveField = (fieldName, label) => {
+    saveDefaultField(fieldName, label, pdvData[fieldName]);
+
     setEditingField(null);
+    savePdvDefaults(pdvData);
   };
 
   const handleSaveAdditionalField = () => {
     setEditingField(null);
+    savePdvDefaults(pdvData);
   };
 
   const handleApplyDefaults = () => {
@@ -107,6 +120,15 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
       setPdvData(pdvDefaults);
     }
   };
+
+
+
+  const handleApplyDefaults = () => {
+    if (pdvDefaults) {
+      setPdvData(pdvDefaults);
+    }
+  };
+
 
   const handleClearDefaults = () => {
     removeStorageItem(`pdv-${selectedPdvId}-defaults`);
@@ -284,6 +306,29 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
       )}
 
 
+          {defaultFields.length > 0 && (
+            <div className="mt-6 p-4 bg-gray-50 border rounded-lg">
+              <h3 className="text-lg font-semibold mb-2">Campos predeterminados</h3>
+              {defaultFields.map((field, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between mb-2 text-sm"
+                >
+                  <div>
+                    <span className="font-medium">{field.label}:</span>{' '}
+                    <span className="text-gray-700">{field.value}</span>
+                  </div>
+                  <button
+                    onClick={() => applyDefaultField(field)}
+                    className="text-tigo-blue underline"
+                  >
+                    Aplicar
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
           <button
             onClick={handleSubmit}
             className="w-full bg-tigo-cyan text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00a7d6] transition-all duration-300 ease-in-out transform hover:scale-105"
@@ -317,6 +362,18 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
               </li>
             </ul>
             <div className="mt-4 space-y-2">
+
+              <button
+                onClick={handleApplyDefaults}
+                className="w-full bg-green-500 text-white py-2 px-4 rounded-md"
+              >
+                Aplicar datos predeterminados
+              </button>
+              <button
+                onClick={handleClearDefaults}
+                className="w-full bg-red-500 text-white py-2 px-4 rounded-md"
+              >
+
               <button
                 onClick={handleApplyDefaults}
                 className="w-full bg-green-500 text-white py-2 px-4 rounded-md"
