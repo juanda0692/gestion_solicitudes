@@ -22,6 +22,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
   const [addingField, setAddingField] = useState(false);
   const [newFieldLabel, setNewFieldLabel] = useState('');
   const [newFieldValue, setNewFieldValue] = useState('');
+  const [defaultFields, setDefaultFields] = useState([]);
 
   useEffect(() => {
     // Cargar datos existentes del PDV si los hay
@@ -78,6 +79,46 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
     setAddingField(false);
   };
 
+  const saveDefaultField = (fieldName, label, value) => {
+    setDefaultFields((prev) => {
+      const existingIndex = prev.findIndex((f) => f.fieldName === fieldName);
+      const newField = { fieldName, label, value };
+      if (existingIndex >= 0) {
+        const updated = [...prev];
+        updated[existingIndex] = newField;
+        return updated;
+      }
+      return [...prev, newField];
+    });
+  };
+
+  const handleSaveField = (fieldName, label) => {
+    saveDefaultField(fieldName, label, pdvData[fieldName]);
+    setEditingField(null);
+  };
+
+  const handleSaveAdditionalField = (index) => {
+    const field = pdvData.additionalFields[index];
+    saveDefaultField(`additional-${index}`, field.label, field.value);
+    setEditingField(null);
+  };
+
+  const applyDefaultField = (field) => {
+    if (field.fieldName.startsWith('additional-')) {
+      const index = parseInt(field.fieldName.split('-')[1], 10);
+      setPdvData((prevData) => {
+        const updated = [...prevData.additionalFields];
+        if (updated[index]) {
+          updated[index] = { ...updated[index], value: field.value };
+          return { ...prevData, additionalFields: updated };
+        }
+        return prevData;
+      });
+    } else {
+      setPdvData((prevData) => ({ ...prevData, [field.fieldName]: field.value }));
+    }
+  };
+
   // Guarda los cambios en localStorage y notifica al componente padre.
   // Sustituir por una petición POST/PUT al backend cuando esté disponible.
   const handleSubmit = () => {
@@ -120,7 +161,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
           )}
           <div className="flex justify-end mt-2">
             <button
-              onClick={() => setEditingField(null)}
+              onClick={() => handleSaveField(fieldName, label)}
               className="bg-green-500 text-white py-1 px-3 rounded-md"
             >
               Guardar
@@ -178,7 +219,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
               />
               <div className="flex justify-end mt-2">
                 <button
-                  onClick={() => setEditingField(null)}
+                  onClick={() => handleSaveAdditionalField(index)}
                   className="bg-green-500 text-white py-1 px-3 rounded-md"
                 >
                   Guardar
@@ -242,6 +283,29 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
           >
             Agregar Campo
           </button>
+        </div>
+      )}
+
+      {defaultFields.length > 0 && (
+        <div className="mt-6 p-4 bg-gray-50 border rounded-lg">
+          <h3 className="text-lg font-semibold mb-2">Campos predeterminados</h3>
+          {defaultFields.map((field, idx) => (
+            <div
+              key={idx}
+              className="flex items-center justify-between mb-2 text-sm"
+            >
+              <div>
+                <span className="font-medium">{field.label}:</span>{' '}
+                <span className="text-gray-700">{field.value}</span>
+              </div>
+              <button
+                onClick={() => applyDefaultField(field)}
+                className="text-tigo-blue underline"
+              >
+                Aplicar
+              </button>
+            </div>
+          ))}
         </div>
       )}
 
