@@ -5,8 +5,9 @@ import React from 'react';
  */
 const MaterialSelectorModal = ({
   materials = [],
-  selectedMaterials = [],
+  selectedMaterials = {},
   onToggle,
+  onQuantityChange,
   search,
   setSearch,
   onClose,
@@ -24,20 +25,37 @@ const MaterialSelectorModal = ({
         onChange={(e) => setSearch(e.target.value)}
         className="w-full mb-2 bg-gray-100 border border-gray-300 py-1 px-2 rounded"
       />
-      <div className="max-h-60 overflow-y-auto border border-gray-200 p-2 rounded">
+      <div className="max-h-60 overflow-y-auto border border-gray-200 p-2 rounded space-y-2">
         {materials
           .filter((m) => m.name.toLowerCase().includes(search.toLowerCase()))
-          .map((m) => (
-            <label key={m.id} className="block cursor-pointer">
-              <input
-                type="checkbox"
-                className="mr-2"
-                checked={selectedMaterials.includes(m.id)}
-                onChange={() => onToggle(m.id)}
-              />
-              {m.name}
-            </label>
-          ))}
+          .map((m) => {
+            const isSelected = Object.prototype.hasOwnProperty.call(selectedMaterials, m.id);
+            return (
+              <div key={m.id} className="flex items-center justify-between">
+                <label className={`flex-1 cursor-pointer ${m.stock === 0 ? 'text-gray-400' : ''}`}>
+                  <input
+                    type="checkbox"
+                    className="mr-2"
+                    checked={isSelected}
+                    disabled={m.stock === 0}
+                    onChange={() => onToggle(m.id, m.stock)}
+                  />
+                  {m.name} <span className="text-xs text-gray-500">(Disponibles: {m.stock})</span>
+                </label>
+                {isSelected && m.stock > 0 && (
+                  <input
+                    type="number"
+                    min="1"
+                    max={m.stock}
+                    value={selectedMaterials[m.id]}
+                    onChange={(e) => onQuantityChange(m.id, Math.min(m.stock, Math.max(1, parseInt(e.target.value) || 1)))}
+                    className="w-20 bg-gray-100 border border-gray-300 p-1 rounded ml-2"
+                  />
+                )}
+                {m.stock === 0 && <span className="text-xs ml-2">Sin stock disponible</span>}
+              </div>
+            );
+          })}
       </div>
       <button
         onClick={onClose}

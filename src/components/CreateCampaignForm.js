@@ -15,8 +15,8 @@ const CreateCampaignForm = ({ onBack }) => {
   const [priority, setPriority] = useState('1');
   // Canales asociados
   const [selectedChannels, setSelectedChannels] = useState([]);
-  // Materiales asignados
-  const [selectedMaterials, setSelectedMaterials] = useState([]);
+  // Materiales asignados con cantidades { [id]: quantity }
+  const [selectedMaterials, setSelectedMaterials] = useState({});
   // Búsqueda de materiales para filtrar la lista en el modal
   const [materialSearch, setMaterialSearch] = useState('');
   // Control de visibilidad del modal de materiales
@@ -24,7 +24,11 @@ const CreateCampaignForm = ({ onBack }) => {
 
   // Guarda la campaña en localStorage
   const handleSubmit = () => {
-    if (!name || selectedChannels.length === 0 || selectedMaterials.length === 0) {
+    if (
+      !name ||
+      selectedChannels.length === 0 ||
+      Object.keys(selectedMaterials).length === 0
+    ) {
       alert('Completa todos los campos para guardar la campaña');
       return;
     }
@@ -34,15 +38,24 @@ const CreateCampaignForm = ({ onBack }) => {
       name,
       priority,
       channels: selectedChannels,
-      materials: selectedMaterials,
+      materials: Object.entries(selectedMaterials).map(([id, quantity]) => ({ id, quantity })),
     };
     localStorage.setItem('campaigns', JSON.stringify([...stored, newCampaign]));
     onBack();
   };
-  const toggleMaterial = (id) =>
-    setSelectedMaterials((prev) =>
-      prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id],
-    );
+  const toggleMaterial = (id, stock) =>
+    setSelectedMaterials((prev) => {
+      const updated = { ...prev };
+      if (updated[id]) {
+        delete updated[id];
+      } else if (stock > 0) {
+        updated[id] = 1;
+      }
+      return updated;
+    });
+
+  const updateMaterialQuantity = (id, qty) =>
+    setSelectedMaterials((prev) => ({ ...prev, [id]: qty }));
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto space-y-4">
@@ -99,10 +112,12 @@ const CreateCampaignForm = ({ onBack }) => {
         >
           Seleccionar materiales
         </button>
-        {selectedMaterials.length > 0 && (
+        {Object.keys(selectedMaterials).length > 0 && (
           <ul className="mt-2 list-disc list-inside text-sm text-gray-700">
-            {selectedMaterials.map((id) => (
-              <li key={id}>{materials.find((m) => m.id === id)?.name || id}</li>
+            {Object.entries(selectedMaterials).map(([id, qty]) => (
+              <li key={id}>
+                {materials.find((m) => m.id === id)?.name || id} - {qty}
+              </li>
             ))}
           </ul>
         )}
@@ -113,6 +128,7 @@ const CreateCampaignForm = ({ onBack }) => {
           materials={materials}
           selectedMaterials={selectedMaterials}
           onToggle={toggleMaterial}
+          onQuantityChange={updateMaterialQuantity}
           search={materialSearch}
           setSearch={setMaterialSearch}
           onClose={() => setShowMaterials(false)}
