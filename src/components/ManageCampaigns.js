@@ -29,9 +29,18 @@ const ManageCampaigns = ({ onBack }) => {
   };
 
   const toggleArrayValue = (array = [], value) =>
-    array.includes(value)
-      ? array.filter((v) => v !== value)
-      : [...array, value];
+    array.includes(value) ? array.filter((v) => v !== value) : [...array, value];
+
+  const getMaterialIds = (list = []) =>
+    list.map((m) => (typeof m === 'object' ? m.id : m));
+
+  const toggleMaterialValue = (list = [], value) => {
+    const ids = getMaterialIds(list);
+    if (ids.includes(value)) {
+      return list.filter((m) => (typeof m === 'object' ? m.id : m) !== value);
+    }
+    return [...list, { id: value, quantity: 1 }];
+  };
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg max-w-xl mx-auto">
@@ -68,7 +77,11 @@ const ManageCampaigns = ({ onBack }) => {
                       className="mr-2"
                       checked={(c.channels || []).includes(ch.id)}
                       onChange={() =>
-                        updateCampaign(idx, 'channels', toggleArrayValue(c.channels, ch.id))
+                        updateCampaign(
+                          idx,
+                          'channels',
+                          toggleArrayValue(c.channels, ch.id),
+                        )
                       }
                     />
                     {ch.name}
@@ -82,9 +95,13 @@ const ManageCampaigns = ({ onBack }) => {
                     <input
                       type="checkbox"
                       className="mr-2"
-                      checked={(c.materials || []).includes(m.id)}
+                      checked={getMaterialIds(c.materials || []).includes(m.id)}
                       onChange={() =>
-                        updateCampaign(idx, 'materials', toggleArrayValue(c.materials, m.id))
+                        updateCampaign(
+                          idx,
+                          'materials',
+                          toggleMaterialValue(c.materials, m.id),
+                        )
                       }
                     />
                     {m.name}
