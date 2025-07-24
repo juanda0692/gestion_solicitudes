@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { channels } from '../mock/channels';
 import { pdvs } from '../mock/locations';
 import { materials } from '../mock/materials';
+import { channelMaterials } from '../mock/channelMaterials';
 
 const flattenPdvs = Object.values(pdvs).flat();
 
@@ -12,6 +13,17 @@ const ExportData = ({ onBack, onExport }) => {
   const [customMode, setCustomMode] = useState(false);
   const [selectedPdvs, setSelectedPdvs] = useState([]);
   const [selectedMaterials, setSelectedMaterials] = useState([]);
+
+  const channelsByMaterial = React.useMemo(() => {
+    const result = {};
+    Object.entries(channelMaterials).forEach(([ch, mats]) => {
+      mats.forEach(({ id }) => {
+        if (!result[id]) result[id] = [];
+        result[id].push(ch);
+      });
+    });
+    return result;
+  }, []);
 
   const handleExportChannel = (channelId) => {
     onExport({ channelId });
@@ -84,7 +96,14 @@ const ExportData = ({ onBack, onExport }) => {
                     setSelectedMaterials(toggleValue(selectedMaterials, m.id))
                   }
                 />
-                {m.name}
+                {m.name}{' '}
+                <span className="text-xs text-gray-500">
+                  (
+                  {(channelsByMaterial[m.id] || [])
+                    .map((cid) => channels.find((c) => c.id === cid)?.name || cid)
+                    .join(', ')}
+                  )
+                </span>
               </label>
             ))}
           </div>

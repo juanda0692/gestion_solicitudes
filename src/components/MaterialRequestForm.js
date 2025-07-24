@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { materials } from '../mock/materials';
 import { campaigns as defaultCampaigns } from '../mock/campaigns';
 import { channels } from '../mock/channels';
+import { channelMaterials } from '../mock/channelMaterials';
 import ContextInfo from './ContextInfo';
 import SingleSelectModal from './SingleSelectModal';
 import PreviousCampaignsModal from './PreviousCampaignsModal';
@@ -50,6 +51,15 @@ const MaterialRequestForm = ({
   const [showCampaignModal, setShowCampaignModal] = useState(false);
   const [showPreviousModal, setShowPreviousModal] = useState(false);
 
+  const allowedMaterials = channelMaterials[selectedChannelId] || [];
+  const allowedIds = allowedMaterials.map((m) => m.id);
+  const materialsForChannel = materials
+    .filter((m) => allowedIds.includes(m.id))
+    .map((m) => ({
+      ...m,
+      stock: allowedMaterials.find((am) => am.id === m.id)?.stock || m.stock,
+    }));
+
   // Medidas predefinidas para el selector de medidas
  // Medidas predefinidas para el selector de medidas
 const availableMeasures = [
@@ -73,7 +83,12 @@ const availableMeasures = [
 
   // Agrega el material actual al carrito de la solicitud
   const handleAddToCart = () => {
-    if (selectedMaterial && quantity > 0 && (selectedMeasures || customMeasure)) {
+    if (
+      selectedMaterial &&
+      quantity > 0 &&
+      (selectedMeasures || customMeasure) &&
+      allowedIds.includes(selectedMaterial)
+    ) {
       const materialDetails = materials.find((m) => m.id === selectedMaterial);
       const measureDetails =
         selectedMeasures === 'otro'
@@ -97,7 +112,7 @@ const availableMeasures = [
       setNotes('');
     } else {
       alert(
-        'Por favor, selecciona un material, medidas y una cantidad válida.',
+        'Por favor, selecciona un material válido del canal, medidas y una cantidad correcta.',
       );
     }
   };
@@ -117,7 +132,11 @@ const availableMeasures = [
       ...item,
       id: `${item.material.id}-${Date.now()}-${Math.random()}`,
     }));
-    setCart((prev) => [...prev, ...newItems]);
+    const filtered = newItems.filter((it) => allowedIds.includes(it.material.id));
+    if (filtered.length < newItems.length) {
+      alert('Algunos materiales no pertenecen al canal actual y fueron omitidos');
+    }
+    setCart((prev) => [...prev, ...filtered]);
     if (req.campaigns && req.campaigns.length > 0 && !selectedCampaign) {
       setSelectedCampaign(req.campaigns[0]);
     }
@@ -166,6 +185,12 @@ const availableMeasures = [
               ? materials.find((m) => m.id === selectedMaterial)?.name
               : 'Seleccionar material'}
           </button>
+          {selectedMaterial && (
+            <p className="text-sm text-gray-600 mt-1">
+              Pertenece al canal {channelName}. Stock disponible:{' '}
+              {allowedMaterials.find((m) => m.id === selectedMaterial)?.stock || 0}
+            </p>
+          )}
         </div>
 
         <div className="mb-4">
@@ -374,7 +399,7 @@ const availableMeasures = [
       {showMaterialModal && (
         <SingleSelectModal
           title="Seleccionar material"
-          items={materials}
+          items={materialsForChannel}
           selectedId={selectedMaterial}
           onSelect={setSelectedMaterial}
           search={materialSearch}
