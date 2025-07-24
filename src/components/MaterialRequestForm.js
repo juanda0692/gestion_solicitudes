@@ -51,14 +51,20 @@ const MaterialRequestForm = ({
   const [showPreviousModal, setShowPreviousModal] = useState(false);
 
   // Medidas predefinidas para el selector de medidas
-  const availableMeasures = [
-    { id: '1/2', name: '1/2' },
-    { id: '1/4', name: '1/4' },
-    { id: '1/8', name: '1/8' },
-    { id: '15x15', name: '15x15' },
-    { id: '30x30', name: '30x30' },
-    { id: 'otro', name: 'Otro' },
-  ];
+ // Medidas predefinidas para el selector de medidas
+const availableMeasures = [
+  { id: '1/2', name: '1/2' },
+  { id: '1/4', name: '1/4' },
+  { id: '1/8', name: '1/8' },
+  { id: '15x15', name: '15x15' },
+  { id: '30x30', name: '30x30' },
+  { id: '8x13', name: '8 x 13 cm' },
+  { id: '9x13', name: '9 x 13 cm' },
+  { id: '10x13', name: '10 x 13 cm' },
+  { id: '11x13', name: '11 x 13 cm' },
+  { id: '12x13', name: '12 x 13 cm' },
+  { id: 'otro', name: 'Otro' },
+];
   // Cargar campañas guardadas localmente para mostrarlas en el desplegable
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('campaigns'));
@@ -359,12 +365,11 @@ const MaterialRequestForm = ({
               >
                 {selectedCampaign
                   ? campaignList.find((c) => c.id === selectedCampaign)?.name
-                  : 'Selecciona una campaña'}
-              </button>
-            </div>
+                : 'Selecciona una campaña'}
+            </button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {showMaterialModal && (
         <SingleSelectModal
@@ -399,7 +404,7 @@ const MaterialRequestForm = ({
           onClose={() => setShowPreviousModal(false)}
         />
       )}
-
+    </div>
   );
 };
 
