@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { campaigns as defaultCampaigns } from '../mock/campaigns';
 import { channels } from '../mock/channels';
 import { materials } from '../mock/materials';
+import { channelMaterials } from '../mock/channelMaterials';
 
 /**
  * Panel para editar o eliminar campañas existentes.
@@ -9,6 +10,17 @@ import { materials } from '../mock/materials';
  */
 const ManageCampaigns = ({ onBack }) => {
   const [list, setList] = useState([]);
+
+  const channelsByMaterial = React.useMemo(() => {
+    const result = {};
+    Object.entries(channelMaterials).forEach(([ch, mats]) => {
+      mats.forEach(({ id }) => {
+        if (!result[id]) result[id] = [];
+        result[id].push(ch);
+      });
+    });
+    return result;
+  }, []);
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('campaigns'));
@@ -104,7 +116,14 @@ const ManageCampaigns = ({ onBack }) => {
                         )
                       }
                     />
-                    {m.name}
+                    {m.name}{' '}
+                    <span className="text-xs text-gray-500">
+                      (
+                      {(channelsByMaterial[m.id] || [])
+                        .map((cid) => channels.find((ch) => ch.id === cid)?.name || cid)
+                        .join(', ')}
+                      )
+                    </span>
                   </label>
                 ))}
               </div>

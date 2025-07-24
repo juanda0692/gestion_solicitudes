@@ -40,7 +40,13 @@ const MaterialSelectorModal = ({
                     disabled={m.stock === 0}
                     onChange={() => onToggle(m.id, m.stock)}
                   />
-                  {m.name} <span className="text-xs text-gray-500">(Disponibles: {m.stock})</span>
+                  {m.name}{' '}
+                  {m.channels && (
+                    <span className="text-xs text-gray-500">
+                      ({m.channels.join(', ')})
+                    </span>
+                  )}{' '}
+                  <span className="text-xs text-gray-500">(Disponibles: {m.stock})</span>
                 </label>
                 {isSelected && m.stock > 0 && (
                   <input

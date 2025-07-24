@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { campaigns } from '../mock/campaigns';
 import { channels } from '../mock/channels';
 import { materials } from '../mock/materials';
+import { channelMaterials } from '../mock/channelMaterials';
 import MaterialSelectorModal from './MaterialSelectorModal';
 
 /**
@@ -56,6 +57,22 @@ const CreateCampaignForm = ({ onBack }) => {
 
   const updateMaterialQuantity = (id, qty) =>
     setSelectedMaterials((prev) => ({ ...prev, [id]: qty }));
+
+  const materialsWithChannels = React.useMemo(() => {
+    const result = {};
+    Object.entries(channelMaterials).forEach(([ch, mats]) => {
+      mats.forEach(({ id }) => {
+        if (!result[id]) result[id] = [];
+        result[id].push(ch);
+      });
+    });
+    return materials.map((m) => ({
+      ...m,
+      channels: result[m.id]?.map(
+        (cid) => channels.find((c) => c.id === cid)?.name || cid,
+      ),
+    }));
+  }, []);
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto space-y-4">
@@ -114,18 +131,22 @@ const CreateCampaignForm = ({ onBack }) => {
         </button>
         {Object.keys(selectedMaterials).length > 0 && (
           <ul className="mt-2 list-disc list-inside text-sm text-gray-700">
-            {Object.entries(selectedMaterials).map(([id, qty]) => (
-              <li key={id}>
-                {materials.find((m) => m.id === id)?.name || id} - {qty}
-              </li>
-            ))}
+            {Object.entries(selectedMaterials).map(([id, qty]) => {
+              const mat = materialsWithChannels.find((m) => m.id === id);
+              return (
+                <li key={id}>
+                  {mat?.name || id} (
+                  {mat?.channels ? mat.channels.join(', ') : ''}) - {qty}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
 
       {showMaterials && (
         <MaterialSelectorModal
-          materials={materials}
+          materials={materialsWithChannels}
           selectedMaterials={selectedMaterials}
           onToggle={toggleMaterial}
           onQuantityChange={updateMaterialQuantity}
