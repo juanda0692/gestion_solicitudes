@@ -53,8 +53,18 @@ const MaterialRequestForm = ({
 
   const allowedMaterials = channelMaterials[selectedChannelId] || [];
   const allowedIds = allowedMaterials.map((m) => m.id);
+  const cotizableMaterials = materials.filter(
+    (m) =>
+      m.requiresCotizacion &&
+      (m.canalesPermitidos || []).includes(selectedChannelId),
+  );
   const materialsForChannel = materials
-    .filter((m) => allowedIds.includes(m.id))
+    .filter(
+      (m) =>
+        allowedIds.includes(m.id) ||
+        (m.requiresCotizacion &&
+          (m.canalesPermitidos || []).includes(selectedChannelId)),
+    )
     .map((m) => ({
       ...m,
       stock: allowedMaterials.find((am) => am.id === m.id)?.stock || m.stock,
@@ -83,13 +93,17 @@ const availableMeasures = [
 
   // Agrega el material actual al carrito de la solicitud
   const handleAddToCart = () => {
+    const materialDetails = materials.find((m) => m.id === selectedMaterial);
+    const isAllowed =
+      allowedIds.includes(selectedMaterial) ||
+      (materialDetails?.requiresCotizacion &&
+        (materialDetails.canalesPermitidos || []).includes(selectedChannelId));
     if (
       selectedMaterial &&
       quantity > 0 &&
       (selectedMeasures || customMeasure) &&
-      allowedIds.includes(selectedMaterial)
+      isAllowed
     ) {
-      const materialDetails = materials.find((m) => m.id === selectedMaterial);
       const measureDetails =
         selectedMeasures === 'otro'
           ? { id: 'otro', name: customMeasure || 'Personalizado' }
@@ -132,7 +146,12 @@ const availableMeasures = [
       ...item,
       id: `${item.material.id}-${Date.now()}-${Math.random()}`,
     }));
-    const filtered = newItems.filter((it) => allowedIds.includes(it.material.id));
+    const filtered = newItems.filter(
+      (it) =>
+        allowedIds.includes(it.material.id) ||
+        (it.material.requiresCotizacion &&
+          (it.material.canalesPermitidos || []).includes(selectedChannelId)),
+    );
     if (filtered.length < newItems.length) {
       alert('Algunos materiales no pertenecen al canal actual y fueron omitidos');
     }
@@ -187,8 +206,11 @@ const availableMeasures = [
           </button>
           {selectedMaterial && (
             <p className="text-sm text-gray-600 mt-1">
-              Pertenece al canal {channelName}. Stock disponible:{' '}
-              {allowedMaterials.find((m) => m.id === selectedMaterial)?.stock || 0}
+              {materials.find((m) => m.id === selectedMaterial)?.requiresCotizacion
+                ? 'Este material será cotizado y producido bajo pedido por Trade Nacional.'
+                : `Pertenece al canal ${channelName}. Stock disponible: ${
+                    allowedMaterials.find((m) => m.id === selectedMaterial)?.stock || 0
+                  }`}
             </p>
           )}
         </div>

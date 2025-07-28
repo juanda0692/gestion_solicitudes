@@ -32,33 +32,47 @@ const MaterialSelectorModal = ({
             const isSelected = Object.prototype.hasOwnProperty.call(selectedMaterials, m.id);
             return (
               <div key={m.id} className="flex items-center justify-between">
-                <label className={`flex-1 cursor-pointer ${m.stock === 0 ? 'text-gray-400' : ''}`}>
+                <label className={`flex-1 cursor-pointer ${m.stock === 0 && !m.requiresCotizacion ? 'text-gray-400' : ''}`}>
                   <input
                     type="checkbox"
                     className="mr-2"
                     checked={isSelected}
-                    disabled={m.stock === 0}
+                    disabled={m.stock === 0 && !m.requiresCotizacion}
                     onChange={() => onToggle(m.id, m.stock)}
                   />
                   {m.name}{' '}
+                  {m.requiresCotizacion && (
+                    <span className="text-xs text-gray-500">(Cotizable – sin stock predeterminado)</span>
+                  )}{' '}
                   {m.channels && (
                     <span className="text-xs text-gray-500">
                       ({m.channels.join(', ')})
                     </span>
-                  )}{' '}
-                  <span className="text-xs text-gray-500">(Disponibles: {m.stock})</span>
+                  )}
+                  {!m.requiresCotizacion && (
+                    <span className="text-xs text-gray-500">(Disponibles: {m.stock})</span>
+                  )}
                 </label>
-                {isSelected && m.stock > 0 && (
+                {isSelected && (m.stock > 0 || m.requiresCotizacion) && (
                   <input
                     type="number"
                     min="1"
-                    max={m.stock}
+                    {...(!m.requiresCotizacion ? { max: m.stock } : {})}
                     value={selectedMaterials[m.id]}
-                    onChange={(e) => onQuantityChange(m.id, Math.min(m.stock, Math.max(1, parseInt(e.target.value) || 1)))}
+                    onChange={(e) =>
+                      onQuantityChange(
+                        m.id,
+                        m.requiresCotizacion
+                          ? Math.max(1, parseInt(e.target.value) || 1)
+                          : Math.min(m.stock, Math.max(1, parseInt(e.target.value) || 1)),
+                      )
+                    }
                     className="w-20 bg-gray-100 border border-gray-300 p-1 rounded ml-2"
                   />
                 )}
-                {m.stock === 0 && <span className="text-xs ml-2">Sin stock disponible</span>}
+                {m.stock === 0 && !m.requiresCotizacion && (
+                  <span className="text-xs ml-2">Sin stock disponible</span>
+                )}
               </div>
             );
           })}

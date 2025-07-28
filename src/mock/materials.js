@@ -16,12 +16,16 @@ export const materials = [
     name: 'Display de Mesa',
     description: 'Pequeño display acrílico para mostradores.',
     stock: 0,
+    requiresCotizacion: true,
+    canalesPermitidos: ['tiendas', 'tigo-express'],
   },
   {
     id: 'material-4',
     name: 'Banner Roll-up',
     description: 'Banner portátil para eventos.',
     stock: 5,
+    requiresCotizacion: true,
+    canalesPermitidos: ['tiendas', 'tigo-express', 'islas', 'fvd-home', 'dealer-home'],
   },
 
   { id: 'material-101', name: 'VOLANTES HOME HCF', description: 'Medidas: 8 x 13 cm', stock: 17850 },
