@@ -51,6 +51,12 @@ const MaterialRequestForm = ({
   const [showCampaignModal, setShowCampaignModal] = useState(false);
   const [showPreviousModal, setShowPreviousModal] = useState(false);
 
+  // Reiniciar la medida seleccionada al cambiar el material
+  useEffect(() => {
+    setSelectedMeasures('');
+    setCustomMeasure('');
+  }, [selectedMaterial]);
+
   const allowedMaterials = channelMaterials[selectedChannelId] || [];
   const allowedIds = allowedMaterials.map((m) => m.id);
   const cotizableMaterials = materials.filter(
@@ -70,21 +76,14 @@ const MaterialRequestForm = ({
       stock: allowedMaterials.find((am) => am.id === m.id)?.stock || m.stock,
     }));
 
-  // Medidas predefinidas para el selector de medidas
- // Medidas predefinidas para el selector de medidas
-const availableMeasures = [
-  { id: '1/2', name: '1/2' },
-  { id: '1/4', name: '1/4' },
-  { id: '1/8', name: '1/8' },
-  { id: '15x15', name: '15x15' },
-  { id: '30x30', name: '30x30' },
-  { id: '8x13', name: '8 x 13 cm' },
-  { id: '9x13', name: '9 x 13 cm' },
-  { id: '10x13', name: '10 x 13 cm' },
-  { id: '11x13', name: '11 x 13 cm' },
-  { id: '12x13', name: '12 x 13 cm' },
-  { id: 'otro', name: 'Otro' },
-];
+  // Medidas disponibles según el material seleccionado
+  const availableMeasures = React.useMemo(() => {
+    const material = materials.find((m) => m.id === selectedMaterial);
+    const base = material?.medidas || [];
+    const opts = base.map((m) => ({ id: m, name: m }));
+    opts.push({ id: 'otro', name: 'Otro' });
+    return opts;
+  }, [selectedMaterial]);
   // Cargar campañas guardadas localmente para mostrarlas en el desplegable
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('campaigns'));
@@ -107,7 +106,7 @@ const availableMeasures = [
       const measureDetails =
         selectedMeasures === 'otro'
           ? { id: 'otro', name: customMeasure || 'Personalizado' }
-          : availableMeasures.find((m) => m.id === selectedMeasures);
+          : { id: selectedMeasures, name: selectedMeasures };
       setCart((prevCart) => [
         ...prevCart,
         {
