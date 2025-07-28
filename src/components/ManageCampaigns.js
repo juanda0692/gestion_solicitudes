@@ -19,6 +19,14 @@ const ManageCampaigns = ({ onBack }) => {
         result[id].push(ch);
       });
     });
+    materials.forEach((m) => {
+      if (m.requiresCotizacion && m.canalesPermitidos) {
+        if (!result[m.id]) result[m.id] = [];
+        m.canalesPermitidos.forEach((ch) => {
+          if (!result[m.id].includes(ch)) result[m.id].push(ch);
+        });
+      }
+    });
     return result;
   }, []);
 
@@ -117,6 +125,11 @@ const ManageCampaigns = ({ onBack }) => {
                       }
                     />
                     {m.name}{' '}
+                    {m.requiresCotizacion && (
+                      <span className="text-xs text-gray-500">
+                        (Cotizable – sin stock predeterminado)
+                      </span>
+                    )}
                     <span className="text-xs text-gray-500">
                       (
                       {(channelsByMaterial[m.id] || [])

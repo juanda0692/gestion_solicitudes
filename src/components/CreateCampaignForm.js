@@ -66,6 +66,14 @@ const CreateCampaignForm = ({ onBack }) => {
         result[id].push(ch);
       });
     });
+    materials.forEach((m) => {
+      if (m.requiresCotizacion && m.canalesPermitidos) {
+        if (!result[m.id]) result[m.id] = [];
+        m.canalesPermitidos.forEach((ch) => {
+          if (!result[m.id].includes(ch)) result[m.id].push(ch);
+        });
+      }
+    });
     return materials.map((m) => ({
       ...m,
       channels: result[m.id]?.map(
@@ -135,8 +143,10 @@ const CreateCampaignForm = ({ onBack }) => {
               const mat = materialsWithChannels.find((m) => m.id === id);
               return (
                 <li key={id}>
-                  {mat?.name || id} (
-                  {mat?.channels ? mat.channels.join(', ') : ''}) - {qty}
+                  {mat?.name || id}{' '}
+                  {mat?.requiresCotizacion &&
+                    '(Cotizable – sin stock predeterminado) '}
+                  ({mat?.channels ? mat.channels.join(', ') : ''}) - {qty}
                 </li>
               );
             })}
