@@ -16,7 +16,7 @@ const CreateCampaignForm = ({ onBack }) => {
   const [priority, setPriority] = useState('1');
   // Canales asociados
   const [selectedChannels, setSelectedChannels] = useState([]);
-  // Materiales asignados con cantidades { [id]: quantity }
+  // Materiales asignados con cantidades y medidas { [id]: { quantity, measure, customMeasure } }
   const [selectedMaterials, setSelectedMaterials] = useState({});
   // Búsqueda de materiales para filtrar la lista en el modal
   const [materialSearch, setMaterialSearch] = useState('');
@@ -28,7 +28,10 @@ const CreateCampaignForm = ({ onBack }) => {
     if (
       !name ||
       selectedChannels.length === 0 ||
-      Object.keys(selectedMaterials).length === 0
+      Object.keys(selectedMaterials).length === 0 ||
+      Object.values(selectedMaterials).some(
+        (m) => !(m.measure || m.customMeasure),
+      )
     ) {
       alert('Completa todos los campos para guardar la campaña');
       return;
@@ -39,7 +42,14 @@ const CreateCampaignForm = ({ onBack }) => {
       name,
       priority,
       channels: selectedChannels,
-      materials: Object.entries(selectedMaterials).map(([id, quantity]) => ({ id, quantity })),
+      materials: Object.entries(selectedMaterials).map(([id, data]) => ({
+        id,
+        quantity: data.quantity,
+        measures:
+          data.measure === 'otro'
+            ? { id: 'otro', name: data.customMeasure || 'Personalizado' }
+            : { id: data.measure, name: data.measure },
+      })),
     };
     localStorage.setItem('campaigns', JSON.stringify([...stored, newCampaign]));
     onBack();
@@ -50,13 +60,28 @@ const CreateCampaignForm = ({ onBack }) => {
       if (updated[id]) {
         delete updated[id];
       } else if (stock > 0) {
-        updated[id] = 1;
+        updated[id] = { quantity: 1, measure: '', customMeasure: '' };
       }
       return updated;
     });
 
   const updateMaterialQuantity = (id, qty) =>
-    setSelectedMaterials((prev) => ({ ...prev, [id]: qty }));
+    setSelectedMaterials((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], quantity: qty },
+    }));
+
+  const updateMaterialMeasure = (id, measure) =>
+    setSelectedMaterials((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], measure, ...(measure !== 'otro' && { customMeasure: '' }) },
+    }));
+
+  const updateCustomMeasure = (id, value) =>
+    setSelectedMaterials((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], customMeasure: value },
+    }));
 
   const materialsWithChannels = React.useMemo(() => {
     const result = {};
@@ -139,14 +164,41 @@ const CreateCampaignForm = ({ onBack }) => {
         </button>
         {Object.keys(selectedMaterials).length > 0 && (
           <ul className="mt-2 list-disc list-inside text-sm text-gray-700">
-            {Object.entries(selectedMaterials).map(([id, qty]) => {
+            {Object.entries(selectedMaterials).map(([id, data]) => {
               const mat = materialsWithChannels.find((m) => m.id === id);
+              const measureOptions = (mat?.medidas || []).map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ));
+              measureOptions.push(
+                <option key="otro" value="otro">
+                  Otro
+                </option>,
+              );
               return (
-                <li key={id}>
+                <li key={id} className="mb-2">
                   {mat?.name || id}{' '}
                   {mat?.requiresCotizacion &&
                     '(Cotizable – sin stock predeterminado) '}
-                  ({mat?.channels ? mat.channels.join(', ') : ''}) - {qty}
+                  ({mat?.channels ? mat.channels.join(', ') : ''}) - {data.quantity}
+                  <select
+                    className="mt-1 w-full bg-gray-100 border border-gray-300 py-1 px-2 rounded"
+                    value={data.measure}
+                    onChange={(e) => updateMaterialMeasure(id, e.target.value)}
+                  >
+                    <option value="">Selecciona las medidas</option>
+                    {measureOptions}
+                  </select>
+                  {data.measure === 'otro' && (
+                    <input
+                      type="text"
+                      className="mt-2 w-full bg-gray-100 border border-gray-300 py-1 px-2 rounded"
+                      placeholder="Especifica las medidas"
+                      value={data.customMeasure}
+                      onChange={(e) => updateCustomMeasure(id, e.target.value)}
+                    />
+                  )}
                 </li>
               );
             })}
