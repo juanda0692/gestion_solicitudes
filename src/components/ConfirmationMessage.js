@@ -17,7 +17,7 @@ const ConfirmationMessage = ({ message, onGoHome, onStayInChannel }) => {
             onClick={onStayInChannel}
             className="w-full bg-tigo-cyan text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00a7d6] transition-all"
           >
-            Volver al Canal
+          Volver al Canal
           </button>
         )}
         <button
