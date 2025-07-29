@@ -58,7 +58,7 @@ const MaterialSelectorModal = ({
                     type="number"
                     min="1"
                     {...(!m.requiresCotizacion ? { max: m.stock } : {})}
-                    value={selectedMaterials[m.id]}
+                    value={selectedMaterials[m.id]?.quantity}
                     onChange={(e) =>
                       onQuantityChange(
                         m.id,
