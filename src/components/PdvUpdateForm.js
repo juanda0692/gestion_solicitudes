@@ -32,6 +32,10 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
   const [pdvDefaultsList, setPdvDefaultsList] = useState([]);
   // Permite indicar si los cambios actuales se deben guardar como predeterminados
   const [saveAsDefault, setSaveAsDefault] = useState(false);
+  // Índice del set de predeterminados que coincide exactamente con los datos actuales
+  const [matchedDefaultIndex, setMatchedDefaultIndex] = useState(-1);
+  // Búsqueda en la lista de predeterminados
+  const [searchQuery, setSearchQuery] = useState('');
 
   /* ---------------------------- Efectos ------------------------------ */
   // Carga datos guardados del PDV y sus valores predeterminados
@@ -79,6 +83,16 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
     });
   };
 
+  // Cuando cambian los datos del formulario o la lista de predeterminados,
+  // verificamos si existe una coincidencia exacta para deshabilitar el guardado
+  useEffect(() => {
+    const idx = pdvDefaultsList.findIndex((def) => isEqualToDefault(pdvData, def));
+    setMatchedDefaultIndex(idx);
+    if (idx !== -1) {
+      setSaveAsDefault(false);
+    }
+  }, [pdvData, pdvDefaultsList]);
+
 
   // Determina si existe un set de predeterminados muy similar
   const findSimilarDefaultsIndex = (data, list) =>
@@ -90,6 +104,21 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
       if ((def.address || '') === (data.address || '')) match++;
       return match >= 3;
     });
+
+  // Verifica si los datos actuales son idénticos a un set de predeterminados
+  const isEqualToDefault = (data, def) => {
+    if (!def) return false;
+    const fields = ['contactName', 'contactPhone', 'city', 'address', 'notes'];
+    for (const f of fields) {
+      if ((data[f] || '') !== (def[f] || '')) return false;
+    }
+    if ((data.additionalFields || []).length !== (def.additionalFields || []).length)
+      return false;
+    return (data.additionalFields || []).every((f, i) => {
+      const d = def.additionalFields[i] || {};
+      return (f.label || '') === (d.label || '') && (f.value || '') === (d.value || '');
+    });
+  };
 
   // Guarda un conjunto de datos predeterminados para el PDV
   const savePdvDefaults = (data) => {
@@ -131,6 +160,20 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
     }
   };
 
+  // Limpia el formulario para comenzar un nuevo set de datos
+  const handleAddNewData = () => {
+    setPdvData({
+      contactName: '',
+      contactPhone: '',
+      city: '',
+      address: '',
+      notes: '',
+      additionalFields: [],
+    });
+    setMatchedDefaultIndex(-1);
+    setSaveAsDefault(false);
+  };
+
   // Elimina un conjunto de valores predeterminados guardados
   const handleDeleteDefaults = (index) => {
     const updated = [...pdvDefaultsList];
@@ -165,7 +208,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
   // Ejecuta el guardado definitivo
   const finalizeSubmit = () => {
     setStorageItem(`pdv-${selectedPdvId}-data`, pdvData);
-    if (saveAsDefault) {
+    if (saveAsDefault && matchedDefaultIndex === -1) {
       savePdvDefaults(pdvData);
       setSaveAsDefault(false);
     }
@@ -237,9 +280,17 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
   return (
     <>
     <div className="p-6 bg-white rounded-xl shadow-lg mx-auto mt-8 max-w-3xl">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
-        Actualizar Datos del PDV
-      </h2>
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-2xl font-semibold text-gray-800 text-center flex-1">
+          Actualizar Datos del PDV
+        </h2>
+        <button
+          onClick={handleAddNewData}
+          className="ml-4 text-sm text-tigo-blue underline whitespace-nowrap"
+        >
+          ➕ Añadir nuevos datos
+        </button>
+      </div>
 
       <div className="md:flex md:space-x-6">
         <div className="flex-1">
@@ -303,6 +354,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
               type="checkbox"
               id="saveDefault"
               checked={saveAsDefault}
+              disabled={matchedDefaultIndex !== -1}
               onChange={(e) => setSaveAsDefault(e.target.checked)}
             />
             <label htmlFor="saveDefault" className="text-sm text-gray-700">
@@ -320,9 +372,22 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
 
         {pdvDefaultsList.length > 0 && (
           <div className="mt-6 md:mt-0 md:w-1/3 bg-gray-50 border border-gray-200 rounded-lg p-4">
-            <h3 className="text-lg font-semibold mb-4">Predeterminados disponibles</h3>
+            <h3 className="text-lg font-semibold mb-2">Predeterminados disponibles</h3>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar PDV..."
+              className="mb-4 w-full border border-gray-300 rounded-md px-2 py-1 text-sm"
+            />
             <ul className="space-y-4 text-sm max-h-80 overflow-y-auto scroll-smooth">
-              {pdvDefaultsList.map((def, idx) => (
+              {pdvDefaultsList
+                .filter((def) =>
+                  `${def.contactName} ${def.city} ${def.contactPhone}`
+                    .toLowerCase()
+                    .includes(searchQuery.toLowerCase())
+                )
+                .map((def, idx) => (
                 <li key={idx} className="border border-gray-200 rounded-md p-2">
                   <p className="font-semibold mb-1">{def.autoLabel || `${def.city} – ${def.contactName}`}</p>
                   <p>

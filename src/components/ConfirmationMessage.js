@@ -6,7 +6,13 @@ import React from 'react';
  * inicio de la aplicación.
  */
 
-const ConfirmationMessage = ({ message, onGoHome, onStayInChannel }) => {
+const ConfirmationMessage = ({
+  message,
+  onGoHome,
+  onStayInChannel,
+  onBackToPdv,
+  pdvName,
+}) => {
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto mt-8 text-center">
       <h2 className="text-3xl font-bold text-green-600 mb-4">¡Éxito!</h2>
@@ -18,6 +24,14 @@ const ConfirmationMessage = ({ message, onGoHome, onStayInChannel }) => {
             className="w-full bg-tigo-cyan text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00a7d6] transition-all"
           >
           Volver al Canal
+          </button>
+        )}
+        {onBackToPdv && (
+          <button
+            onClick={onBackToPdv}
+            className="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-lg shadow hover:bg-gray-300"
+          >
+            🔁 Volver al PDV: {pdvName}
           </button>
         )}
         <button

@@ -441,6 +441,8 @@ const App = () => {
             message={confirmationMessage}
             onGoHome={handleGoHome}
             onStayInChannel={() => setCurrentPage('location-select')}
+            onBackToPdv={currentPage === 'confirm-update' ? () => setCurrentPage('update-pdv') : undefined}
+            pdvName={selectedPdvName}
           />
         )}
         </main>
