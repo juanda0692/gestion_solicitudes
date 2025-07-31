@@ -30,6 +30,7 @@ import LoginScreen from './components/LoginScreen';
 import ChannelMenu from './components/ChannelMenu';
 import Sidebar from './components/Sidebar';
 import { getStorageItem, setStorageItem } from './utils/storage';
+import exportToExcel from './utils/exportToExcel';
 import { channels } from './mock/channels';
 
 const App = () => {
@@ -127,7 +128,7 @@ const App = () => {
   // puntos de venta y materiales. Se utiliza desde la pantalla de Export Data.
   const performExport = (params) => {
     if (params && params.type) {
-      console.log('Export data ready:', params);
+      exportToExcel(params);
       return;
     }
     const { channelId, pdvIds = [], materialIds = [] } = params;
