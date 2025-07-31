@@ -125,7 +125,12 @@ const App = () => {
 
   // Exporta información de solicitudes y actualizaciones filtrando por canal,
   // puntos de venta y materiales. Se utiliza desde la pantalla de Export Data.
-  const performExport = ({ channelId, pdvIds = [], materialIds = [] }) => {
+  const performExport = (params) => {
+    if (params && params.type) {
+      console.log('Export data ready:', params);
+      return;
+    }
+    const { channelId, pdvIds = [], materialIds = [] } = params;
     const materialRequests = getStorageItem('material-requests') || [];
     const updateRequests = getStorageItem('pdv-update-requests') || [];
 

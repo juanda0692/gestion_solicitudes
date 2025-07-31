@@ -1,10 +1,40 @@
 import React, { useState } from 'react';
 import { channels } from '../mock/channels';
-import { pdvs } from '../mock/locations';
+import { regions, subterritories, pdvs } from '../mock/locations';
 import { materials } from '../mock/materials';
 import { channelMaterials } from '../mock/channelMaterials';
+import { getStorageItem } from '../utils/storage';
 
 const flattenPdvs = Object.values(pdvs).flat();
+
+const getPdvInfo = (pdvId) => {
+  let subId = '';
+  let pdvName = pdvId;
+  Object.entries(pdvs).forEach(([sId, list]) => {
+    const found = list.find((p) => p.id === pdvId);
+    if (found) {
+      subId = sId;
+      pdvName = found.name;
+    }
+  });
+  let regionId = '';
+  Object.entries(subterritories).forEach(([rId, subs]) => {
+    if (subs.find((s) => s.id === subId)) {
+      regionId = rId;
+    }
+  });
+  const regionName = regions.find((r) => r.id === regionId)?.name || regionId;
+  const subName =
+    (subterritories[regionId] || []).find((s) => s.id === subId)?.name || subId;
+  return {
+    id: pdvId,
+    name: pdvName,
+    subterritoryId: subId,
+    subterritoryName: subName,
+    regionId,
+    regionName,
+  };
+};
 
 const toggleValue = (arr, value) =>
   arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
@@ -33,16 +63,54 @@ const ExportData = ({ onBack, onExport }) => {
     return result;
   }, []);
 
+  const buildExportObject = (requests, type, channelId) => {
+    const channelName =
+      channels.find((c) => c.id === channelId)?.name || channelId;
+    return {
+      type,
+      channelId,
+      channelName,
+      requestDate: new Date().toISOString(),
+      pdvs: requests.map((req) => ({
+        ...getPdvInfo(req.pdvId),
+        zone: req.zones || [],
+        priority: req.priority || '',
+        campaigns: req.campaigns || [],
+        materials: req.items.map((it) => ({
+          id: it.material.id,
+          name: it.material.name,
+          quantity: it.quantity,
+          measure: it.measures.name,
+          requiresCotizacion: it.material.requiresCotizacion,
+          observations: it.notes || '',
+        })),
+      })),
+    };
+  };
+
   const handleExportChannel = (channelId) => {
-    onExport({ channelId });
+    const allRequests = getStorageItem('material-requests') || [];
+    const channelRequests = allRequests.filter((r) => r.channelId === channelId);
+    const exportObj = buildExportObject(channelRequests, 'canal', channelId);
+    onExport(exportObj);
   };
 
   const handleCustomExport = () => {
-    onExport({
-      channelId: 'personalizado',
-      pdvIds: selectedPdvs,
-      materialIds: selectedMaterials,
-    });
+    const allRequests = getStorageItem('material-requests') || [];
+    let filtered = allRequests;
+    if (selectedPdvs.length > 0) {
+      filtered = filtered.filter((r) => selectedPdvs.includes(r.pdvId));
+    }
+    if (selectedMaterials.length > 0) {
+      filtered = filtered
+        .map((r) => ({
+          ...r,
+          items: r.items.filter((i) => selectedMaterials.includes(i.material.id)),
+        }))
+        .filter((r) => r.items.length > 0);
+    }
+    const exportObj = buildExportObject(filtered, 'personalizado', 'personalizado');
+    onExport(exportObj);
   };
 
   return (
