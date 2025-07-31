@@ -28,6 +28,8 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
   // Estado para controlar la ventana de confirmación
   const [showConfirm, setShowConfirm] = useState(false);
   const [defaultAction, setDefaultAction] = useState('none'); // new | replace | none
+  const [showNewDataModal, setShowNewDataModal] = useState(false); // aviso cuando se crea desde cero
+  const [isCreatingNew, setIsCreatingNew] = useState(false);
   // Conjunto de datos predeterminados almacenados para el PDV
   const [pdvDefaultsList, setPdvDefaultsList] = useState([]);
   // Permite indicar si los cambios actuales se deben guardar como predeterminados
@@ -65,6 +67,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
     const storedDefaultsList =
       getStorageItem(`pdv-${selectedPdvId}-defaults-list`) || [];
     setPdvDefaultsList(Array.isArray(storedDefaultsList) ? storedDefaultsList : []);
+    setIsCreatingNew(false);
   }, [selectedPdvId]);
 
   /* --------------------------- Handlers ------------------------------ */
@@ -157,6 +160,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
     if (defaults) {
       const { savedAt, ...data } = defaults;
       setPdvData(data);
+      setIsCreatingNew(false);
     }
   };
 
@@ -172,6 +176,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
     });
     setMatchedDefaultIndex(-1);
     setSaveAsDefault(false);
+    setIsCreatingNew(true);
   };
 
   // Elimina un conjunto de valores predeterminados guardados
@@ -191,6 +196,11 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
       !pdvData.address.trim()
     ) {
       alert('Por favor complete los campos requeridos');
+      return;
+    }
+
+    if (isCreatingNew && !saveAsDefault) {
+      setShowNewDataModal(true);
       return;
     }
 
@@ -222,6 +232,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
     setStorageItem('pdv-update-requests', [...updates, updateEntry]);
 
     setShowConfirm(false);
+    setIsCreatingNew(false);
     onUpdateConfirm(pdvData);
   };
 
@@ -465,6 +476,33 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
             </button>
             <button onClick={finalizeSubmit} className="bg-tigo-cyan text-white py-1 px-3 rounded-md">
               Sí, guardar
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    {showNewDataModal && (
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20">
+        <div className="bg-white rounded-lg shadow-lg w-11/12 max-w-md p-4">
+          <h3 className="text-lg font-semibold mb-2">
+            No hay datos registrados. ¿Desea crear nuevos?
+          </h3>
+          <div className="flex justify-end space-x-2 mt-4">
+            <button
+              onClick={() => setShowNewDataModal(false)}
+              className="bg-gray-300 text-gray-700 py-1 px-3 rounded-md"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => {
+                setShowNewDataModal(false);
+                setSaveAsDefault(true);
+                setShowConfirm(true);
+              }}
+              className="bg-tigo-cyan text-white py-1 px-3 rounded-md"
+            >
+              Sí
             </button>
           </div>
         </div>
