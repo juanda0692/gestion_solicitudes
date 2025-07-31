@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { getStorageItem } from './storage';
 
 /**
  * Exporta un objeto de solicitud de materiales a un archivo Excel (.xlsx).
@@ -18,6 +19,12 @@ export default function exportToExcel(exportObj) {
     const campaigns = Array.isArray(pdv.campaigns)
       ? pdv.campaigns.join(', ')
       : pdv.campaigns || '';
+    const storedData = getStorageItem(`pdv-${pdv.id}-data`) || {};
+    const contactName = storedData.contactName || '-';
+    const contactPhone = storedData.contactPhone || '-';
+    const city = storedData.city || '-';
+    const address = storedData.address || '-';
+    const notes = storedData.notes || '-';
     pdv.materials.forEach((mat) => {
       rows.push({
         Fecha: exportObj.requestDate,
@@ -26,6 +33,11 @@ export default function exportToExcel(exportObj) {
         Región: pdv.regionName,
         Subterritorio: pdv.subterritoryName,
         PDV: pdv.name,
+        'Nombre de Contacto': contactName,
+        'Teléfono de Contacto': contactPhone,
+        Ciudad: city,
+        Dirección: address,
+        'Notas internas': notes,
         Material: mat.name,
         Cantidad: mat.quantity || '',
         Medida: mat.measure || '',
