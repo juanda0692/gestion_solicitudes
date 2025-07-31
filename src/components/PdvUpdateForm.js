@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import {
   getStorageItem,
   setStorageItem,
-  removeStorageItem,
 } from '../utils/storage';
 
 /**
@@ -30,8 +29,10 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
   const [addingField, setAddingField] = useState(false);
   const [newFieldLabel, setNewFieldLabel] = useState('');
   const [newFieldValue, setNewFieldValue] = useState('');
-  // Datos predeterminados almacenados para el PDV
-  const [pdvDefaults, setPdvDefaults] = useState(null);
+  // Conjunto de datos predeterminados almacenados para el PDV
+  const [pdvDefaultsList, setPdvDefaultsList] = useState([]);
+  // Permite indicar si los cambios actuales se deben guardar como predeterminados
+  const [saveAsDefault, setSaveAsDefault] = useState(false);
 
   /* ---------------------------- Efectos ------------------------------ */
   // Carga datos guardados del PDV y sus valores predeterminados
@@ -58,8 +59,9 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
       });
     }
 
-    const storedDefaults = getStorageItem(`pdv-${selectedPdvId}-defaults`);
-    setPdvDefaults(storedDefaults || null);
+    const storedDefaultsList =
+      getStorageItem(`pdv-${selectedPdvId}-defaults-list`) || [];
+    setPdvDefaultsList(Array.isArray(storedDefaultsList) ? storedDefaultsList : []);
   }, [selectedPdvId]);
 
   /* --------------------------- Handlers ------------------------------ */
@@ -93,10 +95,13 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
     setAddingField(false);
   };
 
-  // Guarda los datos predeterminados del PDV en localStorage
+  // Guarda un conjunto de datos predeterminados para el PDV
   const savePdvDefaults = (data) => {
-    setPdvDefaults(data);
-    setStorageItem(`pdv-${selectedPdvId}-defaults`, data);
+    const list = getStorageItem(`pdv-${selectedPdvId}-defaults-list`) || [];
+    const entry = { ...data, savedAt: new Date().toISOString() };
+    const newList = [...list, entry];
+    setPdvDefaultsList(newList);
+    setStorageItem(`pdv-${selectedPdvId}-defaults-list`, newList);
   };
 
   // Finaliza la edición de un campo
@@ -109,23 +114,39 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
     setEditingField(null);
   };
 
-  // Aplica los valores predeterminados almacenados al formulario
-  const handleApplyDefaults = () => {
-    if (pdvDefaults) {
-      setPdvData(pdvDefaults);
+  // Aplica un conjunto de valores predeterminados al formulario
+  const handleApplyDefaults = (defaults) => {
+    if (defaults) {
+      const { savedAt, ...data } = defaults;
+      setPdvData(data);
     }
   };
 
-  // Elimina los valores predeterminados guardados
-  const handleClearDefaults = () => {
-    removeStorageItem(`pdv-${selectedPdvId}-defaults`);
-    setPdvDefaults(null);
+  // Elimina un conjunto de valores predeterminados guardados
+  const handleDeleteDefaults = (index) => {
+    const updated = [...pdvDefaultsList];
+    updated.splice(index, 1);
+    setPdvDefaultsList(updated);
+    setStorageItem(`pdv-${selectedPdvId}-defaults-list`, updated);
   };
 
   // Guarda la información editada y notifica al componente padre
   const handleSubmit = () => {
+    if (
+      !pdvData.contactName.trim() ||
+      !pdvData.contactPhone.trim() ||
+      !pdvData.city.trim() ||
+      !pdvData.address.trim()
+    ) {
+      alert('Por favor complete los campos requeridos');
+      return;
+    }
+
     setStorageItem(`pdv-${selectedPdvId}-data`, pdvData);
-    savePdvDefaults(pdvData);
+    if (saveAsDefault) {
+      savePdvDefaults(pdvData);
+      setSaveAsDefault(false);
+    }
 
     const updates = getStorageItem('pdv-update-requests') || [];
     const updateEntry = {
@@ -295,6 +316,18 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
             </div>
           )}
 
+          <div className="mb-4 flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="saveDefault"
+              checked={saveAsDefault}
+              onChange={(e) => setSaveAsDefault(e.target.checked)}
+            />
+            <label htmlFor="saveDefault" className="text-sm text-gray-700">
+              Guardar y establecer como datos predeterminados
+            </label>
+          </div>
+
           <button
             onClick={handleSubmit}
             className="w-full bg-tigo-cyan text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00a7d6] transition-all duration-300 ease-in-out transform hover:scale-105"
@@ -303,44 +336,42 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
           </button>
         </div>
 
-        {pdvDefaults && (
+        {pdvDefaultsList.length > 0 && (
           <div className="mt-6 md:mt-0 md:w-1/3 bg-gray-50 border rounded-lg p-4">
             <h3 className="text-lg font-semibold mb-2">Datos predeterminados del PDV</h3>
-            <ul className="text-sm space-y-1">
-              <li>
-                <span className="font-medium">Nombre de Contacto:</span>{' '}
-                {pdvDefaults.contactName || '-'}
-              </li>
-              <li>
-                <span className="font-medium">Teléfono de Contacto:</span>{' '}
-                {pdvDefaults.contactPhone || '-'}
-              </li>
-              <li>
-                <span className="font-medium">Ciudad:</span> {pdvDefaults.city || '-'}
-              </li>
-              <li>
-                <span className="font-medium">Dirección:</span>{' '}
-                {pdvDefaults.address || '-'}
-              </li>
-              <li>
-                <span className="font-medium">Notas Internas:</span>{' '}
-                {pdvDefaults.notes || '-'}
-              </li>
+            <ul className="space-y-4 text-sm max-h-80 overflow-y-auto">
+              {pdvDefaultsList.map((def, idx) => (
+                <li key={idx} className="border-b pb-2">
+                  <p>
+                    <span className="font-medium">Nombre de Contacto:</span> {def.contactName || '-'}
+                  </p>
+                  <p>
+                    <span className="font-medium">Teléfono:</span> {def.contactPhone || '-'}
+                  </p>
+                  <p>
+                    <span className="font-medium">Ciudad:</span> {def.city || '-'}
+                  </p>
+                  <p>
+                    <span className="font-medium">Dirección:</span> {def.address || '-'}
+                  </p>
+                  <p className="text-xs text-gray-500">{new Date(def.savedAt).toLocaleString()}</p>
+                  <div className="flex space-x-2 mt-2">
+                    <button
+                      onClick={() => handleApplyDefaults(def)}
+                      className="flex-1 bg-green-500 text-white py-1 px-2 rounded-md"
+                    >
+                      Aplicar
+                    </button>
+                    <button
+                      onClick={() => handleDeleteDefaults(idx)}
+                      className="flex-1 bg-red-500 text-white py-1 px-2 rounded-md"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </li>
+              ))}
             </ul>
-            <div className="mt-4 space-y-2">
-              <button
-                onClick={handleApplyDefaults}
-                className="w-full bg-green-500 text-white py-2 px-4 rounded-md"
-              >
-                Aplicar datos predeterminados
-              </button>
-              <button
-                onClick={handleClearDefaults}
-                className="w-full bg-red-500 text-white py-2 px-4 rounded-md"
-              >
-                Eliminar datos predeterminados
-              </button>
-            </div>
           </div>
         )}
       </div>
