@@ -235,6 +235,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
   );
 
   return (
+    <>
     <div className="p-6 bg-white rounded-xl shadow-lg mx-auto mt-8 max-w-3xl">
       <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
         Actualizar Datos del PDV
@@ -359,7 +360,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
           </div>
         )}
       </div>
-    </div>
+    </div> 
     {showConfirm && (
       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20">
         <div className="bg-white rounded-lg shadow-lg w-11/12 max-w-md p-4">
@@ -404,7 +405,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
         </div>
       </div>
     )}
+    </> 
   );
 };
-
 export default PdvUpdateForm;
