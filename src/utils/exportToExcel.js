@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import { getStorageItem } from './storage';
+import { getDisplayName, formatQuantity } from './materialDisplay';
 
 /**
  * Exporta un objeto de solicitud de materiales a un archivo Excel (.xlsx).
@@ -39,8 +40,8 @@ export default function exportToExcel(exportObj) {
         Ciudad: city,
         Dirección: address,
         'Notas internas': notes,
-        Material: mat.name,
-        Cantidad: mat.quantity || '',
+        Material: getDisplayName(mat.name),
+        Cantidad: formatQuantity(mat.name, mat.quantity) || '',
         Medida: mat.measure || '',
         '¿Cotizable?': mat.requiresCotizacion ? 'Sí' : 'No',
         Zona: zone,

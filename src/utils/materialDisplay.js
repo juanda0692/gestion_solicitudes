@@ -4,6 +4,9 @@ export const getDisplayName = (name = '') => {
   if (lower.includes('tend card') || lower.includes('nps')) {
     return `Puesto de asesores (${trimmed})`;
   }
+  if (lower.includes('volantes')) {
+    return `Cantidad de asesores (${trimmed})`;
+  }
   return trimmed;
 };
 
