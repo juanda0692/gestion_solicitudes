@@ -19,12 +19,13 @@ export default function exportToExcel(exportObj) {
     const campaigns = Array.isArray(pdv.campaigns)
       ? pdv.campaigns.join(', ')
       : pdv.campaigns || '';
-    const storedData = getStorageItem(`pdv-${pdv.id}-data`) || {};
-    const contactName = storedData.contactName || '-';
-    const contactPhone = storedData.contactPhone || '-';
-    const city = storedData.city || '-';
-    const address = storedData.address || '-';
-    const notes = storedData.notes || '-';
+    const data =
+      pdv.pdvData || getStorageItem(`pdv-${pdv.id}-data`) || {};
+    const contactName = data.contactName || '';
+    const contactPhone = data.contactPhone || '';
+    const city = data.city || '';
+    const address = data.address || '';
+    const notes = data.notes || '';
     pdv.materials.forEach((mat) => {
       rows.push({
         Fecha: exportObj.requestDate,

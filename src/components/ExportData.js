@@ -76,6 +76,7 @@ const ExportData = ({ onBack, onExport }) => {
         zone: req.zones || [],
         priority: req.priority || '',
         campaigns: req.campaigns || [],
+        pdvData: req.pdvData || getStorageItem(`pdv-${req.pdvId}-data`) || {},
         materials: req.items.map((it) => ({
           id: it.material.id,
           name: it.material.name,
