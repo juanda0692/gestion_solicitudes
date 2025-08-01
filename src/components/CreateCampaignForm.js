@@ -4,6 +4,7 @@ import { channels } from '../mock/channels';
 import { materials } from '../mock/materials';
 import { channelMaterials } from '../mock/channelMaterials';
 import MaterialSelectorModal from './MaterialSelectorModal';
+import { getDisplayName, formatQuantity } from '../utils/materialDisplay';
 
 /**
  * Formulario para crear una campaña nueva.
@@ -178,10 +179,10 @@ const CreateCampaignForm = ({ onBack }) => {
               );
               return (
                 <li key={id} className="mb-2">
-                  {mat?.name || id}{' '}
+                  {getDisplayName(mat?.name || id)}{' '}
                   {mat?.requiresCotizacion &&
                     '(Cotizable – sin stock predeterminado) '}
-                  ({mat?.channels ? mat.channels.join(', ') : ''}) - {data.quantity}
+                  ({mat?.channels ? mat.channels.join(', ') : ''}) - {formatQuantity(mat?.name || id, data.quantity)}
                   <select
                     className="mt-1 w-full bg-gray-100 border border-gray-300 py-1 px-2 rounded"
                     value={data.measure}

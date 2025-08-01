@@ -1,4 +1,5 @@
 import React from 'react';
+import { getDisplayName, formatQuantity } from '../utils/materialDisplay';
 
 /**
  * Modal para seleccionar materiales de forma cómoda.
@@ -40,7 +41,7 @@ const MaterialSelectorModal = ({
                     disabled={m.stock === 0 && !m.requiresCotizacion}
                     onChange={() => onToggle(m.id, m.stock)}
                   />
-                  {m.name}{' '}
+                  {getDisplayName(m.name)}{' '}
                   {m.requiresCotizacion && (
                     <span className="text-xs text-gray-500">(Cotizable – sin stock predeterminado)</span>
                   )}{' '}
