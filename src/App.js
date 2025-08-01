@@ -408,7 +408,11 @@ const App = () => {
 
         {/* Formulario para actualizar información del PDV */}
         {isLoggedIn && currentPage === 'update-pdv' && (
-          <PdvUpdateForm selectedPdvId={selectedPdvId} onUpdateConfirm={handleUpdateConfirm} />
+          <PdvUpdateForm
+            selectedPdvId={selectedPdvId}
+            onUpdateConfirm={handleUpdateConfirm}
+            channelId={selectedChannelId}
+          />
         )}
 
         {/* Historial de solicitudes para el PDV */}
