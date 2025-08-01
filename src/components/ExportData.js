@@ -1,11 +1,7 @@
 import React, { useState } from 'react';
 import { channels } from '../mock/channels';
 import { regions, subterritories, pdvs } from '../mock/locations';
-import { materials } from '../mock/materials';
-import { channelMaterials } from '../mock/channelMaterials';
 import { getStorageItem } from '../utils/storage';
-
-const flattenPdvs = Object.values(pdvs).flat();
 
 const getPdvInfo = (pdvId) => {
   let subId = '';
@@ -36,32 +32,14 @@ const getPdvInfo = (pdvId) => {
   };
 };
 
-const toggleValue = (arr, value) =>
-  arr.includes(value) ? arr.filter((v) => v !== value) : [...arr, value];
 
 const ExportData = ({ onBack, onExport }) => {
   const [customMode, setCustomMode] = useState(false);
-  const [selectedPdvs, setSelectedPdvs] = useState([]);
-  const [selectedMaterials, setSelectedMaterials] = useState([]);
+  const [selectedRegion, setSelectedRegion] = useState('');
+  const [selectedSubterritory, setSelectedSubterritory] = useState('');
+  const [selectedPdv, setSelectedPdv] = useState('');
+  const [summary, setSummary] = useState(null);
 
-  const channelsByMaterial = React.useMemo(() => {
-    const result = {};
-    Object.entries(channelMaterials).forEach(([ch, mats]) => {
-      mats.forEach(({ id }) => {
-        if (!result[id]) result[id] = [];
-        result[id].push(ch);
-      });
-    });
-    materials.forEach((m) => {
-      if (m.requiresCotizacion && m.canalesPermitidos) {
-        if (!result[m.id]) result[m.id] = [];
-        m.canalesPermitidos.forEach((ch) => {
-          if (!result[m.id].includes(ch)) result[m.id].push(ch);
-        });
-      }
-    });
-    return result;
-  }, []);
 
   const buildExportObject = (requests, type, channelId) => {
     const channelName =
@@ -96,20 +74,33 @@ const ExportData = ({ onBack, onExport }) => {
     onExport(exportObj);
   };
 
-  const handleCustomExport = () => {
+  const collectPdvIds = () => {
+    if (!selectedRegion) return [];
+    if (selectedPdv) return [selectedPdv];
+    if (selectedSubterritory) {
+      return (pdvs[selectedSubterritory] || []).map((p) => p.id);
+    }
+    let ids = [];
+    (subterritories[selectedRegion] || []).forEach((sub) => {
+      ids = ids.concat((pdvs[sub.id] || []).map((p) => p.id));
+    });
+    return ids;
+  };
+
+  const buildFilteredRequests = () => {
     const allRequests = getStorageItem('material-requests') || [];
-    let filtered = allRequests;
-    if (selectedPdvs.length > 0) {
-      filtered = filtered.filter((r) => selectedPdvs.includes(r.pdvId));
-    }
-    if (selectedMaterials.length > 0) {
-      filtered = filtered
-        .map((r) => ({
-          ...r,
-          items: r.items.filter((i) => selectedMaterials.includes(i.material.id)),
-        }))
-        .filter((r) => r.items.length > 0);
-    }
+    const pdvIds = collectPdvIds();
+    return allRequests.filter((r) => pdvIds.includes(r.pdvId));
+  };
+
+  const handleGenerateSummary = () => {
+    const filtered = buildFilteredRequests();
+    const exportObj = buildExportObject(filtered, 'personalizado', 'personalizado');
+    setSummary(exportObj);
+  };
+
+  const handleCustomExport = () => {
+    const filtered = buildFilteredRequests();
     const exportObj = buildExportObject(filtered, 'personalizado', 'personalizado');
     onExport(exportObj);
   };
@@ -147,56 +138,107 @@ const ExportData = ({ onBack, onExport }) => {
         </>
       ) : (
         <>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">Selecciona PDV</h3>
-          <div className="max-h-40 overflow-y-auto border p-2 mb-4">
-            {flattenPdvs.map((p) => (
-              <label key={p.id} className="block">
-                <input
-                  type="checkbox"
-                  className="mr-2"
-                  checked={selectedPdvs.includes(p.id)}
-                  onChange={() => setSelectedPdvs(toggleValue(selectedPdvs, p.id))}
-                />
-                {p.name}
-              </label>
-            ))}
+          <div className="space-y-4 mb-4">
+            <div>
+              <label className="block text-gray-700 text-sm font-bold mb-2">Región:</label>
+              <select
+                value={selectedRegion}
+                onChange={(e) => {
+                  setSelectedRegion(e.target.value);
+                  setSelectedSubterritory('');
+                  setSelectedPdv('');
+                  setSummary(null);
+                }}
+                className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg"
+              >
+                <option value="">Selecciona una región</option>
+                {regions.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {selectedRegion && (
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2">Subterritorio:</label>
+                <select
+                  value={selectedSubterritory}
+                  onChange={(e) => {
+                    setSelectedSubterritory(e.target.value);
+                    setSelectedPdv('');
+                    setSummary(null);
+                  }}
+                  className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg"
+                >
+                  <option value="">Todos</option>
+                  {(subterritories[selectedRegion] || []).map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {selectedSubterritory && (
+              <div>
+                <label className="block text-gray-700 text-sm font-bold mb-2">PDV:</label>
+                <select
+                  value={selectedPdv}
+                  onChange={(e) => {
+                    setSelectedPdv(e.target.value);
+                    setSummary(null);
+                  }}
+                  className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg"
+                >
+                  <option value="">Todos</option>
+                  {(pdvs[selectedSubterritory] || []).map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">Selecciona Materiales</h3>
-          <div className="max-h-40 overflow-y-auto border p-2 mb-4">
-            {materials.map((m) => (
-              <label key={m.id} className="block">
-                <input
-                  type="checkbox"
-                  className="mr-2"
-                  checked={selectedMaterials.includes(m.id)}
-                  onChange={() =>
-                    setSelectedMaterials(toggleValue(selectedMaterials, m.id))
-                  }
-                />
-                {m.name}{' '}
-                {m.requiresCotizacion && (
-                  <span className="text-xs text-gray-500">
-                    (Cotizable – sin stock predeterminado)
-                  </span>
-                )}{' '}
-                <span className="text-xs text-gray-500">
-                  (
-                  {(channelsByMaterial[m.id] || [])
-                    .map((cid) => channels.find((c) => c.id === cid)?.name || cid)
-                    .join(', ')}
-                  )
-                </span>
-              </label>
-            ))}
+          <div className="mb-4">
+            <button
+              onClick={handleGenerateSummary}
+              disabled={!selectedRegion}
+              className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-gray-700 transition-all disabled:opacity-50"
+            >
+              Mostrar resumen
+            </button>
           </div>
+          {summary && (
+            <div className="border p-3 rounded mb-4 bg-gray-50">
+              <h4 className="font-semibold mb-2">PDVs a exportar:</h4>
+              {summary.pdvs.length === 0 ? (
+                <p className="text-sm text-gray-600">No hay datos para exportar</p>
+              ) : (
+                <ul className="list-disc list-inside text-sm space-y-1">
+                  {summary.pdvs.map((p) => (
+                    <li key={p.id}>{p.name}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
           <button
             onClick={handleCustomExport}
-            className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-gray-700 transition-all mb-4"
+            disabled={!selectedRegion}
+            className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-gray-700 transition-all mb-4 disabled:opacity-50"
           >
-            Exportar Selección
+            Exportar Datos
           </button>
           <button
-            onClick={() => setCustomMode(false)}
+            onClick={() => {
+              setCustomMode(false);
+              setSelectedRegion('');
+              setSelectedSubterritory('');
+              setSelectedPdv('');
+              setSummary(null);
+            }}
             className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all"
           >
             Cancelar
