@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { getStorageItem } from '../utils/storage';
 import { channels } from '../mock/channels';
+import { getDisplayName, formatQuantity } from '../utils/materialDisplay';
 
 /**
  * Lista de solicitudes realizadas por canal.
@@ -65,7 +66,7 @@ const ChannelRequests = ({ channelId, onBack }) => {
                     <ul className="ml-6 list-disc">
                       {items.map((item) => (
                         <li key={item.id}>
-                          {item.material.name} - {item.measures.name} x {item.quantity}
+                          {getDisplayName(item.material.name)} - {item.measures.name} ({formatQuantity(item.material.name, item.quantity)})
                         </li>
                       ))}
                     </ul>

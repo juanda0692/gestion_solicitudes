@@ -1,4 +1,5 @@
 import React from 'react';
+import { getDisplayName } from '../utils/materialDisplay';
 
 const SingleSelectModal = ({
   title = '',
@@ -34,7 +35,7 @@ const SingleSelectModal = ({
                 checked={selectedId === it.id}
                 onChange={() => onSelect(it.id)}
               />
-              {it.name}
+              {getDisplayName(it.name)}
             </label>
           ))}
         {items.filter((it) => it.name.toLowerCase().includes(search.toLowerCase())).length === 0 && (

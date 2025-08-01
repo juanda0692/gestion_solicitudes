@@ -6,6 +6,7 @@ import { channelMaterials } from '../mock/channelMaterials';
 import ContextInfo from './ContextInfo';
 import SingleSelectModal from './SingleSelectModal';
 import PreviousCampaignsModal from './PreviousCampaignsModal';
+import { getDisplayName, formatQuantity } from '../utils/materialDisplay';
 
 
 
@@ -218,7 +219,9 @@ const MaterialRequestForm = ({
             className="w-full bg-gray-100 border border-gray-300 py-2 px-3 rounded-lg text-left"
           >
             {selectedMaterial
-              ? materials.find((m) => m.id === selectedMaterial)?.name
+              ? getDisplayName(
+                  materials.find((m) => m.id === selectedMaterial)?.name,
+                )
               : 'Seleccionar material'}
           </button>
           {selectedMaterial && (
@@ -334,13 +337,13 @@ const MaterialRequestForm = ({
               >
                 <div>
                   <p className="font-semibold text-gray-800">
-                    {item.material.name}
+                    {getDisplayName(item.material.name)}
                   </p>
                   <p className="text-sm text-gray-600">
                     Medidas: {item.measures.name}
                   </p>
                   <p className="text-sm text-gray-600">
-                    Cantidad: {item.quantity}
+                    Cantidad: {formatQuantity(item.material.name, item.quantity)}
                   </p>
                 </div>
                 <button
@@ -481,9 +484,9 @@ const MaterialRequestForm = ({
               <p className="font-medium mt-2">Materiales:</p>
               {cart.map((item) => (
                 <div key={item.id} className="border-t pt-1 mt-1">
-                  <p>{item.material.name}</p>
+                  <p>{getDisplayName(item.material.name)}</p>
                   <p className="text-xs">Medidas: {item.measures.name}</p>
-                  <p className="text-xs">Cantidad: {item.quantity}</p>
+                  <p className="text-xs">Cantidad: {formatQuantity(item.material.name, item.quantity)}</p>
                   {item.notes && (
                     <p className="text-xs">Notas: {item.notes}</p>
                   )}

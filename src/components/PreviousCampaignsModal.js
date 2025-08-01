@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { getStorageItem } from '../utils/storage';
 import { campaigns as defaultCampaigns } from '../mock/campaigns';
+import { getDisplayName, formatQuantity } from '../utils/materialDisplay';
 
 const PreviousCampaignsModal = ({ pdvId, onSelect, onClose }) => {
   const [search, setSearch] = useState('');
@@ -42,7 +43,7 @@ const PreviousCampaignsModal = ({ pdvId, onSelect, onClose }) => {
               <ul className="ml-4 list-disc text-sm">
                 {req.items.map((it) => (
                   <li key={it.id}>
-                    {it.material.name} - {it.measures.name} x {it.quantity}
+                    {getDisplayName(it.material.name)} - {it.measures.name} ({formatQuantity(it.material.name, it.quantity)})
                   </li>
                 ))}
               </ul>

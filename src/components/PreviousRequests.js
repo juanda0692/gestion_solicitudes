@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { getStorageItem } from '../utils/storage';
+import { getDisplayName, formatQuantity } from '../utils/materialDisplay';
 
 /**
  * Muestra el historial de solicitudes de material y actualizaciones
@@ -59,7 +60,7 @@ const PreviousRequests = ({ pdvId, onBack }) => {
                     <ul className="ml-6 list-disc">
                       {items.map((item) => (
                         <li key={item.id}>
-                          {item.material.name} - {item.measures.name} x {item.quantity}
+                          {getDisplayName(item.material.name)} - {item.measures.name} ({formatQuantity(item.material.name, item.quantity)})
                         </li>
                       ))}
                     </ul>
