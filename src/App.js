@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 /**
  * Componente principal de la aplicación.
@@ -29,9 +29,10 @@ import ExportData from './components/ExportData';
 import LoginScreen from './components/LoginScreen';
 import ChannelMenu from './components/ChannelMenu';
 import Sidebar from './components/Sidebar';
-import { getStorageItem, setStorageItem } from './utils/storage';
+import { getStorageItem, setStorageItem, cleanupLocalStorage } from './utils/storage';
 import exportToExcel from './utils/exportToExcel';
 import { channels } from './mock/channels';
+import { pdvs } from './mock/locations';
 
 const App = () => {
   // Controla si el usuario ha iniciado sesión
@@ -57,6 +58,12 @@ const App = () => {
 
   // Mensaje para la pantalla de confirmación
   const [confirmationMessage, setConfirmationMessage] = useState('');
+
+  // Limpieza inicial de localStorage para remover datos obsoletos
+  useEffect(() => {
+    const validIds = Object.values(pdvs).flat().map((p) => p.id);
+    cleanupLocalStorage(validIds);
+  }, []);
 
   // Usuario selecciona si trabajará con Trade Nacional o Regional
   const handleSelectTrade = (type) => {
