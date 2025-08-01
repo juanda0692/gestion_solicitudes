@@ -12,7 +12,7 @@ import {
  * las API correspondientes.
  */
 
-const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
+const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm, channelId }) => {
   /* ----------------------------- Estados ----------------------------- */
   // Información editable del PDV
   const [pdvData, setPdvData] = useState({
@@ -226,6 +226,7 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm }) => {
     const updates = getStorageItem('pdv-update-requests') || [];
     const updateEntry = {
       pdvId: selectedPdvId,
+      channelId,
       data: pdvData,
       date: new Date().toISOString(),
     };
