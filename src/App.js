@@ -451,7 +451,13 @@ const App = () => {
             message={confirmationMessage}
             onGoHome={handleGoHome}
             onStayInChannel={() => setCurrentPage('location-select')}
-            onBackToPdv={currentPage === 'confirm-update' ? () => setCurrentPage('update-pdv') : undefined}
+            onBackToPdv={
+              currentPage === 'confirm-update'
+                ? () => setCurrentPage('update-pdv')
+                : currentPage === 'confirm-request'
+                ? () => setCurrentPage('request-material')
+                : undefined
+            }
             pdvName={selectedPdvName}
           />
         )}

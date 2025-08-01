@@ -50,6 +50,7 @@ const MaterialRequestForm = ({
   const [showMaterialModal, setShowMaterialModal] = useState(false);
   const [showCampaignModal, setShowCampaignModal] = useState(false);
   const [showPreviousModal, setShowPreviousModal] = useState(false);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
   // Reiniciar la medida seleccionada al cambiar el material
   useEffect(() => {
@@ -161,6 +162,24 @@ const MaterialRequestForm = ({
     setShowPreviousModal(false);
   };
 
+  const handleOpenConfirm = () => {
+    if (cart.length === 0) {
+      alert('El carrito está vacío. Agrega materiales antes de confirmar.');
+      return;
+    }
+    if (
+      selectedZones.length === 0 ||
+      !selectedPriority ||
+      !selectedCampaign
+    ) {
+      alert(
+        'Por favor completa Zona, Prioridad y Nombre de campaña antes de continuar.'
+      );
+      return;
+    }
+    setShowConfirmModal(true);
+  };
+
   // Envía la solicitud al componente padre cuando el carrito tiene información
   const handleConfirmCart = () => {
     if (cart.length > 0) {
@@ -173,9 +192,8 @@ const MaterialRequestForm = ({
         channelId: selectedChannelId,
         items: cart,
       });
-    } else {
-      alert('El carrito está vacío. Agrega materiales antes de confirmar.');
     }
+    setShowConfirmModal(false);
   };
 
   return (
@@ -354,7 +372,7 @@ const MaterialRequestForm = ({
                 Vaciar Carrito
               </button>
               <button
-                onClick={handleConfirmCart}
+                onClick={handleOpenConfirm}
                 className="flex-1 bg-tigo-cyan text-white py-2 px-4 rounded-lg shadow-md hover:bg-[#00a7d6] transition-all duration-300 ease-in-out transform hover:scale-105"
               >
                 Confirmar Solicitud Completa
@@ -449,6 +467,55 @@ const MaterialRequestForm = ({
           onSelect={handleAddPreviousItems}
           onClose={() => setShowPreviousModal(false)}
         />
+      )}
+
+      {showConfirmModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20">
+          <div className="bg-white rounded-lg shadow-lg w-11/12 max-w-lg p-4">
+            <h3 className="text-lg font-semibold mb-2">Confirmar solicitud</h3>
+            <div className="text-sm space-y-1 max-h-60 overflow-y-auto">
+              <p className="font-medium">PDV: {selectedPdvName}</p>
+              <p>Región: {selectedRegionName}</p>
+              <p>Subterritorio: {selectedSubName}</p>
+              <p>Canal: {channelName}</p>
+              <p className="font-medium mt-2">Materiales:</p>
+              {cart.map((item) => (
+                <div key={item.id} className="border-t pt-1 mt-1">
+                  <p>{item.material.name}</p>
+                  <p className="text-xs">Medidas: {item.measures.name}</p>
+                  <p className="text-xs">Cantidad: {item.quantity}</p>
+                  {item.notes && (
+                    <p className="text-xs">Notas: {item.notes}</p>
+                  )}
+                </div>
+              ))}
+              <p className="mt-2">
+                <span className="font-medium">Zonas:</span> {selectedZones.join(', ')}
+              </p>
+              <p>
+                <span className="font-medium">Prioridad:</span> {selectedPriority}
+              </p>
+              <p>
+                <span className="font-medium">Campaña:</span>{' '}
+                {campaignList.find((c) => c.id === selectedCampaign)?.name}
+              </p>
+            </div>
+            <div className="flex justify-end space-x-2 mt-4">
+              <button
+                onClick={() => setShowConfirmModal(false)}
+                className="bg-gray-300 text-gray-700 py-1 px-3 rounded-md"
+              >
+                Revisar otra vez
+              </button>
+              <button
+                onClick={handleConfirmCart}
+                className="bg-tigo-cyan text-white py-1 px-3 rounded-md"
+              >
+                Sí, confirmar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

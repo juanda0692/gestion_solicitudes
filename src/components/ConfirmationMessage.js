@@ -27,12 +27,15 @@ const ConfirmationMessage = ({
           </button>
         )}
         {onBackToPdv && (
-          <button
-            onClick={onBackToPdv}
-            className="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-lg shadow hover:bg-gray-300"
-          >
-            🔁 Volver al PDV: {pdvName}
-          </button>
+          <div>
+            <button
+              onClick={onBackToPdv}
+              className="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-lg shadow hover:bg-gray-300"
+            >
+              Volver al PDV actual
+            </button>
+            <p className="mt-1 text-sm text-gray-600">{pdvName}</p>
+          </div>
         )}
         <button
           onClick={onGoHome}
