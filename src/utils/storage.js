@@ -60,3 +60,49 @@ export const removeStorageItem = (key) => {
     console.error('Error al remover de localStorage:', error);
   }
 };
+
+// Deduplica y filtra arreglos de objetos por `pdvId` válido
+const dedupeArray = (list = [], validIds = []) => {
+  const seen = new Set();
+  return list
+    .filter((entry) => entry && validIds.includes(entry.pdvId))
+    .filter((entry) => {
+      const key = JSON.stringify(entry);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+};
+
+/**
+ * Limpia datos almacenados en `localStorage` que estén incompletos,
+ * duplicados o sin relación con un PDV válido.
+ *
+ * @param {string[]} validPdvIds - Lista de identificadores de PDV válidos
+ */
+export const cleanupLocalStorage = (validPdvIds = []) => {
+  try {
+    // Remover datos de PDVs inexistentes
+    Object.keys(window.localStorage).forEach((key) => {
+      if (/^pdv-.*-(data|defaults-list)$/.test(key)) {
+        const match = key.match(/^pdv-(.*)-(data|defaults-list)$/);
+        const pdvId = match ? match[1] : '';
+        if (pdvId && !validPdvIds.includes(pdvId)) {
+          window.localStorage.removeItem(key);
+        }
+      }
+    });
+
+    // Solicitudes de material
+    const material = getStorageItem('material-requests') || [];
+    const cleanedMaterial = dedupeArray(material, validPdvIds);
+    setStorageItem('material-requests', cleanedMaterial);
+
+    // Actualizaciones de PDV
+    const updates = getStorageItem('pdv-update-requests') || [];
+    const cleanedUpdates = dedupeArray(updates, validPdvIds);
+    setStorageItem('pdv-update-requests', cleanedUpdates);
+  } catch (error) {
+    console.error('Error al limpiar localStorage:', error);
+  }
+};
