@@ -171,7 +171,13 @@ const App = () => {
   // Confirmación de carrito: aquí se guardan los datos en localStorage.
   // Reemplazar esta lógica por una llamada al backend al integrar APIs.
   const handleConfirmRequest = (requestDetails) => {
-    const requestWithDate = { ...requestDetails, date: new Date().toISOString() };
+    const currentData =
+      getStorageItem(`pdv-${selectedPdvId}-data`) || {};
+    const requestWithDate = {
+      ...requestDetails,
+      pdvData: currentData,
+      date: new Date().toISOString(),
+    };
     // console.log('Solicitud de Material Confirmada:', requestWithDate);
     const existing = getStorageItem('material-requests') || [];
     setStorageItem('material-requests', [...existing, requestWithDate]);
