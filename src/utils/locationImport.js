@@ -188,7 +188,12 @@ export const buildNormalized = (raw) => {
 export const applyNormalized = (raw) => {
   const normalized = buildNormalized(raw);
   setImportedLocations(normalized);
-  setStorageItem('normalization_report', { idMap: {}, duplicatesRemoved: [], warnings: [] });
+  setStorageItem('normalization_report', {
+    idMap: {},
+    duplicatesRemoved: [],
+    warnings: normalized.warnings || [],
+    conflicts: normalized.warnings || [],
+  });
   return normalized;
 };
 
