@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { channels } from '../mock/channels';
 import { getActiveLocations } from '../utils/locationsSource';
+import { pdvsForSub } from '../utils/locationSelectors';
 import { getStorageItem } from '../utils/storage';
 import StateBlock from './ui/StateBlock';
 
-const getPdvInfo = (pdvId, { regions, subterritories, pdvs }) => {
+const getPdvInfo = (pdvId) => {
+  const { regions, subterritories, pdvs } = getActiveLocations();
   let subId = '';
   let pdvName = pdvId;
   Object.entries(pdvs).forEach(([sId, list]) => {
@@ -35,7 +37,7 @@ const getPdvInfo = (pdvId, { regions, subterritories, pdvs }) => {
 
 
 const ExportData = ({ onBack, onExport }) => {
-  const { regions, subterritories, pdvs } = getActiveLocations();
+  const { regions, subterritories } = getActiveLocations();
   const [customMode, setCustomMode] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedSubterritory, setSelectedSubterritory] = useState('');
@@ -66,7 +68,7 @@ const ExportData = ({ onBack, onExport }) => {
     return {
       scope,
       pdvs: requests.map((req) => {
-        const info = getPdvInfo(req.pdvId, { regions, subterritories, pdvs });
+        const info = getPdvInfo(req.pdvId);
         return {
           ...info,
           regionName: req.region || info.regionName,
@@ -113,14 +115,14 @@ const ExportData = ({ onBack, onExport }) => {
     if (!selectedRegion) return [];
     if (selectedPdv) return [selectedPdv];
     if (selectedSubterritory) {
-      return (pdvs[selectedSubterritory] || [])
+      return pdvsForSub(selectedSubterritory)
         .filter((p) => p.complete)
         .map((p) => p.id);
     }
     let ids = [];
     (subterritories[selectedRegion] || []).forEach((sub) => {
       ids = ids.concat(
-        (pdvs[sub.id] || [])
+        pdvsForSub(sub.id)
           .filter((p) => p.complete)
           .map((p) => p.id),
       );
@@ -137,7 +139,7 @@ const ExportData = ({ onBack, onExport }) => {
   const getScopeLabel = () => {
     if (selectedPdv) {
       const pdvName =
-        (pdvs[selectedSubterritory] || []).find((p) => p.id === selectedPdv)?.name ||
+        pdvsForSub(selectedSubterritory).find((p) => p.id === selectedPdv)?.name ||
         selectedPdv;
       return `PDV-${pdvName}`;
     }
@@ -270,7 +272,7 @@ const ExportData = ({ onBack, onExport }) => {
                   className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg"
                 >
                   <option value="">Todos</option>
-                  {(pdvs[selectedSubterritory] || [])
+                  {pdvsForSub(selectedSubterritory)
                     .filter((p) => p.complete)
                     .map((p) => (
                       <option key={p.id} value={p.id}>
@@ -330,7 +332,7 @@ const ExportData = ({ onBack, onExport }) => {
               {selectedPdv && (
                 <p>
                   PDV:{' '}
-                  {(pdvs[selectedSubterritory] || []).find((p) => p.id === selectedPdv)?.name}
+                    {pdvsForSub(selectedSubterritory).find((p) => p.id === selectedPdv)?.name}
                 </p>
               )}
               <p>PDVs: {summary.pdvs.length}</p>
