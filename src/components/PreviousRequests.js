@@ -2,11 +2,11 @@ import React from 'react';
 import { getStorageItem } from '../utils/storage';
 import HistoryList from './history/HistoryList';
 import { adaptMaterialRequests, adaptPdvUpdates, buildPdvIdMap } from '../utils/historyAdapter';
-import { regions, subterritories, pdvs } from '../mock/locations';
-
-const idMap = buildPdvIdMap(pdvs, regions, subterritories);
+import { getLocations } from '../utils/locationsRuntime';
 
 const PreviousRequests = ({ pdvId, onBack }) => {
+  const { regions, subterritories, pdvs } = getLocations();
+  const idMap = buildPdvIdMap(pdvs, regions, subterritories);
   const materialRequests = (getStorageItem('material-requests') || []).filter(
     (req) => req.pdvId === pdvId,
   );

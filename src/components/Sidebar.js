@@ -9,6 +9,7 @@ const Sidebar = ({
   onChannels,
   onCampaigns,
   onExport,
+  onLoadLocations,
   onSettings,
   onLogout,
   showManagement,
@@ -95,6 +96,24 @@ const Sidebar = ({
               </svg>
             </Item>
           </>
+        )}
+        {process.env.NODE_ENV === 'development' && onLoadLocations && (
+          <Item onClick={onLoadLocations} label="Cargar ubicaciones">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="2"
+              stroke="currentColor"
+              className="w-5 h-5"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+          </Item>
         )}
         {process.env.NODE_ENV === 'development' && onSettings && (
           <Item onClick={onSettings} label="Ajustes">

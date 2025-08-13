@@ -79,18 +79,26 @@ export const normalizeLocationData = (
       seenIds.add(id);
 
       const regionId = subToRegion[subId] || '';
+      const city = normalizeName(pdv.city || '');
       const address = pdv.address || 'Sin dirección';
-      const contact = pdv.contact || 'Sin contacto';
+      const contactName = normalizeName(pdv.contactName || '');
+      const contactPhone = pdv.contactPhone || '';
+      const notes = pdv.notes || '';
+      const contact = pdv.contact || `${contactName}${contactPhone ? ` - ${contactPhone}` : ''}`;
       const complete = Boolean(
-        id && pdv.name && regionId && subId && address && contact,
+        id && pdv.name && regionId && subId && city && address && contactName && contactPhone,
       );
       return {
         id,
         name: normalizeName(pdv.name || id),
         regionId,
         subterritoryId: subId,
+        city,
         address,
+        contactName,
+        contactPhone,
         contact,
+        notes,
         complete,
       };
     });

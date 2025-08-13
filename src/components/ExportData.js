@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { channels } from '../mock/channels';
-import { regions, subterritories, pdvs } from '../mock/locations';
+import { getLocations } from '../utils/locationsRuntime';
 import { getStorageItem } from '../utils/storage';
 import StateBlock from './ui/StateBlock';
 
-const getPdvInfo = (pdvId) => {
+const getPdvInfo = (pdvId, { regions, subterritories, pdvs }) => {
   let subId = '';
   let pdvName = pdvId;
   Object.entries(pdvs).forEach(([sId, list]) => {
@@ -35,6 +35,7 @@ const getPdvInfo = (pdvId) => {
 
 
 const ExportData = ({ onBack, onExport }) => {
+  const { regions, subterritories, pdvs } = getLocations();
   const [customMode, setCustomMode] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedSubterritory, setSelectedSubterritory] = useState('');
@@ -65,7 +66,7 @@ const ExportData = ({ onBack, onExport }) => {
     return {
       scope,
       pdvs: requests.map((req) => {
-        const info = getPdvInfo(req.pdvId);
+        const info = getPdvInfo(req.pdvId, { regions, subterritories, pdvs });
         return {
           ...info,
           regionName: req.region || info.regionName,

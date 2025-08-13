@@ -26,6 +26,24 @@ Aplicación React que simula la gestión de solicitudes de material POP y actual
 - **Datos y normalización**: se cargan en formato uniforme, `idMap` para ubicaciones y fallback de datos.
 - **Limpieza y Panel Dev**: herramientas para migrar, limpiar y depurar datos locales.
 
+## Cargar ubicaciones (Excel)
+
+La opción **Cargar ubicaciones** (solo visible en desarrollo) permite reemplazar la
+lista de regiones, subterritorios y PDVs sin necesidad de modificar el código.
+
+1. En la barra lateral elija *Cargar ubicaciones* y seleccione un archivo `.xlsx`.
+2. El Excel debe incluir tres hojas:
+   - **Regions**: columnas `id` (opcional) y `name`.
+   - **Subterritories**: `id` (opcional), `name`, `regionId`.
+   - **PDVs**: `id` (opcional), `name`, `subterritoryId`, `city`, `address`,
+     `contactName`, `contactPhone`, `notes` (opcional).
+3. Se mostrarán los errores de validación detectados. Si no hay errores se
+   genera una vista previa normalizada.
+4. Use **Aplicar en la app** para persistir el dataset en `localStorage` o
+   descargue el resultado como `locations.json` o `locations.js`.
+5. Si los datos quedan corruptos puede utilizar el panel de desarrollador para
+   restablecer las claves `locations_*` en el navegador.
+
 ## Limitaciones actuales
 - No existe backend real; se usan mocks y `localStorage`.
 - Posibles diferencias menores de formato según canal.
