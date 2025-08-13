@@ -32,7 +32,9 @@ const LocationSelector = ({ onSelectPdv, selectedChannel }) => {
   // Cada vez que cambia el subterritorio se filtran los PDV
   useEffect(() => {
     if (selectedSubterritory) {
-      setAvailablePdvs(pdvs[selectedSubterritory] || []);
+      const list = pdvs[selectedSubterritory] || [];
+      // Mostrar únicamente PDVs completos
+      setAvailablePdvs(list.filter((p) => p.complete));
       setSearchTerm('');
     } else {
       setAvailablePdvs([]);

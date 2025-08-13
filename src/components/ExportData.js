@@ -78,11 +78,17 @@ const ExportData = ({ onBack, onExport }) => {
     if (!selectedRegion) return [];
     if (selectedPdv) return [selectedPdv];
     if (selectedSubterritory) {
-      return (pdvs[selectedSubterritory] || []).map((p) => p.id);
+      return (pdvs[selectedSubterritory] || [])
+        .filter((p) => p.complete)
+        .map((p) => p.id);
     }
     let ids = [];
     (subterritories[selectedRegion] || []).forEach((sub) => {
-      ids = ids.concat((pdvs[sub.id] || []).map((p) => p.id));
+      ids = ids.concat(
+        (pdvs[sub.id] || [])
+          .filter((p) => p.complete)
+          .map((p) => p.id),
+      );
     });
     return ids;
   };
@@ -192,11 +198,13 @@ const ExportData = ({ onBack, onExport }) => {
                   className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg"
                 >
                   <option value="">Todos</option>
-                  {(pdvs[selectedSubterritory] || []).map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.name}
-                    </option>
-                  ))}
+                  {(pdvs[selectedSubterritory] || [])
+                    .filter((p) => p.complete)
+                    .map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name}
+                      </option>
+                    ))}
                 </select>
               </div>
             )}

@@ -1,11 +1,15 @@
-export const regions = [
+import normalizeLocationData, { validateNewPdv } from '../utils/locationNormalizer';
+
+// Raw region list intentionally missing some entries to test normalization
+const rawRegions = [
   { id: 'region-bogota', name: 'Bogotá' },
-  { id: 'region-sur', name: 'Región Sur' },
-  { id: 'region-costa', name: 'Región Costa' },
-  { id: 'region-andina', name: 'Andina' },
+  { id: 'region-sur', name: 'región sur' },
+  { id: 'region-costa', name: 'REGIÓN COSTA' },
+  { id: 'region-andina', name: 'andina' },
 ];
 
-export const subterritories = {
+// Mapping of region -> subterritories
+const rawSubterritories = {
   'region-bogota': [
     { id: 'sub-bogota-1', name: 'Bogotá Zona 1' },
     { id: 'sub-bogota-2', name: 'Bogotá Zona 2' },
@@ -14,6 +18,7 @@ export const subterritories = {
     { id: 'sub-sur-1', name: 'Subterritorio Sur 1' },
     { id: 'sub-sur-2', name: 'Subterritorio Sur 2' },
   ],
+  // Región Centro no estaba listada en rawRegions
   'region-centro': [
     { id: 'sub-centro-1', name: 'Subterritorio Centro 1' },
     { id: 'sub-centro-2', name: 'Subterritorio Centro 2' },
@@ -25,7 +30,9 @@ export const subterritories = {
   ],
 };
 
-export const pdvs = {
+// PDVs grouped by subterritory. Many IDs are duplicated intentionally to test
+// the normalization process which assigns unique IDs.
+const rawPdvs = {
   'sub-bogota-1': [
     { id: 'pdv-b1-001', name: 'PDV Bogotá 1 - 001' },
     { id: 'pdv-b1-002', name: 'PDV Bogotá 1 - 002' },
@@ -100,3 +107,12 @@ export const pdvs = {
     { id: 'pdv-11', name: 'ORIENTE PAP EFICACIA 4' },
   ],
 };
+
+// Perform normalization to clean and enrich the data structures
+const { regions, subterritories, pdvs } = normalizeLocationData(
+  rawRegions,
+  rawSubterritories,
+  rawPdvs,
+);
+
+export { regions, subterritories, pdvs, validateNewPdv };
