@@ -35,6 +35,7 @@ import { sanitizeOnBoot } from './utils/cleanupLocalStorage';
 import exportToExcel from './utils/exportToExcel';
 import { channels } from './mock/channels';
 import { pdvs } from './mock/locations';
+import { useToast } from './components/ui/ToastProvider';
 
 const App = () => {
   // Controla si el usuario ha iniciado sesión
@@ -60,6 +61,8 @@ const App = () => {
 
   // Mensaje para la pantalla de confirmación
   const [confirmationMessage, setConfirmationMessage] = useState('');
+
+  const addToast = useToast();
 
   // Limpieza y saneamiento inicial de localStorage
   useEffect(() => {
@@ -146,8 +149,10 @@ const App = () => {
   // Exporta la información a un archivo Excel utilizando la utilidad dedicada.
   const performExport = (exportObj) => {
     const success = exportToExcel(exportObj);
-    if (!success) {
-      alert('No se pudo generar el archivo. Intenta de nuevo.');
+    if (success) {
+      addToast('Exportación completada');
+    } else {
+      addToast('No se pudo generar el archivo. Intenta de nuevo.', 'error');
     }
   };
 
@@ -162,6 +167,7 @@ const App = () => {
     const existing = getStorageItem('material-requests') || [];
     setStorageItem('material-requests', [...existing, requestWithDate]);
     setConfirmationMessage(`Solicitud registrada para ${selectedPdvName}`);
+    addToast('Solicitud guardada');
     setCurrentPage('confirm-request');
   };
 
@@ -171,6 +177,7 @@ const App = () => {
   const handleUpdateConfirm = (updatedData) => {
     // console.log('Datos del PDV Actualizados:', updatedData);
     setConfirmationMessage('¡Los datos del PDV han sido actualizados correctamente!');
+    addToast('Datos del PDV guardados');
     setCurrentPage('confirm-update');
   };
 

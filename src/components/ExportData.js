@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { channels } from '../mock/channels';
 import { regions, subterritories, pdvs } from '../mock/locations';
 import { getStorageItem } from '../utils/storage';
+import StateBlock from './ui/StateBlock';
 
 const getPdvInfo = (pdvId) => {
   let subId = '';
@@ -41,6 +42,23 @@ const ExportData = ({ onBack, onExport }) => {
   const [summary, setSummary] = useState(null);
   const [showSummaryModal, setShowSummaryModal] = useState(false);
   const [showNoDataModal, setShowNoDataModal] = useState(false);
+  const summaryRef = useRef(null);
+  const noDataRef = useRef(null);
+  const lastFocused = useRef(null);
+
+  useEffect(() => {
+    if (showSummaryModal && summaryRef.current) {
+      lastFocused.current = document.activeElement;
+      summaryRef.current.focus();
+    }
+  }, [showSummaryModal]);
+
+  useEffect(() => {
+    if (showNoDataModal && noDataRef.current) {
+      lastFocused.current = document.activeElement;
+      noDataRef.current.focus();
+    }
+  }, [showNoDataModal]);
 
 
   const buildExportObject = (requests, scope) => {
@@ -150,6 +168,18 @@ const ExportData = ({ onBack, onExport }) => {
     }
     setShowSummaryModal(false);
     setSummary(null);
+    lastFocused.current && lastFocused.current.focus();
+  };
+
+  const closeSummary = () => {
+    setShowSummaryModal(false);
+    setSummary(null);
+    lastFocused.current && lastFocused.current.focus();
+  };
+
+  const closeNoData = () => {
+    setShowNoDataModal(false);
+    lastFocused.current && lastFocused.current.focus();
   };
 
   return (
@@ -164,23 +194,23 @@ const ExportData = ({ onBack, onExport }) => {
               <button
                 key={ch.id}
                 onClick={() => handleExportChannel(ch.id)}
-                className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-gray-700 transition-all"
+                className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-tigo-blue"
               >
                 {ch.name}
               </button>
             ))}
             <button
               onClick={() => setCustomMode(true)}
-              className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-gray-700 transition-all"
+              className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-gray-700 transition-all focus:outline-none focus:ring-2 focus:ring-tigo-blue"
             >
               PERSONALIZADO
             </button>
           </div>
           <button
             onClick={onBack}
-            className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all"
+            className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all focus:outline-none focus:ring-2 focus:ring-tigo-blue"
           >
-            Volver
+            Volver al Inicio
           </button>
         </>
       ) : (
@@ -254,7 +284,7 @@ const ExportData = ({ onBack, onExport }) => {
             <button
               onClick={handleGenerateSummary}
               disabled={!selectedRegion}
-              className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-gray-700 transition-all disabled:opacity-50"
+              className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-gray-700 transition-all disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-tigo-blue"
             >
               Mostrar resumen
             </button>
@@ -268,16 +298,26 @@ const ExportData = ({ onBack, onExport }) => {
               setSelectedPdv('');
               setSummary(null);
             }}
-            className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all"
+            className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all focus:outline-none focus:ring-2 focus:ring-tigo-blue"
           >
-            Cancelar
+            Volver al Inicio
           </button>
         </>
       )}
       {showSummaryModal && summary && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-xl max-w-sm w-full">
-            <h3 className="text-lg font-semibold mb-2">Resumen de exportación</h3>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="summary-title"
+          onKeyDown={(e) => e.key === 'Escape' && closeSummary()}
+        >
+          <div
+            ref={summaryRef}
+            tabIndex="-1"
+            className="bg-white p-6 rounded-xl max-w-sm w-full max-h-[80vh] overflow-y-auto"
+          >
+            <h3 id="summary-title" className="text-lg font-semibold mb-2">Resumen de exportación</h3>
             <div className="text-sm mb-4 space-y-1">
               <p>Región: {regions.find((r) => r.id === selectedRegion)?.name}</p>
               {selectedSubterritory && (
@@ -297,14 +337,14 @@ const ExportData = ({ onBack, onExport }) => {
             </div>
             <div className="flex justify-end space-x-2">
               <button
-                onClick={() => setShowSummaryModal(false)}
-                className="px-4 py-2 bg-gray-300 rounded"
+                onClick={closeSummary}
+                className="px-4 py-2 bg-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-tigo-blue"
               >
-                Revisar filtros
+                Revisar otra vez
               </button>
               <button
                 onClick={handleConfirmExport}
-                className="px-4 py-2 bg-green-500 text-white rounded"
+                className="px-4 py-2 bg-green-500 text-white rounded focus:outline-none focus:ring-2 focus:ring-tigo-blue"
               >
                 Exportar
               </button>
@@ -313,16 +353,23 @@ const ExportData = ({ onBack, onExport }) => {
         </div>
       )}
       {showNoDataModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-xl max-w-sm w-full text-center">
-            <h3 className="text-lg font-semibold mb-2">No hay datos para exportar</h3>
-            <p className="mb-4">Revisa tu selección y filtros.</p>
-            <button
-              onClick={() => setShowNoDataModal(false)}
-              className="px-4 py-2 bg-blue-500 text-white rounded"
-            >
-              Revisar
-            </button>
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          role="dialog"
+          aria-modal="true"
+          onKeyDown={(e) => e.key === 'Escape' && closeNoData()}
+        >
+          <div
+            ref={noDataRef}
+            tabIndex="-1"
+            className="bg-white p-6 rounded-xl max-w-sm w-full max-h-[80vh] overflow-y-auto"
+          >
+            <StateBlock
+              variant="empty"
+              title="No hay datos para exportar. Revisa tu selección y filtros."
+              actionLabel="Revisar otra vez"
+              onAction={closeNoData}
+            />
           </div>
         </div>
       )}

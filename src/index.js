@@ -5,10 +5,13 @@ import "./styles.css";
 // Punto de entrada de la aplicación React
 
 import App from "./App";
+import { ToastProvider } from "./components/ui/ToastProvider";
 
 const root = createRoot(document.getElementById("root"));
 root.render(
   <StrictMode>
-    <App />
+    <ToastProvider>
+      <App />
+    </ToastProvider>
   </StrictMode>
 );

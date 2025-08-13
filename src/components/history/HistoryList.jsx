@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { formatQuantity } from '../../utils/materialDisplay';
+import StateBlock from '../ui/StateBlock';
 
 const HistoryList = ({
   scope = 'pdv',
@@ -120,7 +121,14 @@ const HistoryList = ({
             }`}
           >
             {filteredRequests.length === 0 ? (
-              <p className="text-gray-600 text-center mt-4">No hay datos para mostrar.</p>
+              <StateBlock
+                variant="empty"
+                title={
+                  scope === 'pdv'
+                    ? 'No hay solicitudes previas para este PDV.'
+                    : 'No hay solicitudes previas.'
+                }
+              />
             ) : (
               <ul className="space-y-4 mt-4">
                 {filteredRequests.map((req) => {
@@ -153,7 +161,7 @@ const HistoryList = ({
                       {req.items.length > 3 && (
                         <button
                           onClick={() => toggleReqCard(req.id)}
-                          className="text-sm text-tigo-blue mt-2"
+                          className="text-sm text-tigo-blue mt-2 focus:outline-none focus:ring-2 focus:ring-tigo-blue"
                         >
                           {expanded ? 'Ver menos' : 'Ver más'}
                         </button>
@@ -183,7 +191,14 @@ const HistoryList = ({
             }`}
           >
             {filteredUpdates.length === 0 ? (
-              <p className="text-gray-600 text-center mt-4">No hay datos para mostrar.</p>
+              <StateBlock
+                variant="empty"
+                title={
+                  scope === 'pdv'
+                    ? 'No hay actualizaciones previas para este PDV.'
+                    : 'No hay actualizaciones previas.'
+                }
+              />
             ) : (
               <ul className="space-y-4 mt-4">
                 {filteredUpdates.map((up) => {
@@ -213,7 +228,7 @@ const HistoryList = ({
                       {fields.length > 3 && (
                         <button
                           onClick={() => toggleUpdCard(up.id)}
-                          className="text-sm text-tigo-blue mt-2"
+                          className="text-sm text-tigo-blue mt-2 focus:outline-none focus:ring-2 focus:ring-tigo-blue"
                         >
                           {expanded ? 'Ver menos' : 'Ver más'}
                         </button>
@@ -229,9 +244,11 @@ const HistoryList = ({
 
       <button
         onClick={onBack}
-        className="fixed bottom-4 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all duration-300 ease-in-out transform hover:scale-105"
+        className="fixed bottom-4 left-1/2 -translate-x-1/2 w-11/12 max-w-md bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-tigo-blue"
       >
-        Volver
+        {scope === 'pdv'
+          ? `Volver al PDV ${context.pdvName || context.pdvId || ''}`
+          : 'Volver al Canal'}
       </button>
     </div>
   );
