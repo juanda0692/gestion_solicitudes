@@ -6,9 +6,14 @@ Aplicación React que simula la gestión de solicitudes de material POP y actual
 - Node.js y npm
 - Instalar dependencias: `npm install`
 - Ejecutar en desarrollo: `npm start`
+- Ejecutar pruebas: `npm test`
+- Generar build de producción: `npm run build`
 
 ## Estructura
 - **src/**: componentes React, utilidades y datos mock.
+  - **components/**: pantallas, formularios, modales y elementos de UI.
+  - **utils/**: normalizadores, exportadores y acceso centralizado a `localStorage`.
+  - **mock/**: conjuntos de datos simulados que pasan por el normalizador.
 - **public/**: archivos estáticos.
 - **docs/**: documentación y guías de QA.
 
@@ -24,6 +29,7 @@ Aplicación React que simula la gestión de solicitudes de material POP y actual
 ## Limitaciones actuales
 - No existe backend real; se usan mocks y `localStorage`.
 - Posibles diferencias menores de formato según canal.
+- Las exportaciones JSON son opcionales y están deshabilitadas por defecto.
 
 ## Siguientes pasos
 - Conexión con Google Sheets o backend real.
