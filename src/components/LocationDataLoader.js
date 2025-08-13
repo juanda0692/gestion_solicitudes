@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
-import { parseExcel, validateRawData, buildNormalized, applyNormalized, toNormalizedJS } from '../utils/locationImport';
+import { parseExcel, validateRawData, buildNormalized, toNormalizedJS } from '../utils/locationImport';
+import { setImportedLocations, clearImportedLocations } from '../utils/locationsSource';
+import { setStorageItem } from '../utils/storage';
+import { useToast } from './ui/ToastProvider';
 
 /**
  * Carga datos de ubicaciones desde un archivo Excel y permite aplicarlos a la
@@ -10,6 +13,7 @@ const LocationDataLoader = ({ onBack }) => {
   const [errors, setErrors] = useState([]);
   const [warnings, setWarnings] = useState([]);
   const [normalized, setNormalized] = useState(null);
+  const addToast = useToast();
 
   const handleFile = async (e) => {
     const file = e.target.files[0];
@@ -28,10 +32,16 @@ const LocationDataLoader = ({ onBack }) => {
   };
 
   const handleApply = () => {
-    if (!raw || errors.length > 0) return;
-    applyNormalized(raw);
-    alert('Datos aplicados. Recarga la página para ver los cambios.');
+    if (!normalized || errors.length > 0) return;
+    setImportedLocations(normalized);
+    setStorageItem('normalization_report', { idMap: {}, duplicatesRemoved: [], warnings });
+    addToast('Datos aplicados');
     onBack && onBack();
+  };
+
+  const handleUseBundled = () => {
+    clearImportedLocations();
+    addToast('Se restauraron las ubicaciones por defecto');
   };
 
   const download = (content, filename, type) => {
@@ -98,11 +108,16 @@ const LocationDataLoader = ({ onBack }) => {
           </div>
         </div>
       )}
-      {onBack && (
-        <button onClick={onBack} className="px-3 py-1 border rounded">
-          Volver
+      <div className="space-x-2">
+        <button onClick={handleUseBundled} className="px-3 py-1 border rounded">
+          Usar dataset base
         </button>
-      )}
+        {onBack && (
+          <button onClick={onBack} className="px-3 py-1 border rounded">
+            Volver
+          </button>
+        )}
+      </div>
     </div>
   );
 };

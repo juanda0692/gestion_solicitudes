@@ -35,7 +35,7 @@ import { sanitizeOnBoot } from './utils/cleanupLocalStorage';
 import exportToExcel from './utils/exportToExcel';
 import exportToJson from './utils/exportToJson';
 import { channels } from './mock/channels';
-import { getLocations } from './utils/locationsRuntime';
+import { getActiveLocations } from './utils/locationsSource';
 import LocationDataLoader from './components/LocationDataLoader';
 import { useToast } from './components/ui/ToastProvider';
 
@@ -68,7 +68,7 @@ const App = () => {
 
   // Limpieza y saneamiento inicial de localStorage
   useEffect(() => {
-    const { pdvs } = getLocations();
+    const { pdvs } = getActiveLocations();
     const validIds = Object.values(pdvs)
       .flat()
       .filter((p) => p.complete)

@@ -18,6 +18,8 @@ export const PROJECT_KEYS = [
   'locations_normalized',
   'normalization_report',
   'locations_source',
+  'locations/imported',
+  'locations/source',
 ];
 
 /**

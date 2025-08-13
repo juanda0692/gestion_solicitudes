@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 import { normalizeLocationData } from './locationNormalizer';
-import { setLocationsNormalized } from './locationsRuntime';
+import { setImportedLocations } from './locationsSource';
 import { setStorageItem } from './storage';
 
 // Utilidad simple para generar slugs
@@ -187,7 +187,7 @@ export const buildNormalized = (raw) => {
 };
 export const applyNormalized = (raw) => {
   const normalized = buildNormalized(raw);
-  setLocationsNormalized(normalized);
+  setImportedLocations(normalized);
   setStorageItem('normalization_report', { idMap: {}, duplicatesRemoved: [], warnings: [] });
   return normalized;
 };

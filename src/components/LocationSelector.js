@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { getLocations } from '../utils/locationsRuntime';
+// import locations dataset depending on source (Excel/local bundled)
+import { getActiveLocations } from '../utils/locationsSource';
 
 /**
  * Componente encargado de seleccionar la ubicación de un PDV.
@@ -10,7 +11,7 @@ import { getLocations } from '../utils/locationsRuntime';
  */
 
 const LocationSelector = ({ onSelectPdv, selectedChannel }) => {
-  const { regions, subterritories, pdvs } = getLocations();
+  const { regions, subterritories, pdvs } = getActiveLocations();
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedSubterritory, setSelectedSubterritory] = useState('');
   const [availableSubterritories, setAvailableSubterritories] = useState([]);

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { sanitizeOnBoot, resetAll } from '../../utils/cleanupLocalStorage';
 import { getStorageItem } from '../../utils/storage';
-import { getLocations } from '../../utils/locationsRuntime';
+import { getActiveLocations } from '../../utils/locationsSource';
 
 /**
  * Panel de utilidades para desarrolladores.
@@ -22,7 +22,7 @@ const DeveloperPanel = ({ onBack }) => {
   const [stats, setStats] = useState(getStats());
 
   const handleCleanup = () => {
-    const { pdvs } = getLocations();
+    const { pdvs } = getActiveLocations();
     const validIds = Object.values(pdvs)
       .flat()
       .filter((p) => p.complete)
