@@ -105,7 +105,7 @@ const ExportData = ({ onBack, onExport }) => {
       return;
     }
     const exportObj = buildExportObject(channelRequests, `Canal-${channelName}`);
-    onExport(exportObj);
+    onExport(exportObj, { excel: true });
   };
 
   const collectPdvIds = () => {
@@ -164,7 +164,7 @@ const ExportData = ({ onBack, onExport }) => {
 
   const handleConfirmExport = () => {
     if (summary) {
-      onExport(summary);
+      onExport(summary, { excel: true });
     }
     setShowSummaryModal(false);
     setSummary(null);

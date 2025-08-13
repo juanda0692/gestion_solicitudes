@@ -33,6 +33,7 @@ import DeveloperPanel from './components/settings/DeveloperPanel';
 import { getStorageItem, setStorageItem } from './utils/storage';
 import { sanitizeOnBoot } from './utils/cleanupLocalStorage';
 import exportToExcel from './utils/exportToExcel';
+import exportToJson from './utils/exportToJson';
 import { channels } from './mock/channels';
 import { pdvs } from './mock/locations';
 import { useToast } from './components/ui/ToastProvider';
@@ -147,9 +148,23 @@ const App = () => {
   };
 
   // Exporta la información a un archivo Excel utilizando la utilidad dedicada.
-  const performExport = (exportObj) => {
-    const success = exportToExcel(exportObj);
-    if (success) {
+  /**
+   * Ejecuta la exportación de datos.
+   * Por defecto solo genera Excel, pero puede opcionalmente crear
+   * un archivo JSON según la configuración recibida.
+   *
+   * @param {Object} exportObj - datos a exportar
+   * @param {Object} [options]
+   * @param {boolean} [options.excel=true] - generar archivo Excel
+   * @param {boolean} [options.json=false] - generar archivo JSON
+   */
+  const performExport = (exportObj, options = {}) => {
+    const { excel = true, json = false } = options;
+    let ok = true;
+    if (excel) ok = exportToExcel(exportObj) && ok;
+    if (json) ok = exportToJson(exportObj) && ok;
+
+    if (ok) {
       addToast('Exportación completada');
     } else {
       addToast('No se pudo generar el archivo. Intenta de nuevo.', 'error');
