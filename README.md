@@ -33,10 +33,11 @@ lista de regiones, subterritorios y PDVs sin necesidad de modificar el código.
 
 1. En la barra lateral elija *Cargar ubicaciones* y seleccione un archivo `.xlsx`.
 2. El Excel debe incluir tres hojas:
-   - **Regions**: columnas `id` (opcional) y `name`.
-   - **Subterritories**: `id` (opcional), `name`, `regionId`.
-   - **PDVs**: `id` (opcional), `name`, `subterritoryId`, `city`, `address`,
-     `contactName`, `contactPhone`, `notes` (opcional).
+   - **Regions**: columnas `region_id` (opcional) y `region_name`.
+   - **Subterritories**: `region_id`, `subterritory_id` (opcional), `subterritory_name`.
+   - **PDVs**: `subterritory_id`, `pdv_id` (opcional), `pdv_name` y, de forma opcional,
+     `city`, `address` y `contact` (o `contactName`/`contactPhone`).
+     También se aceptan los nombres en camelCase (`id`, `name`, `regionId`, etc.).
 3. Se mostrarán los errores de validación detectados. Si no hay errores se
    genera una vista previa normalizada.
 4. Use **Aplicar en la app** para persistir el dataset en `localStorage` o

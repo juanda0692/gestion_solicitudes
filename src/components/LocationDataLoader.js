@@ -17,9 +17,10 @@ const LocationDataLoader = ({ onBack }) => {
     const parsed = await parseExcel(file);
     setRaw(parsed);
     const v = validateRawData(parsed.rawRegions, parsed.rawSubterritories, parsed.rawPdvs);
-    setErrors(v.errors);
+    const allErrors = [...(parsed.issues || []), ...v.errors];
+    setErrors(allErrors);
     setWarnings(v.warnings);
-    if (v.errors.length === 0) {
+    if (allErrors.length === 0) {
       setNormalized(buildNormalized(parsed));
     } else {
       setNormalized(null);
