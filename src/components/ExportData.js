@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { channels } from '../mock/channels';
-import { getLocations } from '../utils/locationsRuntime';
+import { getActiveLocations } from '../utils/locationsSource';
 import { getStorageItem } from '../utils/storage';
 import StateBlock from './ui/StateBlock';
 
@@ -35,7 +35,7 @@ const getPdvInfo = (pdvId, { regions, subterritories, pdvs }) => {
 
 
 const ExportData = ({ onBack, onExport }) => {
-  const { regions, subterritories, pdvs } = getLocations();
+  const { regions, subterritories, pdvs } = getActiveLocations();
   const [customMode, setCustomMode] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedSubterritory, setSelectedSubterritory] = useState('');

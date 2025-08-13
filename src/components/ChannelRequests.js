@@ -2,11 +2,11 @@ import React from 'react';
 import { getStorageItem } from '../utils/storage';
 import HistoryList from './history/HistoryList';
 import { adaptMaterialRequests, adaptPdvUpdates, buildPdvIdMap } from '../utils/historyAdapter';
-import { getLocations } from '../utils/locationsRuntime';
+import { getActiveLocations } from '../utils/locationsSource';
 import { channels } from '../mock/channels';
 
 const ChannelRequests = ({ channelId, onBack }) => {
-  const { regions, subterritories, pdvs } = getLocations();
+  const { regions, subterritories, pdvs } = getActiveLocations();
   const idMap = buildPdvIdMap(pdvs, regions, subterritories);
   const materialRequests = (getStorageItem('material-requests') || []).filter(
     (req) => req.channelId === channelId,
