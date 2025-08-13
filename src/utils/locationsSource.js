@@ -35,9 +35,24 @@ export const hasImportedData = (imported) =>
 // API ------------------------------------------------------------------
 
 export function getActiveLocations() {
-  const imported = getStorageItem(LS_KEY_DATA);
   const source = getStorageItem(LS_KEY_SOURCE);
 
+  // Si la fuente está fijada a bundled, ignorar cualquier dataset importado
+  if (source === 'bundled') {
+    setStorageItem(LS_KEY_SOURCE, 'bundled');
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log('[locations] Usando dataset base');
+    }
+    return {
+      regions: bundledRegions,
+      subterritories: bundledSubs,
+      pdvs: bundledPdvs,
+      source: 'bundled',
+    };
+  }
+
+  const imported = getStorageItem(LS_KEY_DATA);
   const useImported = source === 'imported' && hasImportedData(imported);
 
   if (process.env.NODE_ENV === 'development') {

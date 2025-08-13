@@ -6,6 +6,7 @@ import {
   countSubs,
   countPdvs,
 } from '../utils/locationsSource';
+import { pdvsForSub } from '../utils/locationSelectors';
 
 /**
  * Componente encargado de seleccionar la ubicación de un PDV.
@@ -67,7 +68,7 @@ const LocationSelector = ({ onSelectPdv, selectedChannel, onOpenLoader }) => {
   // Cada vez que cambia el subterritorio se filtran los PDV
   useEffect(() => {
     if (selectedSubterritory) {
-      const list = pdvs[selectedSubterritory] || [];
+      const list = pdvsForSub(selectedSubterritory);
       // Mostrar únicamente PDVs completos
       setAvailablePdvs(list.filter((p) => p.complete));
       setSearchTerm('');
