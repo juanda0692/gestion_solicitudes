@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { regions, subterritories, pdvs } from '../mock/locations';
+import { getLocations } from '../utils/locationsRuntime';
 
 /**
  * Componente encargado de seleccionar la ubicación de un PDV.
@@ -10,6 +10,7 @@ import { regions, subterritories, pdvs } from '../mock/locations';
  */
 
 const LocationSelector = ({ onSelectPdv, selectedChannel }) => {
+  const { regions, subterritories, pdvs } = getLocations();
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedSubterritory, setSelectedSubterritory] = useState('');
   const [availableSubterritories, setAvailableSubterritories] = useState([]);

@@ -12,7 +12,13 @@
  *
  * @type {string[]}
  */
-export const PROJECT_KEYS = ['material-requests', 'pdv-update-requests'];
+export const PROJECT_KEYS = [
+  'material-requests',
+  'pdv-update-requests',
+  'locations_normalized',
+  'normalization_report',
+  'locations_source',
+];
 
 /**
  * Obtiene un valor del `localStorage` del navegador.
