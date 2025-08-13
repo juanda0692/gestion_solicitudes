@@ -61,7 +61,10 @@ const App = () => {
 
   // Limpieza inicial de localStorage para remover datos obsoletos
   useEffect(() => {
-    const validIds = Object.values(pdvs).flat().map((p) => p.id);
+    const validIds = Object.values(pdvs)
+      .flat()
+      .filter((p) => p.complete)
+      .map((p) => p.id);
     cleanupLocalStorage(validIds);
   }, []);
 
