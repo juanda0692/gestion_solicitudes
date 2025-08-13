@@ -29,7 +29,9 @@ import ExportData from './components/ExportData';
 import LoginScreen from './components/LoginScreen';
 import ChannelMenu from './components/ChannelMenu';
 import Sidebar from './components/Sidebar';
-import { getStorageItem, setStorageItem, cleanupLocalStorage } from './utils/storage';
+import DeveloperPanel from './components/settings/DeveloperPanel';
+import { getStorageItem, setStorageItem } from './utils/storage';
+import { sanitizeOnBoot } from './utils/cleanupLocalStorage';
 import exportToExcel from './utils/exportToExcel';
 import { channels } from './mock/channels';
 import { pdvs } from './mock/locations';
@@ -59,13 +61,16 @@ const App = () => {
   // Mensaje para la pantalla de confirmación
   const [confirmationMessage, setConfirmationMessage] = useState('');
 
-  // Limpieza inicial de localStorage para remover datos obsoletos
+  // Limpieza y saneamiento inicial de localStorage
   useEffect(() => {
     const validIds = Object.values(pdvs)
       .flat()
       .filter((p) => p.complete)
       .map((p) => p.id);
-    cleanupLocalStorage(validIds);
+    const report = sanitizeOnBoot(validIds);
+    if (process.env.NODE_ENV === 'development') {
+      console.log('sanitizeOnBoot report', report);
+    }
   }, []);
 
   // Usuario selecciona si trabajará con Trade Nacional o Regional
@@ -127,6 +132,10 @@ const App = () => {
   // Navegar a la pantalla de exportación de datos
   const handleExportData = () => {
     setCurrentPage('export-data');
+  };
+
+  const handleOpenSettings = () => {
+    setCurrentPage('developer-panel');
   };
 
   // Navegar directamente al formulario de creación de campaña
@@ -222,6 +231,8 @@ const App = () => {
         return 'Gestionar Campañas';
       case 'export-data':
         return 'Exportar Datos';
+      case 'developer-panel':
+        return 'Ajustes';
       case 'previous-requests':
         return 'Solicitudes Anteriores';
       case 'channel-requests':
@@ -269,6 +280,9 @@ const App = () => {
       case 'export-data':
         setCurrentPage('pdv-actions');
         break;
+      case 'developer-panel':
+        setCurrentPage('pdv-actions');
+        break;
       case 'confirm-request':
       case 'confirm-update':
         setCurrentPage('home');
@@ -295,6 +309,7 @@ const App = () => {
             onChannels={() => setCurrentPage('channel-select')}
             onCampaigns={() => setCurrentPage('campaigns-menu')}
             onExport={handleExportData}
+            onSettings={handleOpenSettings}
             onLogout={handleLogout}
             showManagement={selectedTradeType === 'nacional'}
           />
@@ -415,6 +430,11 @@ const App = () => {
         {/* Exportar datos */}
         {isLoggedIn && currentPage === 'export-data' && (
           <ExportData onBack={handleBack} onExport={performExport} />
+        )}
+
+        {/* Panel de ajustes para desarrolladores */}
+        {isLoggedIn && currentPage === 'developer-panel' && (
+          <DeveloperPanel onBack={handleBack} />
         )}
 
         {/* Mensaje de confirmación de acciones */}
