@@ -24,6 +24,7 @@ const LocationDataLoader = ({ onBack }) => {
   const [raw, setRaw] = useState(null);
   const [errors, setErrors] = useState([]);
   const [warnings, setWarnings] = useState([]);
+  const [conflicts, setConflicts] = useState([]);
   const [normalized, setNormalized] = useState(null);
   const [active, setActive] = useState(getActiveLocations());
   const addToast = useToast();
@@ -40,10 +41,11 @@ const LocationDataLoader = ({ onBack }) => {
     );
     const allErrors = [...(parsed.issues || []), ...v.errors];
     setErrors(allErrors);
-    setWarnings(v.warnings);
     if (allErrors.length === 0) {
       const norm = buildNormalized(parsed);
       const pdvCount = countPdvs(norm.pdvs);
+      setWarnings([...(v.warnings || []), ...(norm.warnings || [])]);
+      setConflicts(norm.warnings || []);
       if (pdvCount > 0) {
         setNormalized(norm);
         if (process.env.NODE_ENV === 'development') {
@@ -65,6 +67,7 @@ const LocationDataLoader = ({ onBack }) => {
         setNormalized(null);
       }
     } else {
+      setWarnings(v.warnings);
       setNormalized(null);
     }
   };
@@ -76,6 +79,7 @@ const LocationDataLoader = ({ onBack }) => {
       idMap: {},
       duplicatesRemoved: [],
       warnings,
+      conflicts,
     });
     setActive(getActiveLocations());
     if (getLocationsSource() === 'imported') {
