@@ -7,6 +7,7 @@ import ContextInfo from './ContextInfo';
 import SingleSelectModal from './SingleSelectModal';
 import PreviousCampaignsModal from './PreviousCampaignsModal';
 import { getDisplayName, formatQuantity } from '../utils/materialDisplay';
+import { getStorageItem } from '../utils/storage';
 
 
 
@@ -26,6 +27,7 @@ const priorities = ['Prioridad 1', 'Prioridad 2', 'Prioridad 3'];
 
 const MaterialRequestForm = ({
   onConfirmRequest,
+  onBackToPdv,
   selectedPdvId,
   selectedPdvName,
   selectedRegionName,
@@ -52,6 +54,8 @@ const MaterialRequestForm = ({
   const [showCampaignModal, setShowCampaignModal] = useState(false);
   const [showPreviousModal, setShowPreviousModal] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pdvSnapshot, setPdvSnapshot] = useState({});
+  const [expandCart, setExpandCart] = useState(true);
 
   // Reiniciar la medida seleccionada al cambiar el material
   useEffect(() => {
@@ -168,6 +172,14 @@ const MaterialRequestForm = ({
       alert('El carrito está vacío. Agrega materiales antes de confirmar.');
       return;
     }
+    if (!selectedChannelId) {
+      alert('Debes seleccionar un canal antes de continuar.');
+      return;
+    }
+    if (!selectedRegionName || !selectedSubName || !selectedPdvId) {
+      alert('Selecciona Región, Subterritorio y PDV antes de confirmar.');
+      return;
+    }
     if (
       selectedZones.length === 0 ||
       !selectedPriority ||
@@ -178,20 +190,34 @@ const MaterialRequestForm = ({
       );
       return;
     }
+    const snap = getStorageItem(`pdv-${selectedPdvId}-data`) || {};
+    setPdvSnapshot({
+      contactName: snap.contactName || '',
+      contactPhone: snap.contactPhone || '',
+      city: snap.city || '',
+      address: snap.address || '',
+      notes: snap.notes || '',
+    });
     setShowConfirmModal(true);
   };
 
   // Envía la solicitud al componente padre cuando el carrito tiene información
   const handleConfirmCart = () => {
     if (cart.length > 0) {
-      // Aquí se podría enviar el contenido del carrito a un servicio REST
+      const itemsToStore = cart.map((item) => ({
+        ...item,
+        displayName: getDisplayName(item.material.name),
+      }));
       onConfirmRequest({
         pdvId: selectedPdvId,
+        pdvSnapshot,
+        region: selectedRegionName,
+        subterritory: selectedSubName,
         zones: selectedZones,
         priority: selectedPriority,
         campaigns: selectedCampaign ? [selectedCampaign] : [],
         channelId: selectedChannelId,
-        items: cart,
+        items: itemsToStore,
       });
     }
     setShowConfirmModal(false);
@@ -475,23 +501,46 @@ const MaterialRequestForm = ({
       {showConfirmModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20">
           <div className="bg-white rounded-lg shadow-lg w-11/12 max-w-lg p-4">
-            <h3 className="text-lg font-semibold mb-2">Confirmar solicitud</h3>
+            <h3 className="text-lg font-semibold mb-2">Confirmar solicitud completa</h3>
             <div className="text-sm space-y-1 max-h-60 overflow-y-auto">
-              <p className="font-medium">PDV: {selectedPdvName}</p>
+              <p className="font-medium">Ubicación</p>
               <p>Región: {selectedRegionName}</p>
               <p>Subterritorio: {selectedSubName}</p>
-              <p>Canal: {channelName}</p>
-              <p className="font-medium mt-2">Materiales:</p>
-              {cart.map((item) => (
-                <div key={item.id} className="border-t pt-1 mt-1">
-                  <p>{getDisplayName(item.material.name)}</p>
-                  <p className="text-xs">Medidas: {item.measures.name}</p>
-                  <p className="text-xs">Cantidad: {formatQuantity(item.material.name, item.quantity)}</p>
-                  {item.notes && (
-                    <p className="text-xs">Notas: {item.notes}</p>
-                  )}
-                </div>
-              ))}
+              <p>PDV: {selectedPdvName}</p>
+              <div className="mt-2">
+                <p className="font-medium">PDV</p>
+                {pdvSnapshot.contactName && (
+                  <p>Contacto: {pdvSnapshot.contactName}</p>
+                )}
+                {pdvSnapshot.contactPhone && (
+                  <p>Teléfono: {pdvSnapshot.contactPhone}</p>
+                )}
+                {pdvSnapshot.city && <p>Ciudad: {pdvSnapshot.city}</p>}
+                {pdvSnapshot.address && <p>Dirección: {pdvSnapshot.address}</p>}
+                {pdvSnapshot.notes && <p>Notas: {pdvSnapshot.notes}</p>}
+              </div>
+              <div className="mt-2">
+                <button
+                  className="text-tigo-blue text-sm"
+                  onClick={() => setExpandCart((prev) => !prev)}
+                >
+                  Carrito ({cart.length}) {expandCart ? '▲' : '▼'}
+                </button>
+                {expandCart && (
+                  <div className="mt-1">
+                    {cart.map((item) => (
+                      <div key={item.id} className="border-t pt-1 mt-1">
+                        <p>{getDisplayName(item.material.name)}</p>
+                        <p className="text-xs">Medidas: {item.measures.name}</p>
+                        <p className="text-xs">Cantidad: {formatQuantity(item.material.name, item.quantity)}</p>
+                        {item.notes && (
+                          <p className="text-xs">Notas: {item.notes}</p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
               <p className="mt-2">
                 <span className="font-medium">Zonas:</span> {selectedZones.join(', ')}
               </p>
@@ -502,8 +551,11 @@ const MaterialRequestForm = ({
                 <span className="font-medium">Campaña:</span>{' '}
                 {campaignList.find((c) => c.id === selectedCampaign)?.name}
               </p>
+              <p>
+                <span className="font-medium">Fecha:</span> {new Date().toLocaleDateString()}
+              </p>
             </div>
-            <div className="flex justify-end space-x-2 mt-4">
+            <div className="flex justify-end space-x-2 mt-4 flex-wrap">
               <button
                 onClick={() => setShowConfirmModal(false)}
                 className="bg-gray-300 text-gray-700 py-1 px-3 rounded-md"
@@ -516,6 +568,17 @@ const MaterialRequestForm = ({
               >
                 Sí, confirmar
               </button>
+              {onBackToPdv && (
+                <button
+                  onClick={() => {
+                    setShowConfirmModal(false);
+                    onBackToPdv();
+                  }}
+                  className="bg-gray-200 text-gray-800 py-1 px-3 rounded-md"
+                >
+                  Volver al PDV {selectedPdvName}
+                </button>
+              )}
             </div>
           </div>
         </div>

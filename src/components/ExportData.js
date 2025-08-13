@@ -46,26 +46,34 @@ const ExportData = ({ onBack, onExport }) => {
   const buildExportObject = (requests, scope) => {
     return {
       scope,
-      pdvs: requests.map((req) => ({
-        ...getPdvInfo(req.pdvId),
-        channelId: req.channelId,
-        channelName:
-          channels.find((c) => c.id === req.channelId)?.name || req.channelId,
-        date: req.date || new Date().toISOString(),
-        requestType: 'Solicitud',
-        zone: req.zones || [],
-        priority: req.priority || '',
-        campaigns: req.campaigns || [],
-        pdvData: req.pdvData || getStorageItem(`pdv-${req.pdvId}-data`) || {},
-        materials: (req.items || []).map((it) => ({
-          id: it.material.id,
-          name: it.material.name,
-          quantity: it.quantity,
-          measure: it.measures.name,
-          requiresCotizacion: it.material.requiresCotizacion,
-          observations: it.notes || '',
-        })),
-      })),
+      pdvs: requests.map((req) => {
+        const info = getPdvInfo(req.pdvId);
+        return {
+          ...info,
+          regionName: req.region || info.regionName,
+          subterritoryName: req.subterritory || info.subterritoryName,
+          channelId: req.channelId,
+          channelName:
+            channels.find((c) => c.id === req.channelId)?.name || req.channelId,
+          date: req.date || new Date().toISOString(),
+          requestType: 'Solicitud',
+          zone: req.zones || [],
+          priority: req.priority || '',
+          campaigns: req.campaigns || [],
+          pdvData:
+            req.pdvSnapshot ||
+            req.pdvData ||
+            getStorageItem(`pdv-${req.pdvId}-data`) || {},
+          materials: (req.items || []).map((it) => ({
+            id: it.material.id,
+            name: it.material.name,
+            quantity: it.quantity,
+            measure: it.measures.name,
+            requiresCotizacion: it.material.requiresCotizacion,
+            observations: it.notes || '',
+          })),
+        };
+      }),
     };
   };
 

@@ -145,17 +145,14 @@ const App = () => {
   // Confirmación de carrito: aquí se guardan los datos en localStorage.
   // Reemplazar esta lógica por una llamada al backend al integrar APIs.
   const handleConfirmRequest = (requestDetails) => {
-    const currentData =
-      getStorageItem(`pdv-${selectedPdvId}-data`) || {};
     const requestWithDate = {
       ...requestDetails,
-      pdvData: currentData,
+      pdvData: requestDetails.pdvSnapshot,
       date: new Date().toISOString(),
     };
-    // console.log('Solicitud de Material Confirmada:', requestWithDate);
     const existing = getStorageItem('material-requests') || [];
     setStorageItem('material-requests', [...existing, requestWithDate]);
-    setConfirmationMessage('¡Tu solicitud de material ha sido enviada con éxito!');
+    setConfirmationMessage(`Solicitud registrada para ${selectedPdvName}`);
     setCurrentPage('confirm-request');
   };
 
@@ -371,6 +368,7 @@ const App = () => {
         {isLoggedIn && currentPage === 'request-material' && (
           <MaterialRequestForm
             onConfirmRequest={handleConfirmRequest}
+            onBackToPdv={() => setCurrentPage('pdv-actions')}
             selectedPdvId={selectedPdvId}
             selectedPdvName={selectedPdvName}
             selectedRegionName={selectedRegionName}
@@ -425,13 +423,7 @@ const App = () => {
             message={confirmationMessage}
             onGoHome={handleGoHome}
             onStayInChannel={() => setCurrentPage('location-select')}
-            onBackToPdv={
-              currentPage === 'confirm-update'
-                ? () => setCurrentPage('update-pdv')
-                : currentPage === 'confirm-request'
-                ? () => setCurrentPage('request-material')
-                : undefined
-            }
+            onBackToPdv={() => setCurrentPage('pdv-actions')}
             pdvName={selectedPdvName}
           />
         )}
