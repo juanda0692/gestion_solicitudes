@@ -38,7 +38,18 @@ export function getActiveLocations() {
   const imported = getStorageItem(LS_KEY_DATA);
   const source = getStorageItem(LS_KEY_SOURCE);
 
-  if (source === 'imported' && hasImportedData(imported)) {
+  const useImported = source === 'imported' && hasImportedData(imported);
+
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.log(
+      useImported
+        ? '[locations] Usando dataset importado'
+        : '[locations] Usando dataset base',
+    );
+  }
+
+  if (useImported) {
     return {
       regions: imported.regions,
       subterritories: imported.subterritories,
@@ -82,6 +93,26 @@ export function clearImportedLocations() {
 }
 
 export function getLocationsSource() {
-  return getStorageItem(LS_KEY_SOURCE) || 'bundled';
+  const imported = getStorageItem(LS_KEY_DATA);
+  const source = getStorageItem(LS_KEY_SOURCE);
+
+  if (source === 'imported' && hasImportedData(imported)) {
+    if (process.env.NODE_ENV === 'development') {
+      // eslint-disable-next-line no-console
+      console.log('[locations] Fuente actual: dataset importado');
+    }
+    return 'imported';
+  }
+
+  if (source === 'imported') {
+    // invalid import, reset source
+    setStorageItem(LS_KEY_SOURCE, 'bundled');
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.log('[locations] Fuente actual: dataset base');
+  }
+  return 'bundled';
 }
 
