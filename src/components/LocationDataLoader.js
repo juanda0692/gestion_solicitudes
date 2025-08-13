@@ -1,6 +1,18 @@
 import React, { useState } from 'react';
-import { parseExcel, validateRawData, buildNormalized, toNormalizedJS } from '../utils/locationImport';
-import { setImportedLocations, clearImportedLocations } from '../utils/locationsSource';
+import {
+  parseExcel,
+  validateRawData,
+  buildNormalized,
+  toNormalizedJS,
+} from '../utils/locationImport';
+import {
+  setImportedLocations,
+  clearImportedLocations,
+  getActiveLocations,
+  getLocationsSource,
+  countSubs,
+  countPdvs,
+} from '../utils/locationsSource';
 import { setStorageItem } from '../utils/storage';
 import { useToast } from './ui/ToastProvider';
 
@@ -13,6 +25,7 @@ const LocationDataLoader = ({ onBack }) => {
   const [errors, setErrors] = useState([]);
   const [warnings, setWarnings] = useState([]);
   const [normalized, setNormalized] = useState(null);
+  const [active, setActive] = useState(getActiveLocations());
   const addToast = useToast();
 
   const handleFile = async (e) => {
@@ -20,12 +33,37 @@ const LocationDataLoader = ({ onBack }) => {
     if (!file) return;
     const parsed = await parseExcel(file);
     setRaw(parsed);
-    const v = validateRawData(parsed.rawRegions, parsed.rawSubterritories, parsed.rawPdvs);
+    const v = validateRawData(
+      parsed.rawRegions,
+      parsed.rawSubterritories,
+      parsed.rawPdvs,
+    );
     const allErrors = [...(parsed.issues || []), ...v.errors];
     setErrors(allErrors);
     setWarnings(v.warnings);
     if (allErrors.length === 0) {
-      setNormalized(buildNormalized(parsed));
+      const norm = buildNormalized(parsed);
+      const pdvCount = countPdvs(norm.pdvs);
+      if (pdvCount > 0) {
+        setNormalized(norm);
+        if (process.env.NODE_ENV === 'development') {
+          const subKeys = Object.keys(norm.subterritories).slice(0, 3);
+          const pdvKeys = Object.keys(norm.pdvs).slice(0, 3);
+          // eslint-disable-next-line no-console
+          console.log(
+            `Imported preview → regiones:${norm.regions.length}, subterritorios:${countSubs(
+              norm.subterritories,
+            )}, pdvs:${pdvCount}`,
+          );
+          // eslint-disable-next-line no-console
+          console.log('subterritories keys', subKeys);
+          // eslint-disable-next-line no-console
+          console.log('pdvs keys', pdvKeys);
+        }
+      } else {
+        setErrors(['El archivo no contiene PDVs válidos']);
+        setNormalized(null);
+      }
     } else {
       setNormalized(null);
     }
@@ -34,13 +72,23 @@ const LocationDataLoader = ({ onBack }) => {
   const handleApply = () => {
     if (!normalized || errors.length > 0) return;
     setImportedLocations(normalized);
-    setStorageItem('normalization_report', { idMap: {}, duplicatesRemoved: [], warnings });
-    addToast('Datos aplicados');
-    onBack && onBack();
+    setStorageItem('normalization_report', {
+      idMap: {},
+      duplicatesRemoved: [],
+      warnings,
+    });
+    setActive(getActiveLocations());
+    if (getLocationsSource() === 'imported') {
+      addToast('Datos aplicados');
+      onBack && onBack();
+    } else {
+      addToast('El archivo importado no contiene registros válidos. Se mantiene el dataset base.');
+    }
   };
 
   const handleUseBundled = () => {
     clearImportedLocations();
+    setActive(getActiveLocations());
     addToast('Se restauraron las ubicaciones por defecto');
   };
 
@@ -67,6 +115,15 @@ const LocationDataLoader = ({ onBack }) => {
   return (
     <div className="max-w-2xl w-full bg-white p-4 rounded shadow space-y-4">
       <h2 className="text-xl font-semibold">Cargar ubicaciones</h2>
+      <p className="text-sm">
+        {active.source === 'imported'
+          ? `Fuente activa: Imported (Regiones: ${active.regions.length}, Subterritorios: ${countSubs(
+              active.subterritories,
+            )}, PDVs: ${countPdvs(active.pdvs)}) — ${new Date(
+              active.importedAt,
+            ).toLocaleString()}`
+          : 'Fuente activa: Bundled (usando datos del código)'}
+      </p>
       <input type="file" accept=".xlsx" onChange={handleFile} />
       {errors.length > 0 && (
         <div className="text-red-600 text-sm">
