@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 // import locations dataset depending on source (Excel/local bundled)
-import { getActiveLocations } from '../utils/locationsSource';
+import {
+  getActiveLocations,
+  clearImportedLocations,
+  countSubs,
+  countPdvs,
+} from '../utils/locationsSource';
 
 /**
  * Componente encargado de seleccionar la ubicación de un PDV.
@@ -10,8 +15,36 @@ import { getActiveLocations } from '../utils/locationsSource';
  * peticiones al API.
  */
 
-const LocationSelector = ({ onSelectPdv, selectedChannel }) => {
-  const { regions, subterritories, pdvs } = getActiveLocations();
+const LocationSelector = ({ onSelectPdv, selectedChannel, onOpenLoader }) => {
+  const { regions, subterritories, pdvs, source, importedAt } = getActiveLocations();
+  const importedEmpty =
+    source === 'imported' &&
+    (!regions.length || countSubs(subterritories) === 0 || countPdvs(pdvs) === 0);
+
+  if (importedEmpty) {
+    return (
+      <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto mt-8 space-y-4">
+        <p>No hay ubicaciones disponibles en la fuente importada.</p>
+        <div className="space-x-2">
+          <button
+            onClick={() => {
+              clearImportedLocations();
+              window.location.reload();
+            }}
+            className="px-3 py-1 border rounded"
+          >
+            Usar dataset base
+          </button>
+          {onOpenLoader && (
+            <button onClick={onOpenLoader} className="px-3 py-1 border rounded">
+              Ir a Cargar ubicaciones
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedSubterritory, setSelectedSubterritory] = useState('');
   const [availableSubterritories, setAvailableSubterritories] = useState([]);
@@ -44,7 +77,12 @@ const LocationSelector = ({ onSelectPdv, selectedChannel }) => {
   }, [selectedSubterritory]);
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto mt-8">
+    <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto mt-8 relative">
+      <div className="absolute top-2 right-2 text-xs bg-gray-200 rounded px-2 py-1">
+        {source === 'imported'
+          ? `Ubicaciones: Imported (${new Date(importedAt).toLocaleDateString()})`
+          : 'Ubicaciones: Bundled'}
+      </div>
       <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Selecciona Ubicación</h2>
 
       <div className="mb-4">

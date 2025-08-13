@@ -1,20 +1,44 @@
 import { regions as bundledRegions, subterritories as bundledSubs, pdvs as bundledPdvs } from '../mock/locations';
 import { getStorageItem, setStorageItem, removeStorageItem } from './storage';
 
-const LS_KEY_DATA = 'locations/imported';
-const LS_KEY_SOURCE = 'locations/source';
+export const LS_KEY_DATA = 'locations/imported';
+export const LS_KEY_SOURCE = 'locations/source';
+
+// Helpers ---------------------------------------------------------------
+
+/** Suma la cantidad total de subterritorios en el objeto provisto. */
+export const countSubs = (subMap = {}) =>
+  Object.values(subMap).reduce(
+    (acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0),
+    0,
+  );
+
+/** Suma la cantidad total de PDVs en el objeto provisto. */
+export const countPdvs = (pdvMap = {}) =>
+  Object.values(pdvMap).reduce(
+    (acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0),
+    0,
+  );
+
+/**
+ * Determina si un dataset importado contiene datos válidos.
+ * Requiere al menos una región, subterritorio y PDV.
+ */
+export const hasImportedData = (imported) =>
+  Boolean(
+    imported &&
+      imported.regions?.length > 0 &&
+      countSubs(imported.subterritories) > 0 &&
+      countPdvs(imported.pdvs) > 0,
+  );
+
+// API ------------------------------------------------------------------
 
 export function getActiveLocations() {
   const imported = getStorageItem(LS_KEY_DATA);
   const source = getStorageItem(LS_KEY_SOURCE);
 
-  const hasImported =
-    imported &&
-    imported.regions?.length &&
-    Object.keys(imported.subterritories || {}).length &&
-    Object.keys(imported.pdvs || {}).length;
-
-  if (source === 'imported' && hasImported) {
+  if (source === 'imported' && hasImportedData(imported)) {
     return {
       regions: imported.regions,
       subterritories: imported.subterritories,
@@ -31,7 +55,6 @@ export function getActiveLocations() {
     subterritories: bundledSubs,
     pdvs: bundledPdvs,
     source: 'bundled',
-    importedAt: null,
   };
 }
 
@@ -44,7 +67,12 @@ export function setImportedLocations(payload) {
     importedAt: new Date().toISOString(),
   };
   setStorageItem(LS_KEY_DATA, clean);
-  setStorageItem(LS_KEY_SOURCE, 'imported');
+  if (hasImportedData(clean)) {
+    setStorageItem(LS_KEY_SOURCE, 'imported');
+  } else {
+    // persist but no activar
+    setStorageItem(LS_KEY_SOURCE, 'bundled');
+  }
   return clean;
 }
 

@@ -383,7 +383,11 @@ const App = () => {
 
         {/* Selección de región, subterritorio y PDV */}
         {isLoggedIn && currentPage === 'location-select' && (
-          <LocationSelector onSelectPdv={handleSelectPdv} selectedChannel={selectedChannelId} />
+          <LocationSelector
+            onSelectPdv={handleSelectPdv}
+            selectedChannel={selectedChannelId}
+            onOpenLoader={handleOpenLocationLoader}
+          />
         )}
 
         {/* Acciones disponibles para el PDV */}
