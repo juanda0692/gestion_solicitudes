@@ -39,23 +39,25 @@ const ExportData = ({ onBack, onExport }) => {
   const [selectedSubterritory, setSelectedSubterritory] = useState('');
   const [selectedPdv, setSelectedPdv] = useState('');
   const [summary, setSummary] = useState(null);
+  const [showSummaryModal, setShowSummaryModal] = useState(false);
+  const [showNoDataModal, setShowNoDataModal] = useState(false);
 
 
-  const buildExportObject = (requests, type, channelId) => {
-    const channelName =
-      channels.find((c) => c.id === channelId)?.name || channelId;
+  const buildExportObject = (requests, scope) => {
     return {
-      type,
-      channelId,
-      channelName,
-      requestDate: new Date().toISOString(),
+      scope,
       pdvs: requests.map((req) => ({
         ...getPdvInfo(req.pdvId),
+        channelId: req.channelId,
+        channelName:
+          channels.find((c) => c.id === req.channelId)?.name || req.channelId,
+        date: req.date || new Date().toISOString(),
+        requestType: 'Solicitud',
         zone: req.zones || [],
         priority: req.priority || '',
         campaigns: req.campaigns || [],
         pdvData: req.pdvData || getStorageItem(`pdv-${req.pdvId}-data`) || {},
-        materials: req.items.map((it) => ({
+        materials: (req.items || []).map((it) => ({
           id: it.material.id,
           name: it.material.name,
           quantity: it.quantity,
@@ -70,7 +72,13 @@ const ExportData = ({ onBack, onExport }) => {
   const handleExportChannel = (channelId) => {
     const allRequests = getStorageItem('material-requests') || [];
     const channelRequests = allRequests.filter((r) => r.channelId === channelId);
-    const exportObj = buildExportObject(channelRequests, 'canal', channelId);
+    const channelName =
+      channels.find((c) => c.id === channelId)?.name || channelId;
+    if (channelRequests.length === 0) {
+      setShowNoDataModal(true);
+      return;
+    }
+    const exportObj = buildExportObject(channelRequests, `Canal-${channelName}`);
     onExport(exportObj);
   };
 
@@ -99,16 +107,41 @@ const ExportData = ({ onBack, onExport }) => {
     return allRequests.filter((r) => pdvIds.includes(r.pdvId));
   };
 
-  const handleGenerateSummary = () => {
-    const filtered = buildFilteredRequests();
-    const exportObj = buildExportObject(filtered, 'personalizado', 'personalizado');
-    setSummary(exportObj);
+  const getScopeLabel = () => {
+    if (selectedPdv) {
+      const pdvName =
+        (pdvs[selectedSubterritory] || []).find((p) => p.id === selectedPdv)?.name ||
+        selectedPdv;
+      return `PDV-${pdvName}`;
+    }
+    if (selectedSubterritory) {
+      const subName =
+        (subterritories[selectedRegion] || []).find((s) => s.id === selectedSubterritory)?.name ||
+        selectedSubterritory;
+      return `Subterritorio-${subName}`;
+    }
+    const regionName = regions.find((r) => r.id === selectedRegion)?.name || selectedRegion;
+    return `Region-${regionName}`;
   };
 
-  const handleCustomExport = () => {
+  const handleGenerateSummary = () => {
     const filtered = buildFilteredRequests();
-    const exportObj = buildExportObject(filtered, 'personalizado', 'personalizado');
-    onExport(exportObj);
+    if (filtered.length === 0) {
+      setShowNoDataModal(true);
+      return;
+    }
+    const exportObj = buildExportObject(filtered, getScopeLabel());
+    const totalItems = filtered.reduce((sum, r) => sum + (r.items ? r.items.length : 0), 0);
+    setSummary({ ...exportObj, totalItems });
+    setShowSummaryModal(true);
+  };
+
+  const handleConfirmExport = () => {
+    if (summary) {
+      onExport(summary);
+    }
+    setShowSummaryModal(false);
+    setSummary(null);
   };
 
   return (
@@ -218,27 +251,7 @@ const ExportData = ({ onBack, onExport }) => {
               Mostrar resumen
             </button>
           </div>
-          {summary && (
-            <div className="border p-3 rounded mb-4 bg-gray-50">
-              <h4 className="font-semibold mb-2">PDVs a exportar:</h4>
-              {summary.pdvs.length === 0 ? (
-                <p className="text-sm text-gray-600">No hay datos para exportar</p>
-              ) : (
-                <ul className="list-disc list-inside text-sm space-y-1">
-                  {summary.pdvs.map((p) => (
-                    <li key={p.id}>{p.name}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
-          <button
-            onClick={handleCustomExport}
-            disabled={!selectedRegion}
-            className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-gray-700 transition-all mb-4 disabled:opacity-50"
-          >
-            Exportar Datos
-          </button>
+          {/* El resumen y exportación se manejan mediante un modal */}
           <button
             onClick={() => {
               setCustomMode(false);
@@ -252,6 +265,58 @@ const ExportData = ({ onBack, onExport }) => {
             Cancelar
           </button>
         </>
+      )}
+      {showSummaryModal && summary && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl max-w-sm w-full">
+            <h3 className="text-lg font-semibold mb-2">Resumen de exportación</h3>
+            <div className="text-sm mb-4 space-y-1">
+              <p>Región: {regions.find((r) => r.id === selectedRegion)?.name}</p>
+              {selectedSubterritory && (
+                <p>
+                  Subterritorio:{' '}
+                  {(subterritories[selectedRegion] || []).find((s) => s.id === selectedSubterritory)?.name}
+                </p>
+              )}
+              {selectedPdv && (
+                <p>
+                  PDV:{' '}
+                  {(pdvs[selectedSubterritory] || []).find((p) => p.id === selectedPdv)?.name}
+                </p>
+              )}
+              <p>PDVs: {summary.pdvs.length}</p>
+              <p>Ítems: {summary.totalItems}</p>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <button
+                onClick={() => setShowSummaryModal(false)}
+                className="px-4 py-2 bg-gray-300 rounded"
+              >
+                Revisar filtros
+              </button>
+              <button
+                onClick={handleConfirmExport}
+                className="px-4 py-2 bg-green-500 text-white rounded"
+              >
+                Exportar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showNoDataModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl max-w-sm w-full text-center">
+            <h3 className="text-lg font-semibold mb-2">No hay datos para exportar</h3>
+            <p className="mb-4">Revisa tu selección y filtros.</p>
+            <button
+              onClick={() => setShowNoDataModal(false)}
+              className="px-4 py-2 bg-blue-500 text-white rounded"
+            >
+              Revisar
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

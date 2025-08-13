@@ -9,54 +9,95 @@ import { getDisplayName, formatQuantity } from './materialDisplay';
  * @param {Object} exportObj - Objeto estructurado con la información a exportar
  */
 export default function exportToExcel(exportObj) {
-  if (!exportObj || !Array.isArray(exportObj.pdvs)) {
-    return;
-  }
+  try {
+    if (!exportObj || !Array.isArray(exportObj.pdvs)) {
+      return false;
+    }
 
-  // Definir columnas y generar filas
-  const rows = [];
-  exportObj.pdvs.forEach((pdv) => {
-    const zone = Array.isArray(pdv.zone) ? pdv.zone.join(', ') : pdv.zone || '';
-    const campaigns = Array.isArray(pdv.campaigns)
-      ? pdv.campaigns.join(', ')
-      : pdv.campaigns || '';
-    const data =
-      pdv.pdvData || getStorageItem(`pdv-${pdv.id}-data`) || {};
-    const contactName = data.contactName || '';
-    const contactPhone = data.contactPhone || '';
-    const city = data.city || '';
-    const address = data.address || '';
-    const notes = data.notes || '';
-    pdv.materials.forEach((mat) => {
-      rows.push({
-        Fecha: exportObj.requestDate,
-        'Tipo de solicitud': exportObj.type,
-        Canal: exportObj.channelName,
-        Región: pdv.regionName,
-        Subterritorio: pdv.subterritoryName,
-        PDV: pdv.name,
-        'Nombre de Contacto': contactName,
-        'Teléfono de Contacto': contactPhone,
-        Ciudad: city,
-        Dirección: address,
-        'Notas internas': notes,
-        Material: getDisplayName(mat.name),
-        Cantidad: formatQuantity(mat.name, mat.quantity) || '',
-        Medida: mat.measure || '',
-        '¿Cotizable?': mat.requiresCotizacion ? 'Sí' : 'No',
-        Zona: zone,
-        Prioridad: pdv.priority || '',
-        Campaña: campaigns,
-        Observaciones: mat.observations || '',
+    const headers = [
+      'Fecha',
+      'Tipo',
+      'Canal',
+      'Región',
+      'Subterritorio',
+      'PDV',
+      'Material',
+      'Medida',
+      'Cantidad',
+      'Zonas',
+      'Prioridad',
+      'Campaña',
+      'Contacto (PDV)',
+      'Teléfono (PDV)',
+      'Ciudad (PDV)',
+      'Dirección (PDV)',
+      'Notas internas (PDV)',
+    ];
+
+    const rows = [];
+    exportObj.pdvs.forEach((pdv) => {
+      const zone = Array.isArray(pdv.zone) ? pdv.zone.join(', ') : pdv.zone || '';
+      const campaigns = Array.isArray(pdv.campaigns)
+        ? pdv.campaigns.join(', ')
+        : pdv.campaigns || '';
+      const data = pdv.pdvData || getStorageItem(`pdv-${pdv.id}-data`) || {};
+      const contactName = data.contactName || '';
+      const contactPhone = data.contactPhone || '';
+      const city = data.city || '';
+      const address = data.address || '';
+      const notes = data.notes || '';
+      const mats = Array.isArray(pdv.materials) ? pdv.materials : [];
+      mats.forEach((mat) => {
+        rows.push({
+          Fecha: pdv.date || '',
+          Tipo: pdv.requestType || '',
+          Canal: exportObj.channelName || '',
+          Región: pdv.regionName || '',
+          Subterritorio: pdv.subterritoryName || '',
+          PDV: pdv.name || '',
+          Material: getDisplayName(mat.name),
+          Medida: mat.measure || '',
+          Cantidad: formatQuantity(mat.name, mat.quantity) || '',
+          Zonas: zone,
+          Prioridad: pdv.priority || '',
+          Campaña: campaigns,
+          'Contacto (PDV)': contactName,
+          'Teléfono (PDV)': contactPhone,
+          'Ciudad (PDV)': city,
+          'Dirección (PDV)': address,
+          'Notas internas (PDV)': notes,
+        });
       });
     });
-  });
 
-  const worksheet = XLSX.utils.json_to_sheet(rows);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, 'Solicitud');
+    if (rows.length === 0) {
+      return false;
+    }
 
-  const timestamp = new Date().toISOString();
-  const filename = `Solicitud_Material_${timestamp}.xlsx`;
-  XLSX.writeFile(workbook, filename);
+    const worksheet = XLSX.utils.json_to_sheet(rows, { header: headers });
+    XLSX.utils.sheet_add_aoa(worksheet, [headers], { origin: 'A1' });
+
+    // Freeze header row
+    worksheet['!freeze'] = { xSplit: 0, ySplit: 1 };
+
+    // Basic auto width
+    worksheet['!cols'] = headers.map((h) => ({
+      wch: Math.max(
+        h.length,
+        ...rows.map((r) => (r[h] ? r[h].toString().length : 0)),
+      ) + 2,
+    }));
+
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Solicitud');
+
+    const date = new Date().toISOString().split('T')[0];
+    const scope = (exportObj.scope || 'General').replace(/\s+/g, '-');
+    const filename = `Export_${scope}_${date}.xlsx`;
+    XLSX.writeFile(workbook, filename);
+    return true;
+  } catch (e) {
+    console.error('Error generating Excel', e);
+    return false;
+  }
 }

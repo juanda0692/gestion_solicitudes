@@ -134,48 +134,12 @@ const App = () => {
     setCurrentPage('create-campaign');
   };
 
-  // Exporta información de solicitudes y actualizaciones filtrando por canal,
-  // puntos de venta y materiales. Se utiliza desde la pantalla de Export Data.
-  const performExport = (params) => {
-    if (params && params.type) {
-      exportToExcel(params);
-      return;
+  // Exporta la información a un archivo Excel utilizando la utilidad dedicada.
+  const performExport = (exportObj) => {
+    const success = exportToExcel(exportObj);
+    if (!success) {
+      alert('No se pudo generar el archivo. Intenta de nuevo.');
     }
-    const { channelId, pdvIds = [], materialIds = [] } = params;
-    const materialRequests = getStorageItem('material-requests') || [];
-    const updateRequests = getStorageItem('pdv-update-requests') || [];
-
-    let filteredMaterial = materialRequests.filter((r) => r.channelId === channelId);
-    if (pdvIds.length > 0) {
-      filteredMaterial = filteredMaterial.filter((r) => pdvIds.includes(r.pdvId));
-    }
-    let filteredUpdates = updateRequests.filter((r) => r.channelId === channelId);
-    if (pdvIds.length > 0) {
-      filteredUpdates = filteredUpdates.filter((r) => pdvIds.includes(r.pdvId));
-    }
-
-    if (materialIds.length > 0) {
-      filteredMaterial = filteredMaterial.map((req) => ({
-        ...req,
-        items: req.items.filter((i) => materialIds.includes(i.material.id)),
-      }));
-    }
-
-    const data = {
-      channelId,
-      materialRequests: filteredMaterial,
-      updateRequests: filteredUpdates,
-    };
-
-    const blob = new Blob([JSON.stringify(data, null, 2)], {
-      type: 'application/json',
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${channelId}-data.json`;
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   // Confirmación de carrito: aquí se guardan los datos en localStorage.
