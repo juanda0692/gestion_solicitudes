@@ -109,10 +109,24 @@ const rawPdvs = {
 };
 
 // Perform normalization to clean and enrich the data structures
-const { regions, subterritories, pdvs } = normalizeLocationData(
+const { regions, subterritories, pdvs, warnings } = normalizeLocationData(
   rawRegions,
   rawSubterritories,
   rawPdvs,
 );
+
+if (warnings.length > 0) {
+  if (process.env.NODE_ENV === 'development') {
+    try {
+      localStorage.setItem('normalization_report', JSON.stringify(warnings));
+    } catch (err) {
+      // ignore storage errors
+    }
+  }
+  console.groupCollapsed('[Normalization] Inconsistencias en dataset embebido');
+  console.warn(`${warnings.length} inconsistencias detectadas`);
+  console.table(warnings.map((w, i) => ({ '#': i + 1, mensaje: w })));
+  console.groupEnd();
+}
 
 export { regions, subterritories, pdvs, validateNewPdv };
