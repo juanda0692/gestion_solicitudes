@@ -460,7 +460,7 @@ const App = () => {
 
         {/* Panel de ajustes para desarrolladores */}
         {isLoggedIn && currentPage === 'developer-panel' && (
-          <DeveloperPanel onBack={handleBack} />
+          <DeveloperPanel onBack={handleBack} onLoadLocations={handleOpenLocationLoader} />
         )}
 
         {/* Mensaje de confirmación de acciones */}

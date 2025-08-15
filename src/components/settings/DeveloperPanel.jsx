@@ -1,17 +1,30 @@
 import React, { useState } from 'react';
 import { sanitizeOnBoot, resetAll } from '../../utils/cleanupLocalStorage';
 import { getStorageItem } from '../../utils/storage';
+
 import { getActiveLocations } from '../../utils/locationsSource';
 import LocationDataLoader from '../LocationDataLoader';
+
+import {
+  getActiveLocations,
+  getLocationsSource,
+  setLocationsSource,
+  hasImportedData,
+  LS_KEY_DATA,
+} from '../../utils/locationsSource';
+
 
 /**
  * Panel de utilidades para desarrolladores.
  * Permite limpiar o restablecer datos almacenados en el navegador.
  */
-const DeveloperPanel = ({ onBack }) => {
+const DeveloperPanel = ({ onBack, onLoadLocations }) => {
   const [result, setResult] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
+
   const [showLoader, setShowLoader] = useState(false);
+
+  const [locSource, setLocSource] = useState(getLocationsSource());
 
   const getStats = () => {
     const requests = (getStorageItem('material-requests') || []).length;
@@ -39,9 +52,18 @@ const DeveloperPanel = ({ onBack }) => {
     window.location.reload();
   };
 
+
   if (showLoader) {
     return <LocationDataLoader onBack={() => setShowLoader(false)} />;
   }
+
+  const importedValid = hasImportedData(getStorageItem(LS_KEY_DATA));
+  const handleUseImported = () => {
+    setLocSource(setLocationsSource('imported'));
+  };
+  const handleUseBundled = () => {
+    setLocSource(setLocationsSource('bundled'));
+  };
 
   return (
     <div className="w-full max-w-xl space-y-4">
@@ -66,6 +88,25 @@ const DeveloperPanel = ({ onBack }) => {
           <pre className="text-xs mt-2 bg-gray-100 p-2 rounded">
             {JSON.stringify(result, null, 2)}
           </pre>
+        )}
+      </div>
+
+      <div className="bg-white p-4 rounded shadow space-y-2">
+        <p className="text-sm">Fuente actual: {locSource === 'imported' ? 'Importado' : 'Bundled'}</p>
+        {importedValid && locSource !== 'imported' && (
+          <button onClick={handleUseImported} className="bg-tigo-blue text-white px-4 py-2 rounded">
+            Activar dataset importado
+          </button>
+        )}
+        {locSource === 'imported' && (
+          <button onClick={handleUseBundled} className="px-4 py-2 border rounded">
+            Usar dataset base
+          </button>
+        )}
+        {onLoadLocations && (
+          <button onClick={onLoadLocations} className="px-4 py-2 border rounded">
+            Cargar ubicaciones
+          </button>
         )}
       </div>
 
