@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { sanitizeOnBoot, resetAll } from '../../utils/cleanupLocalStorage';
 import { getStorageItem } from '../../utils/storage';
 
-import { getActiveLocations } from '../../utils/locationsSource';
 import LocationDataLoader from '../LocationDataLoader';
 
 import {
