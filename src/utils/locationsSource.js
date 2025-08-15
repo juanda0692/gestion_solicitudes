@@ -35,36 +35,14 @@ export const hasImportedData = (imported) =>
 // API ------------------------------------------------------------------
 
 export function getActiveLocations() {
+  const imported = getStorageItem(LS_KEY_DATA);
   const source = getStorageItem(LS_KEY_SOURCE);
 
-  // Si la fuente está fijada a bundled, ignorar cualquier dataset importado
-  if (source === 'bundled') {
-    setStorageItem(LS_KEY_SOURCE, 'bundled');
+  if (source === 'imported' && hasImportedData(imported)) {
     if (process.env.NODE_ENV === 'development') {
       // eslint-disable-next-line no-console
-      console.log('[locations] Usando dataset base');
+      console.log('[locations] Usando dataset importado');
     }
-    return {
-      regions: bundledRegions,
-      subterritories: bundledSubs,
-      pdvs: bundledPdvs,
-      source: 'bundled',
-    };
-  }
-
-  const imported = getStorageItem(LS_KEY_DATA);
-  const useImported = source === 'imported' && hasImportedData(imported);
-
-  if (process.env.NODE_ENV === 'development') {
-    // eslint-disable-next-line no-console
-    console.log(
-      useImported
-        ? '[locations] Usando dataset importado'
-        : '[locations] Usando dataset base',
-    );
-  }
-
-  if (useImported) {
     return {
       regions: imported.regions,
       subterritories: imported.subterritories,
@@ -76,6 +54,10 @@ export function getActiveLocations() {
 
   // fallback a bundled
   setStorageItem(LS_KEY_SOURCE, 'bundled');
+  if (process.env.NODE_ENV === 'development') {
+    // eslint-disable-next-line no-console
+    console.log('[locations] Usando dataset base');
+  }
   return {
     regions: bundledRegions,
     subterritories: bundledSubs,
@@ -93,9 +75,7 @@ export function setImportedLocations(payload) {
     importedAt: new Date().toISOString(),
   };
   setStorageItem(LS_KEY_DATA, clean);
-  if (hasImportedData(clean)) {
-    setStorageItem(LS_KEY_SOURCE, 'imported');
-  } else {
+  if (!hasImportedData(clean)) {
     // persist but no activar
     setStorageItem(LS_KEY_SOURCE, 'bundled');
   }
@@ -128,6 +108,18 @@ export function getLocationsSource() {
     // eslint-disable-next-line no-console
     console.log('[locations] Fuente actual: dataset base');
   }
+  return 'bundled';
+}
+
+export function setLocationsSource(source) {
+  if (source === 'imported') {
+    const imported = getStorageItem(LS_KEY_DATA);
+    if (hasImportedData(imported)) {
+      setStorageItem(LS_KEY_SOURCE, 'imported');
+      return 'imported';
+    }
+  }
+  setStorageItem(LS_KEY_SOURCE, 'bundled');
   return 'bundled';
 }
 

@@ -16,7 +16,7 @@ import { pdvsForSub } from '../utils/locationSelectors';
  * peticiones al API.
  */
 
-const LocationSelector = ({ onSelectPdv, selectedChannel, onOpenLoader }) => {
+const LocationSelector = ({ onSelectPdv, selectedChannel: _selectedChannel }) => {
   const { regions, subterritories, pdvs, source, importedAt } = getActiveLocations();
   const importedEmpty =
     source === 'imported' &&
@@ -36,11 +36,6 @@ const LocationSelector = ({ onSelectPdv, selectedChannel, onOpenLoader }) => {
           >
             Usar dataset base
           </button>
-          {onOpenLoader && (
-            <button onClick={onOpenLoader} className="px-3 py-1 border rounded">
-              Ir a Cargar ubicaciones
-            </button>
-          )}
         </div>
       </div>
     );
