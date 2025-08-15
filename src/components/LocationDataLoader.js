@@ -9,9 +9,9 @@ import {
   setImportedLocations,
   clearImportedLocations,
   getActiveLocations,
-  getLocationsSource,
   countSubs,
   countPdvs,
+  hasImportedData,
 } from '../utils/locationsSource';
 import { setStorageItem } from '../utils/storage';
 import { useToast } from './ui/ToastProvider';
@@ -82,9 +82,8 @@ const LocationDataLoader = ({ onBack }) => {
       conflicts,
     });
     setActive(getActiveLocations());
-    if (getLocationsSource() === 'imported') {
-      addToast('Datos aplicados');
-      onBack && onBack();
+    if (hasImportedData(normalized)) {
+      addToast('Datos importados. Actívalos desde el panel de desarrollador.');
     } else {
       addToast('El archivo importado no contiene registros válidos. Se mantiene el dataset base.');
     }

@@ -342,7 +342,6 @@ const App = () => {
             onChannels={() => setCurrentPage('channel-select')}
             onCampaigns={() => setCurrentPage('campaigns-menu')}
             onExport={handleExportData}
-            onLoadLocations={handleOpenLocationLoader}
             onSettings={handleOpenSettings}
             onLogout={handleLogout}
             showManagement={selectedTradeType === 'nacional'}
@@ -386,7 +385,6 @@ const App = () => {
           <LocationSelector
             onSelectPdv={handleSelectPdv}
             selectedChannel={selectedChannelId}
-            onOpenLoader={handleOpenLocationLoader}
           />
         )}
 
@@ -477,7 +475,7 @@ const App = () => {
 
         {/* Panel de ajustes para desarrolladores */}
         {isLoggedIn && currentPage === 'developer-panel' && (
-          <DeveloperPanel onBack={handleBack} />
+          <DeveloperPanel onBack={handleBack} onLoadLocations={handleOpenLocationLoader} />
         )}
 
         {/* Mensaje de confirmación de acciones */}
