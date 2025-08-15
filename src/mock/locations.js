@@ -146,12 +146,8 @@ Object.entries(rawPdvs).forEach(([subId, list]) => {
   });
 });
 
-// Normalize again using the new slugs
-const { regions, subterritories, pdvs } = normalizeLocationData(
-=======
 // Perform normalization to clean and enrich the data structures
 const { regions, subterritories, pdvs, warnings } = normalizeLocationData(
-
   rawRegions,
   rawSubterritories,
   sluggedPdvs,
@@ -174,19 +170,19 @@ if (typeof window !== 'undefined' && window.localStorage) {
     conflicts: [],
   });
 
-if (warnings.length > 0) {
-  if (process.env.NODE_ENV === 'development') {
-    try {
-      localStorage.setItem('normalization_report', JSON.stringify(warnings));
-    } catch (err) {
-      // ignore storage errors
+  if (warnings.length > 0) {
+    if (process.env.NODE_ENV === 'development') {
+      try {
+        localStorage.setItem('normalization_report', JSON.stringify(warnings));
+      } catch (err) {
+        // ignore storage errors
+      }
     }
+    console.groupCollapsed('[Normalization] Inconsistencias en dataset embebido');
+    console.warn(`${warnings.length} inconsistencias detectadas`);
+    console.table(warnings.map((w, i) => ({ '#': i + 1, mensaje: w })));
+    console.groupEnd();
   }
-  console.groupCollapsed('[Normalization] Inconsistencias en dataset embebido');
-  console.warn(`${warnings.length} inconsistencias detectadas`);
-  console.table(warnings.map((w, i) => ({ '#': i + 1, mensaje: w })));
-  console.groupEnd();
-
 }
 
 export { regions, subterritories, pdvs, validateNewPdv };

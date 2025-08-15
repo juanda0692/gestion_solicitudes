@@ -65,8 +65,9 @@ const LocationSelector = ({ onSelectPdv, selectedChannel: _selectedChannel }) =>
   useEffect(() => {
     if (selectedSubterritory) {
       const list = pdvsForSub(selectedSubterritory);
-      // Mostrar únicamente PDVs completos
-      setAvailablePdvs(list.filter((p) => p.complete));
+      // Mostrar todos los PDVs disponibles para el subterritorio seleccionado
+      // (filtrado por "complete" se deshabilita temporalmente)
+      setAvailablePdvs(list);
       setSearchTerm('');
     } else {
       setAvailablePdvs([]);
@@ -151,7 +152,8 @@ const LocationSelector = ({ onSelectPdv, selectedChannel: _selectedChannel }) =>
             <option value="">Selecciona un PDV</option>
             {availablePdvs
               .filter((pdv) =>
-                pdv.name.toLowerCase().includes(searchTerm.toLowerCase())
+                pdv.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                pdv.id.toLowerCase().includes(searchTerm.toLowerCase())
               )
               .map((pdv) => (
                 <option key={pdv.id} value={pdv.id}>{pdv.name}</option>
