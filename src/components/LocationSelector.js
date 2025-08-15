@@ -16,7 +16,11 @@ import { pdvsForSub } from '../utils/locationSelectors';
  * peticiones al API.
  */
 
+
+const LocationSelector = ({ onSelectPdv, selectedChannel }) => {
+
 const LocationSelector = ({ onSelectPdv, selectedChannel: _selectedChannel }) => {
+
   const { regions, subterritories, pdvs, source, importedAt } = getActiveLocations();
   const importedEmpty =
     source === 'imported' &&

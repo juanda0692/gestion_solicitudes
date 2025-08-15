@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { sanitizeOnBoot, resetAll } from '../../utils/cleanupLocalStorage';
 import { getStorageItem } from '../../utils/storage';
+
+import { getActiveLocations } from '../../utils/locationsSource';
+import LocationDataLoader from '../LocationDataLoader';
+
 import {
   getActiveLocations,
   getLocationsSource,
@@ -9,6 +13,7 @@ import {
   LS_KEY_DATA,
 } from '../../utils/locationsSource';
 
+
 /**
  * Panel de utilidades para desarrolladores.
  * Permite limpiar o restablecer datos almacenados en el navegador.
@@ -16,6 +21,9 @@ import {
 const DeveloperPanel = ({ onBack, onLoadLocations }) => {
   const [result, setResult] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const [showLoader, setShowLoader] = useState(false);
+
   const [locSource, setLocSource] = useState(getLocationsSource());
 
   const getStats = () => {
@@ -43,6 +51,11 @@ const DeveloperPanel = ({ onBack, onLoadLocations }) => {
     resetAll();
     window.location.reload();
   };
+
+
+  if (showLoader) {
+    return <LocationDataLoader onBack={() => setShowLoader(false)} />;
+  }
 
   const importedValid = hasImportedData(getStorageItem(LS_KEY_DATA));
   const handleUseImported = () => {
@@ -126,6 +139,17 @@ const DeveloperPanel = ({ onBack, onLoadLocations }) => {
           </div>
         )}
       </div>
+
+      {process.env.NODE_ENV === 'development' && (
+        <div className="bg-white p-4 rounded shadow space-y-2">
+          <button
+            onClick={() => setShowLoader(true)}
+            className="bg-tigo-blue text-white px-4 py-2 rounded"
+          >
+            Cargar ubicaciones
+          </button>
+        </div>
+      )}
 
       {onBack && (
         <button onClick={onBack} className="px-4 py-2 border rounded">

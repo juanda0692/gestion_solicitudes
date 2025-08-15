@@ -26,23 +26,23 @@ Aplicación React que simula la gestión de solicitudes de material POP y actual
 - **Datos y normalización**: se cargan en formato uniforme, `idMap` para ubicaciones y fallback de datos.
 - **Limpieza y Panel Dev**: herramientas para migrar, limpiar y depurar datos locales.
 
-## Cargar ubicaciones (Excel)
+## Importar ubicaciones desde Excel
 
-La opción **Cargar ubicaciones** (solo visible en desarrollo) permite reemplazar la
-lista de regiones, subterritorios y PDVs sin necesidad de modificar el código.
+La importación desde Excel es una **herramienta de administración** disponible solo en modo desarrollo y no forma parte del flujo estándar de la aplicación. Permite reemplazar la lista de regiones, subterritorios y PDVs sin modificar el código.
 
-1. En la barra lateral elija *Cargar ubicaciones* y seleccione un archivo `.xlsx`.
-2. El Excel debe incluir tres hojas:
+1. Abre el panel de ajustes de desarrollador y elige *Cargar ubicaciones*.
+2. Selecciona un archivo `.xlsx`.
+3. El Excel debe incluir tres hojas:
    - **Regions**: columnas `region_id` (opcional) y `region_name`.
    - **Subterritories**: `region_id`, `subterritory_id` (opcional), `subterritory_name`.
    - **PDVs**: `subterritory_id`, `pdv_id` (opcional), `pdv_name` y, de forma opcional,
      `city`, `address` y `contact` (o `contactName`/`contactPhone`).
      También se aceptan los nombres en camelCase (`id`, `name`, `regionId`, etc.).
-3. Se mostrarán los errores de validación detectados. Si no hay errores se
+4. Se mostrarán los errores de validación detectados. Si no hay errores se
    genera una vista previa normalizada.
-4. Use **Aplicar en la app** para persistir el dataset en `localStorage` o
-   descargue el resultado como `locations.json` o `locations.js`.
-5. Si los datos quedan corruptos puede utilizar el panel de desarrollador para
+5. Usa **Aplicar en la app** para persistir el dataset en `localStorage` o
+   descarga el resultado como `locations.json` o `locations.js`.
+6. Si los datos quedan corruptos puedes utilizar el panel de desarrollador para
    restablecer las claves `locations_*` en el navegador.
 
 ## Limitaciones actuales

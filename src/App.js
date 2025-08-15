@@ -36,7 +36,6 @@ import exportToExcel from './utils/exportToExcel';
 import exportToJson from './utils/exportToJson';
 import { channels } from './mock/channels';
 import { getActiveLocations } from './utils/locationsSource';
-import LocationDataLoader from './components/LocationDataLoader';
 import { useToast } from './components/ui/ToastProvider';
 
 const App = () => {
@@ -142,10 +141,6 @@ const App = () => {
 
   const handleOpenSettings = () => {
     setCurrentPage('developer-panel');
-  };
-
-  const handleOpenLocationLoader = () => {
-    setCurrentPage('location-loader');
   };
 
   // Navegar directamente al formulario de creación de campaña
@@ -261,8 +256,6 @@ const App = () => {
         return 'Exportar Datos';
       case 'developer-panel':
         return 'Ajustes';
-      case 'location-loader':
-        return 'Cargar Ubicaciones';
       case 'previous-requests':
         return 'Solicitudes Anteriores';
       case 'channel-requests':
@@ -311,9 +304,6 @@ const App = () => {
         setCurrentPage('pdv-actions');
         break;
       case 'developer-panel':
-        setCurrentPage('pdv-actions');
-        break;
-      case 'location-loader':
         setCurrentPage('pdv-actions');
         break;
       case 'confirm-request':
@@ -466,11 +456,6 @@ const App = () => {
         {/* Exportar datos */}
         {isLoggedIn && currentPage === 'export-data' && (
           <ExportData onBack={handleBack} onExport={performExport} />
-        )}
-
-        {/* Carga de ubicaciones desde Excel */}
-        {isLoggedIn && currentPage === 'location-loader' && (
-          <LocationDataLoader onBack={handleBack} />
         )}
 
         {/* Panel de ajustes para desarrolladores */}
