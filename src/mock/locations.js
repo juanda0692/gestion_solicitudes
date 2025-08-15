@@ -6,6 +6,8 @@ const rawRegions = [
   { id: 'region-sur', name: 'región sur' },
   { id: 'region-costa', name: 'REGIÓN COSTA' },
   { id: 'region-andina', name: 'andina' },
+  // Región faltante agregada explícitamente para las pruebas
+  { id: 'region-centro', name: 'Centro' },
 ];
 
 // Mapping of region -> subterritories

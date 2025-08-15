@@ -1,4 +1,8 @@
-import { regions as bundledRegions, subterritories as bundledSubs, pdvs as bundledPdvs } from '../mock/locations';
+import {
+  regions as bundledRegions,
+  subterritories as bundledSubs,
+  pdvs as bundledPdvs,
+} from '../mock/locationsNormalized';
 import { getStorageItem, setStorageItem, removeStorageItem } from './storage';
 
 export const LS_KEY_DATA = 'locations/imported';
