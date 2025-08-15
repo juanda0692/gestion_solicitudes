@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { sanitizeOnBoot, resetAll } from '../../utils/cleanupLocalStorage';
 import { getStorageItem } from '../../utils/storage';
 import { getActiveLocations } from '../../utils/locationsSource';
+import LocationDataLoader from '../LocationDataLoader';
 
 /**
  * Panel de utilidades para desarrolladores.
@@ -10,6 +11,7 @@ import { getActiveLocations } from '../../utils/locationsSource';
 const DeveloperPanel = ({ onBack }) => {
   const [result, setResult] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showLoader, setShowLoader] = useState(false);
 
   const getStats = () => {
     const requests = (getStorageItem('material-requests') || []).length;
@@ -36,6 +38,10 @@ const DeveloperPanel = ({ onBack }) => {
     resetAll();
     window.location.reload();
   };
+
+  if (showLoader) {
+    return <LocationDataLoader onBack={() => setShowLoader(false)} />;
+  }
 
   return (
     <div className="w-full max-w-xl space-y-4">
@@ -92,6 +98,17 @@ const DeveloperPanel = ({ onBack }) => {
           </div>
         )}
       </div>
+
+      {process.env.NODE_ENV === 'development' && (
+        <div className="bg-white p-4 rounded shadow space-y-2">
+          <button
+            onClick={() => setShowLoader(true)}
+            className="bg-tigo-blue text-white px-4 py-2 rounded"
+          >
+            Cargar ubicaciones
+          </button>
+        </div>
+      )}
 
       {onBack && (
         <button onClick={onBack} className="px-4 py-2 border rounded">
