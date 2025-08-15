@@ -1,4 +1,5 @@
 import normalizeLocationData, { validateNewPdv } from '../utils/locationNormalizer';
+import { setStorageItem } from '../utils/storage';
 
 // Raw region list intentionally missing some entries to test normalization
 const rawRegions = [
@@ -30,8 +31,7 @@ const rawSubterritories = {
   ],
 };
 
-// PDVs grouped by subterritory. Many IDs are duplicated intentionally to test
-// the normalization process which assigns unique IDs.
+// PDVs grouped by subterritory with generic IDs.
 const rawPdvs = {
   'sub-bogota-1': [
     { id: 'pdv-b1-001', name: 'PDV Bogotá 1 - 001' },
@@ -108,11 +108,65 @@ const rawPdvs = {
   ],
 };
 
-// Perform normalization to clean and enrich the data structures
+// Helper to build URL friendly slugs
+const slug = (str = '') =>
+  str
+    .toString()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+
+// Obtain normalized result from previous generic IDs to build an idMap
+const original = normalizeLocationData(rawRegions, rawSubterritories, rawPdvs);
+
+// Precompute region and subterritory names for slug generation
+const regionNameById = Object.fromEntries(rawRegions.map((r) => [r.id, r.name]));
+const subInfo = {};
+Object.entries(rawSubterritories).forEach(([regionId, subs]) => {
+  subs.forEach((s) => {
+    subInfo[s.id] = { regionName: regionNameById[regionId], subName: s.name };
+  });
+});
+
+// Replace generic IDs with slugs including region and subterritory
+const slugCounts = {};
+const sluggedPdvs = {};
+Object.entries(rawPdvs).forEach(([subId, list]) => {
+  const info = subInfo[subId] || {};
+  sluggedPdvs[subId] = list.map((pdv) => {
+    const base = `${slug(info.regionName)}-${slug(info.subName)}-${slug(pdv.name)}`;
+    const count = (slugCounts[base] = (slugCounts[base] || 0) + 1);
+    const id = count > 1 ? `${base}-${count}` : base;
+    return { ...pdv, id };
+  });
+});
+
+// Normalize again using the new slugs
 const { regions, subterritories, pdvs } = normalizeLocationData(
   rawRegions,
   rawSubterritories,
-  rawPdvs,
+  sluggedPdvs,
 );
+
+// Build mapping from old normalized IDs to the new slug IDs
+const idMap = {};
+Object.entries(original.pdvs).forEach(([subId, list]) => {
+  list.forEach((pdv, idx) => {
+    idMap[pdv.id] = pdvs[subId][idx].id;
+  });
+});
+
+// Persist mapping so previous localStorage entries can migrate
+if (typeof window !== 'undefined' && window.localStorage) {
+  setStorageItem('normalization_report', {
+    idMap,
+    duplicatesRemoved: [],
+    warnings: [],
+    conflicts: [],
+  });
+}
 
 export { regions, subterritories, pdvs, validateNewPdv };
