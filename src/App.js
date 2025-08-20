@@ -407,16 +407,18 @@ const App = () => {
 
         {/* Formulario para solicitar material */}
         {isLoggedIn && currentPage === 'request-material' && (
-          <MaterialRequestForm
-            onConfirmRequest={handleConfirmRequest}
-            onBackToPdv={() => setCurrentPage('pdv-actions')}
-            selectedPdvId={selectedPdvId}
-            selectedPdvName={selectedPdvName}
-            selectedRegionName={selectedRegionName}
-            selectedSubName={selectedSubName}
-            selectedChannelId={selectedChannelId}
-            tradeType={selectedTradeType}
-          />
+        <MaterialRequestForm
+          onConfirmRequest={handleConfirmRequest}
+          onBackToPdv={() => setCurrentPage('pdv-actions')}
+          selectedPdvId={selectedPdvId}
+          selectedPdvName={selectedPdvName}
+          selectedRegionId={selectedRegionId}
+          selectedRegionName={selectedRegionName}
+          selectedSubId={selectedSubId}
+          selectedSubName={selectedSubName}
+          selectedChannelId={selectedChannelId}
+          tradeType={selectedTradeType}
+        />
         )}
 
         {/* Formulario para actualizar información del PDV */}
