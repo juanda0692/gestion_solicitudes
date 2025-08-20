@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { materials } from '../mock/materials';
-import { campaigns as defaultCampaigns } from '../mock/campaigns';
-import { channels } from '../mock/channels';
-import { channelMaterials } from '../mock/channelMaterials';
+import {
+  getChannels,
+  getMaterialsByChannel,
+  getCampaigns,
+  createRequest,
+} from '../services/api';
 import ContextInfo from './ContextInfo';
 import SingleSelectModal from './SingleSelectModal';
 import PreviousCampaignsModal from './PreviousCampaignsModal';
@@ -30,11 +32,15 @@ const MaterialRequestForm = ({
   onBackToPdv,
   selectedPdvId,
   selectedPdvName,
+  selectedRegionId,
   selectedRegionName,
+  selectedSubId,
   selectedSubName,
   selectedChannelId,
   tradeType,
 }) => {
+  const [channels, setChannels] = useState([]);
+  const [materials, setMaterials] = useState([]);
   const channelName = channels.find((c) => c.id === selectedChannelId)?.name || selectedChannelId;
   // Estado del formulario
   const [selectedMaterial, setSelectedMaterial] = useState('');
@@ -62,25 +68,22 @@ const MaterialRequestForm = ({
     setSelectedMeasures('');
     setCustomMeasure('');
   }, [selectedMaterial]);
+  // Cargar catálogos desde la API
+  useEffect(() => {
+    getChannels().then(setChannels).catch(console.error);
+  }, []);
 
-  const allowedMaterials = channelMaterials[selectedChannelId] || [];
-  const allowedIds = allowedMaterials.map((m) => m.id);
-  const cotizableMaterials = materials.filter(
-    (m) =>
-      m.requiresCotizacion &&
-      (m.canalesPermitidos || []).includes(selectedChannelId),
-  );
-  const materialsForChannel = materials
-    .filter(
-      (m) =>
-        allowedIds.includes(m.id) ||
-        (m.requiresCotizacion &&
-          (m.canalesPermitidos || []).includes(selectedChannelId)),
-    )
-    .map((m) => ({
-      ...m,
-      stock: allowedMaterials.find((am) => am.id === m.id)?.stock || m.stock,
-    }));
+  useEffect(() => {
+    getCampaigns().then(setCampaignList).catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (!selectedChannelId) {
+      setMaterials([]);
+      return;
+    }
+    getMaterialsByChannel(selectedChannelId).then(setMaterials).catch(console.error);
+  }, [selectedChannelId]);
 
   // Medidas disponibles según el material seleccionado
   const availableMeasures = React.useMemo(() => {
@@ -90,25 +93,11 @@ const MaterialRequestForm = ({
     opts.push({ id: 'otro', name: 'Otro' });
     return opts;
   }, [selectedMaterial]);
-  // Cargar campañas guardadas localmente para mostrarlas en el desplegable
-  useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem('campaigns'));
-    setCampaignList(stored || defaultCampaigns);
-  }, []);
 
   // Agrega el material actual al carrito de la solicitud
   const handleAddToCart = () => {
     const materialDetails = materials.find((m) => m.id === selectedMaterial);
-    const isAllowed =
-      allowedIds.includes(selectedMaterial) ||
-      (materialDetails?.requiresCotizacion &&
-        (materialDetails.canalesPermitidos || []).includes(selectedChannelId));
-    if (
-      selectedMaterial &&
-      quantity > 0 &&
-      (selectedMeasures || customMeasure) &&
-      isAllowed
-    ) {
+    if (selectedMaterial && quantity > 0 && (selectedMeasures || customMeasure)) {
       const measureDetails =
         selectedMeasures === 'otro'
           ? { id: 'otro', name: customMeasure || 'Personalizado' }
@@ -116,23 +105,20 @@ const MaterialRequestForm = ({
       setCart((prevCart) => [
         ...prevCart,
         {
-          id: `${materialDetails.id}-${Date.now()}`, // ID único para cada item en el carrito
+          id: `${materialDetails.id}-${Date.now()}`,
           material: materialDetails,
           measures: measureDetails,
           quantity,
           notes,
         },
       ]);
-      // Resetear formulario después de agregar al carrito
       setSelectedMaterial('');
       setQuantity(1);
       setSelectedMeasures('');
       setCustomMeasure('');
       setNotes('');
     } else {
-      alert(
-        'Por favor, selecciona un material válido del canal, medidas y una cantidad correcta.',
-      );
+      alert('Por favor, selecciona un material válido del canal, medidas y una cantidad correcta.');
     }
   };
 
@@ -151,16 +137,7 @@ const MaterialRequestForm = ({
       ...item,
       id: `${item.material.id}-${Date.now()}-${Math.random()}`,
     }));
-    const filtered = newItems.filter(
-      (it) =>
-        allowedIds.includes(it.material.id) ||
-        (it.material.requiresCotizacion &&
-          (it.material.canalesPermitidos || []).includes(selectedChannelId)),
-    );
-    if (filtered.length < newItems.length) {
-      alert('Algunos materiales no pertenecen al canal actual y fueron omitidos');
-    }
-    setCart((prev) => [...prev, ...filtered]);
+    setCart((prev) => [...prev, ...newItems]);
     if (req.campaigns && req.campaigns.length > 0 && !selectedCampaign) {
       setSelectedCampaign(req.campaigns[0]);
     }
@@ -202,12 +179,39 @@ const MaterialRequestForm = ({
   };
 
   // Envía la solicitud al componente padre cuando el carrito tiene información
-  const handleConfirmCart = () => {
+  const handleConfirmCart = async () => {
     if (cart.length > 0) {
       const itemsToStore = cart.map((item) => ({
         ...item,
         displayName: getDisplayName(item.material.name),
       }));
+
+      const payload = {
+        regionId: selectedRegionId,
+        subterritoryId: selectedSubId,
+        pdvId: selectedPdvId,
+        campaignId: selectedCampaign || null,
+        priority: selectedPriority || null,
+        zones: selectedZones,
+        observations: '',
+        items: cart.map((item) => ({
+          materialId: item.material.id,
+          quantity: item.quantity,
+          measureTag: item.measures.id === 'otro' ? 'Otro' : item.measures.name,
+          measureCustom: item.measures.id === 'otro' ? item.measures.name : undefined,
+          observations: item.notes || null,
+        })),
+        createdBy: 'usuario@empresa.com',
+      };
+
+      try {
+        const res = await createRequest(payload);
+        alert(`Solicitud creada: #${res.id}`);
+      } catch (e) {
+        console.error(e);
+        alert('No se pudo crear la solicitud');
+      }
+
       onConfirmRequest({
         pdvId: selectedPdvId,
         pdvSnapshot,
@@ -255,7 +259,7 @@ const MaterialRequestForm = ({
               {materials.find((m) => m.id === selectedMaterial)?.requiresCotizacion
                 ? 'Este material será cotizado y producido bajo pedido por Trade Nacional.'
                 : `Pertenece al canal ${channelName}. Stock disponible: ${
-                    allowedMaterials.find((m) => m.id === selectedMaterial)?.stock || 0
+                    materials.find((m) => m.id === selectedMaterial)?.stock || 0
                   }`}
             </p>
           )}
@@ -467,7 +471,7 @@ const MaterialRequestForm = ({
       {showMaterialModal && (
         <SingleSelectModal
           title="Seleccionar material"
-          items={materialsForChannel}
+          items={materials}
           selectedId={selectedMaterial}
           onSelect={setSelectedMaterial}
           search={materialSearch}

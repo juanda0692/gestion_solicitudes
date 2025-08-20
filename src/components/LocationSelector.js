@@ -1,91 +1,53 @@
 import React, { useState, useEffect } from 'react';
-// import locations dataset depending on source (Excel/local bundled)
-import {
-  getActiveLocations,
-  clearImportedLocations,
-  countSubs,
-  countPdvs,
-} from '../utils/locationsSource';
-import { pdvsForSub } from '../utils/locationSelectors';
+import { getRegions, getSubterritories, getPdvsBySub } from '../services/api';
 
 /**
- * Componente encargado de seleccionar la ubicación de un PDV.
- *
- * Utiliza datos simulados (regiones, subterritorios y PDV). Al
- * conectar con el backend, estos datos deberían obtenerse mediante
- * peticiones al API.
+ * Componente encargado de seleccionar la ubicación de un PDV usando datos del API.
  */
-
-const LocationSelector = ({ onSelectPdv, selectedChannel: _selectedChannel }) => {
-
-  const { regions, subterritories, pdvs, source, importedAt } = getActiveLocations();
-  const importedEmpty =
-    source === 'imported' &&
-    (!regions.length || countSubs(subterritories) === 0 || countPdvs(pdvs) === 0);
-
-  if (importedEmpty) {
-    return (
-      <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto mt-8 space-y-4">
-        <p>No hay ubicaciones disponibles en la fuente importada.</p>
-        <div className="space-x-2">
-          <button
-            onClick={() => {
-              clearImportedLocations();
-              window.location.reload();
-            }}
-            className="px-3 py-1 border rounded"
-          >
-            Usar dataset base
-          </button>
-        </div>
-      </div>
-    );
-  }
-
+const LocationSelector = ({ onSelectPdv }) => {
+  const [regions, setRegions] = useState([]);
   const [selectedRegion, setSelectedRegion] = useState('');
+  const [subterritories, setSubterritories] = useState([]);
   const [selectedSubterritory, setSelectedSubterritory] = useState('');
-  const [availableSubterritories, setAvailableSubterritories] = useState([]);
-  const [availablePdvs, setAvailablePdvs] = useState([]);
+  const [pdvs, setPdvs] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Cuando cambia la región cargamos los subterritorios disponibles
   useEffect(() => {
-    if (selectedRegion) {
-      setAvailableSubterritories(subterritories[selectedRegion] || []);
+    getRegions().then(setRegions).catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (!selectedRegion) {
+      setSubterritories([]);
       setSelectedSubterritory('');
-      setAvailablePdvs([]);
-    } else {
-      setAvailableSubterritories([]);
-      setSelectedSubterritory('');
-      setAvailablePdvs([]);
+      setPdvs([]);
+      return;
     }
+    getSubterritories(selectedRegion)
+      .then((data) => {
+        setSubterritories(data);
+        setSelectedSubterritory('');
+        setPdvs([]);
+      })
+      .catch(console.error);
   }, [selectedRegion]);
 
-  // Cada vez que cambia el subterritorio se filtran los PDV
   useEffect(() => {
-    if (selectedSubterritory) {
-      const list = pdvsForSub(selectedSubterritory);
-      // Mostrar todos los PDVs disponibles para el subterritorio seleccionado
-      // (filtrado por "complete" se deshabilita temporalmente)
-      setAvailablePdvs(list);
-      setSearchTerm('');
-    } else {
-      setAvailablePdvs([]);
+    if (!selectedSubterritory) {
+      setPdvs([]);
+      return;
     }
+    getPdvsBySub(selectedSubterritory).then(setPdvs).catch(console.error);
   }, [selectedSubterritory]);
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto mt-8 relative">
-      <div className="absolute top-2 right-2 text-xs bg-gray-200 rounded px-2 py-1">
-        {source === 'imported'
-          ? `Ubicaciones: Imported (${new Date(importedAt).toLocaleDateString()})`
-          : 'Ubicaciones: Bundled'}
-      </div>
+    <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto mt-8">
       <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Selecciona Ubicación</h2>
 
       <div className="mb-4">
-        {/* Lista de regiones - reemplazar con datos del backend */}
-        <label htmlFor="region-select" className="block text-gray-700 text-sm font-bold mb-2">Región:</label>
+        <label htmlFor="region-select" className="block text-gray-700 text-sm font-bold mb-2">
+          Región:
+        </label>
         <select
           id="region-select"
           className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200"
@@ -94,15 +56,18 @@ const LocationSelector = ({ onSelectPdv, selectedChannel: _selectedChannel }) =>
         >
           <option value="">Selecciona una región</option>
           {regions.map((region) => (
-            <option key={region.id} value={region.id}>{region.name}</option>
+            <option key={region.id} value={region.id}>
+              {region.name}
+            </option>
           ))}
         </select>
       </div>
 
       {selectedRegion && (
         <div className="mb-4">
-          {/* Subterritorios de la región seleccionada */}
-          <label htmlFor="subterritory-select" className="block text-gray-700 text-sm font-bold mb-2">Subterritorio:</label>
+          <label htmlFor="subterritory-select" className="block text-gray-700 text-sm font-bold mb-2">
+            Subterritorio:
+          </label>
           <select
             id="subterritory-select"
             className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200"
@@ -110,8 +75,10 @@ const LocationSelector = ({ onSelectPdv, selectedChannel: _selectedChannel }) =>
             onChange={(e) => setSelectedSubterritory(e.target.value)}
           >
             <option value="">Selecciona un subterritorio</option>
-            {availableSubterritories.map((sub) => (
-              <option key={sub.id} value={sub.id}>{sub.name}</option>
+            {subterritories.map((sub) => (
+              <option key={sub.id} value={sub.id}>
+                {sub.name}
+              </option>
             ))}
           </select>
         </div>
@@ -119,8 +86,9 @@ const LocationSelector = ({ onSelectPdv, selectedChannel: _selectedChannel }) =>
 
       {selectedSubterritory && (
         <div className="mb-6">
-          {/* Búsqueda y selección de PDV dentro del subterritorio */}
-          <label htmlFor="pdv-search" className="block text-gray-700 text-sm font-bold mb-2">Buscar PDV:</label>
+          <label htmlFor="pdv-search" className="block text-gray-700 text-sm font-bold mb-2">
+            Buscar PDV:
+          </label>
           <input
             type="text"
             id="pdv-search"
@@ -129,16 +97,18 @@ const LocationSelector = ({ onSelectPdv, selectedChannel: _selectedChannel }) =>
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-          <label htmlFor="pdv-select" className="block text-gray-700 text-sm font-bold mb-2">Punto de Venta (PDV):</label>
+          <label htmlFor="pdv-select" className="block text-gray-700 text-sm font-bold mb-2">
+            Punto de Venta (PDV):
+          </label>
           <select
             id="pdv-select"
             className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200"
             onChange={(e) => {
               const value = e.target.value;
               if (!value) return;
-              const regionName = regions.find(r => r.id === selectedRegion)?.name || '';
-              const subName = availableSubterritories.find(s => s.id === selectedSubterritory)?.name || '';
-              const pdvName = availablePdvs.find(p => p.id === value)?.name || '';
+              const regionName = regions.find((r) => r.id === selectedRegion)?.name || '';
+              const subName = subterritories.find((s) => s.id === selectedSubterritory)?.name || '';
+              const pdvName = pdvs.find((p) => p.id === value)?.name || '';
               onSelectPdv({
                 pdvId: value,
                 pdvName,
@@ -150,13 +120,16 @@ const LocationSelector = ({ onSelectPdv, selectedChannel: _selectedChannel }) =>
             }}
           >
             <option value="">Selecciona un PDV</option>
-            {availablePdvs
-              .filter((pdv) =>
-                pdv.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                pdv.id.toLowerCase().includes(searchTerm.toLowerCase())
+            {pdvs
+              .filter(
+                (pdv) =>
+                  pdv.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                  pdv.id.toLowerCase().includes(searchTerm.toLowerCase())
               )
               .map((pdv) => (
-                <option key={pdv.id} value={pdv.id}>{pdv.name}</option>
+                <option key={pdv.id} value={pdv.id}>
+                  {pdv.name}
+                </option>
               ))}
           </select>
         </div>
