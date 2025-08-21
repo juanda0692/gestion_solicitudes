@@ -1,11 +1,15 @@
 <?php
-// CORS
+header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Headers: Content-Type');
 header('Access-Control-Allow-Methods: GET,POST,OPTIONS');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit;
 
-header('Content-Type: application/json');
+set_exception_handler(function($e){
+  http_response_code(500);
+  echo json_encode(['error' => 'server_error', 'message' => $e->getMessage()]);
+  exit;
+});
 
 // Conexión a MySQL (puerto exclusivo 3307)
 $pdo = new PDO(
@@ -28,6 +32,17 @@ function rows($pdo,$sql,$p=[]){ $s=$pdo->prepare($sql); $s->execute($p); return 
 function row($pdo,$sql,$p=[]){ $s=$pdo->prepare($sql); $s->execute($p); return $s->fetch(); }
 
 // ---------- ENDPOINTS ----------
+
+// Healthcheck
+if ($path === '/health' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+  $db = true;
+  try {
+    $pdo->query('SELECT 1');
+  } catch (Exception $e) {
+    $db = false;
+  }
+  json(['ok' => true, 'db' => $db]);
+}
 
 // Regiones
 if ($path === '/regions' && $_SERVER['REQUEST_METHOD']==='GET') {
@@ -70,38 +85,11 @@ if ($path === '/campaigns' && $_SERVER['REQUEST_METHOD']==='GET') {
 }
 
 // Crear solicitud (encabezado + items)
-if ($path === '/requests' && $_SERVER['REQUEST_METHOD']==='POST') {
-  $b = json_decode(file_get_contents('php://input'), true) ?: [];
-  // Validación mínima
-  if (empty($b['regionId']) || empty($b['subterritoryId']) || empty($b['pdvId']) || empty($b['items'])) {
-    http_response_code(400); json(['error'=>'Missing required fields']);
-  }
-
-  $pdo->beginTransaction();
-  $st = $pdo->prepare("INSERT INTO solicitudes
-      (region_id, subterritorio_id, pdv_id, campaña_id, prioridad, zonas, observaciones, creado_por)
-      VALUES (?,?,?,?,?,?,?,?)");
-  $st->execute([
-    $b['regionId'], $b['subterritoryId'], $b['pdvId'], $b['campaignId'] ?? null,
-    $b['priority'] ?? null, json_encode($b['zones'] ?? []), $b['observations'] ?? null,
-    $b['createdBy'] ?? null
-  ]);
-  $sid = $pdo->lastInsertId();
-
-  $sti = $pdo->prepare("INSERT INTO solicitud_items
-      (solicitud_id, material_id, cantidad, medida_etiqueta, medida_custom, observaciones)
-      VALUES (?,?,?,?,?,?)");
-  foreach ($b['items'] as $it) {
-    $sti->execute([
-      $sid, $it['materialId'], $it['quantity'],
-      $it['measureTag'] ?? null, $it['measureCustom'] ?? null, $it['observations'] ?? null
-    ]);
-  }
-  $pdo->commit();
-
-  json(['id' => (int)$sid]);
+if ($path === '/requests' && $_SERVER['REQUEST_METHOD'] === 'POST') {
+  http_response_code(501);
+  json(['error' => 'not_implemented']);
 }
 
 // 404
 http_response_code(404);
-json(['error'=>'Not found']);
+json(['error' => 'not_found', 'path' => $path]);
