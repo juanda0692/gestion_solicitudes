@@ -55,14 +55,43 @@ if ($path === '/regions' && $_SERVER['REQUEST_METHOD']==='GET') {
   json(rows($pdo,"SELECT id, nombre AS name FROM regiones ORDER BY nombre"));
 }
 
-// Subterritorios por región
-if (preg_match('#^/regions/([^/]+)/subterritories$#',$path,$m) && $_SERVER['REQUEST_METHOD']==='GET') {
-  json(rows($pdo,"SELECT id, nombre AS name FROM subterritorios WHERE region_id=? ORDER BY nombre",[$m[1]]));
+// Subterritories (lista completa) — acepta EN/ES
+if ($method === 'GET' && ($path === '/subterritories' || $path === '/subterritorios')) {
+  // Filtro opcional por región: /subterritories?region_id=region-andina
+  $regionId = $_GET['region_id'] ?? null;
+
+  if ($regionId) {
+    $data = rows($pdo,
+      'SELECT id, region_id, nombre AS name
+       FROM subterritorios
+       WHERE region_id = ?
+       ORDER BY nombre', [$regionId]);
+  } else {
+    $data = rows($pdo,
+      'SELECT id, region_id, nombre AS name
+       FROM subterritorios
+       ORDER BY nombre');
+  }
+
+  json($data);
 }
 
-// PDVs por subterritorio
-if (preg_match('#^/subterritories/([^/]+)/pdvs$#',$path,$m) && $_SERVER['REQUEST_METHOD']==='GET') {
-  json(rows($pdo,"SELECT id, nombre AS name FROM pdvs WHERE subterritorio_id=? ORDER BY nombre",[$m[1]]));
+// Subterritorios por región — acepta EN/ES
+if ($method === 'GET' && preg_match('#^/regions/([^/]+)/(subterritories|subterritorios)$#', $path, $m)) {
+  $region = $m[1];
+  json(rows($pdo,
+    "SELECT id, nombre AS name FROM subterritorios WHERE region_id=? ORDER BY nombre",
+    [$region]
+  ));
+}
+
+// PDVs por subterritorio — acepta EN/ES
+if ($method === 'GET' && preg_match('#^/(subterritories|subterritorios)/([^/]+)/pdvs$#', $path, $m)) {
+  $subId = $m[2];
+  json(rows($pdo,
+    "SELECT id, nombre AS name FROM pdvs WHERE subterritorio_id=? ORDER BY nombre",
+    [$subId]
+  ));
 }
 
 // Canales
