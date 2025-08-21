@@ -10,7 +10,7 @@ header('Content-Type: application/json');
 // AJUSTAR CREDENCIALES AQUÍ
 $pdo = new PDO(
   'mysql:host=127.0.0.1;dbname=base_dest;charset=utf8mb4',
-  'root', 'TU_PASSWORD',
+  'root', 'Bermudez2020*',
   [ PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC ]
 );
 

@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [Cambios]
 - Añadida opción para exportar solo Excel o también JSON desde `performExport`.
 - Nueva utilidad `exportToJson` y documentación ampliada en README.
 
