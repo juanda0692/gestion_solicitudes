@@ -7,11 +7,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit;
 
 header('Content-Type: application/json');
 
-// AJUSTAR CREDENCIALES AQUÍ
+// Conexión a MySQL (puerto exclusivo 3307)
 $pdo = new PDO(
-  'mysql:host=127.0.0.1;dbname=base_dest;charset=utf8mb4',
-  'root', 'Bermudez2020*',
-  [ PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE=>PDO::FETCH_ASSOC ]
+  'mysql:host=127.0.0.1;port=3307;dbname=base_dest;charset=utf8mb4',
+  'root',
+  'Bermudez2020*',
+  [
+    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+  ]
+
 );
 
 // Normaliza path y base /api
