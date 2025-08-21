@@ -26,8 +26,14 @@ $pdo = new PDO(
 // Normaliza path y base /api
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $path = preg_replace('#^/api#','',$path);
+$method = $_SERVER['REQUEST_METHOD'];
 
-function json($x){ echo json_encode($x, JSON_UNESCAPED_UNICODE); exit; }
+function json_out($x, $status = 200) {
+  http_response_code($status);
+  echo json_encode($x, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+  exit;
+}
+function json($x){ json_out($x); }
 function rows($pdo,$sql,$p=[]){ $s=$pdo->prepare($sql); $s->execute($p); return $s->fetchAll(); }
 function row($pdo,$sql,$p=[]){ $s=$pdo->prepare($sql); $s->execute($p); return $s->fetch(); }
 
@@ -85,9 +91,105 @@ if ($path === '/campaigns' && $_SERVER['REQUEST_METHOD']==='GET') {
 }
 
 // Crear solicitud (encabezado + items)
-if ($path === '/requests' && $_SERVER['REQUEST_METHOD'] === 'POST') {
-  http_response_code(501);
-  json(['error' => 'not_implemented']);
+if ($method === 'POST' && $path === '/requests') {
+  $payload = json_decode(file_get_contents('php://input'), true);
+
+  // Validación mínima
+  if (!is_array($payload)) {
+    json_out(['error'=>'bad_request','message'=>'JSON inválido'], 400);
+  }
+  if (!isset($payload['pdv_id']) || empty($payload['items']) || !is_array($payload['items'])) {
+    json_out(['error'=>'bad_request','message'=>'Faltan campos: pdv_id o items'], 400);
+  }
+
+  // Campos
+  $regionId       = $payload['region_id']        ?? null;  // VARCHAR (coincide con dump)
+  $subterritId    = $payload['subterritorio_id'] ?? null;  // VARCHAR
+  $pdvId          = $payload['pdv_id'];                   // VARCHAR(128)
+  $campañaId      = $payload['campaña_id']       ?? null;  // VARCHAR
+  $prioridad      = $payload['prioridad']        ?? null;
+  $zonas          = $payload['zonas']            ?? [];    // array -> JSON
+  $observaciones  = $payload['observaciones']    ?? null;
+  $creadoPor      = $payload['creado_por']       ?? null;
+
+  $pdo->beginTransaction();
+  try {
+    // Cabecera
+    $sql1 = 'INSERT INTO solicitudes
+      (region_id, subterritorio_id, pdv_id, campaña_id, prioridad, zonas, observaciones, creado_por)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+    $st1 = $pdo->prepare($sql1);
+    $st1->execute([
+      $regionId,
+      $subterritId,
+      $pdvId,
+      $campañaId,
+      $prioridad,
+      json_encode($zonas, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES),
+      $observaciones,
+      $creadoPor
+    ]);
+    $solicitudId = (int) $pdo->lastInsertId();
+
+    // Items
+    $sql2 = 'INSERT INTO solicitud_items
+      (solicitud_id, material_id, cantidad, medida_etiqueta, medida_custom, observaciones)
+      VALUES (?, ?, ?, ?, ?, ?)';
+    $st2 = $pdo->prepare($sql2);
+
+    foreach ($payload['items'] as $it) {
+      if (!isset($it['material_id'])) {
+        throw new Exception('Cada item requiere material_id');
+      }
+      $cantidad       = (int)($it['cantidad'] ?? 0);
+      $medidaEtiqueta = $it['medida_etiqueta'] ?? null;
+      $medidaCustom   = $it['medida_custom']   ?? null;
+      $obsItem        = $it['observaciones']   ?? null;
+
+      $st2->execute([
+        $solicitudId,
+        $it['material_id'],
+        $cantidad,
+        $medidaEtiqueta,
+        $medidaCustom,
+        $obsItem
+      ]);
+    }
+
+    $pdo->commit();
+    json_out(['id' => $solicitudId], 201);
+
+  } catch (Throwable $e) {
+    $pdo->rollBack();
+    throw $e; // handler global devolverá 500 JSON
+  }
+}
+
+// Obtener solicitud para validación
+if ($method === 'GET' && preg_match('#^/requests/(\d+)$#', $path, $m)) {
+  $reqId = (int)$m[1];
+
+  $cab = row($pdo, 'SELECT id, region_id, subterritorio_id, pdv_id, campaña_id, prioridad, zonas, observaciones, creado_por, creado_en
+                    FROM solicitudes WHERE id = ?', [$reqId]);
+  if (!$cab) {
+    json_out(['error'=>'not_found','path'=>$path], 404);
+  }
+  $items = rows($pdo, 'SELECT id, material_id, cantidad, medida_etiqueta, medida_custom, observaciones, creado_en
+                       FROM solicitud_items WHERE solicitud_id = ? ORDER BY id', [$reqId]);
+
+  // Decodifica JSON 'zonas'
+  if (isset($cab['zonas']) && is_string($cab['zonas'])) {
+    $decoded = json_decode($cab['zonas'], true);
+    if (json_last_error() === JSON_ERROR_NONE) {
+      $cab['zonas'] = $decoded;
+    }
+  }
+
+  json_out([
+    'id'      => (int)$cab['id'],
+    'header'  => $cab,
+    'items'   => $items
+  ], 200);
 }
 
 // 404
