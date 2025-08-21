@@ -9,7 +9,7 @@ Aplicación React que simula la gestión de solicitudes de material POP y actual
 - Ejecutar pruebas: `npm test`
 - Generar build de producción: `npm run build`
 - Backend PHP disponible en `backend/public/index.php`
-  - Servidor PHP: `php -S localhost:8000`
+   - Servidor PHP: `php -S localhost:8000 backend/router.php`
   - MySQL: `127.0.0.1:3307` (base `base_dest`, usuario `root`, contraseña `Bermudez2020*`)
 
 ## Estructura
