@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getRegions, getSubterritories, getPdvsBySub } from '../services/api';
+import { getRegions, getSubterritories, getPdvs } from '../services/api';
 
 /**
  * Componente encargado de seleccionar la ubicación de un PDV usando datos del API.
@@ -37,7 +37,7 @@ const LocationSelector = ({ onSelectPdv }) => {
       setPdvs([]);
       return;
     }
-    getPdvsBySub(selectedSubterritory).then(setPdvs).catch(console.error);
+    getPdvs(selectedSubterritory).then(setPdvs).catch(console.error);
   }, [selectedSubterritory]);
 
   return (

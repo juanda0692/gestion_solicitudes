@@ -7,6 +7,7 @@ import "./styles.css";
 
 import App from "./App";
 import RequestsHistory from "./pages/RequestsHistory";
+import RequestDetail from "./pages/RequestDetail";
 import { ToastProvider } from "./components/ui/ToastProvider";
 
 const root = createRoot(document.getElementById("root"));
@@ -17,6 +18,7 @@ root.render(
         <Routes>
           <Route path="/" element={<App />} />
           <Route path="/requests" element={<RequestsHistory />} />
+          <Route path="/requests/:id" element={<RequestDetail />} />
         </Routes>
       </BrowserRouter>
     </ToastProvider>

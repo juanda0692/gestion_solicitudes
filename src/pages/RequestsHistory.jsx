@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { listRequests, getRegions, getSubterritories, getPdvsBySub, getCampaigns } from '../services/requests';
+import { listRequests, getRegions, getSubterritories, getPdvs, getCampaigns } from '../services/api';
 
 export default function RequestsHistory() {
   const [regions, setRegions] = useState([]);
@@ -46,7 +46,7 @@ export default function RequestsHistory() {
       setPdvs([]);
       setFilters(f => ({ ...f, pdv_id: '' }));
       if (!filters.subterritorio_id) return;
-      try { setPdvs(await getPdvsBySub(filters.subterritorio_id)); } catch (e) { console.error(e); }
+      try { setPdvs(await getPdvs(filters.subterritorio_id)); } catch (e) { console.error(e); }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters.subterritorio_id]);
