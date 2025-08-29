@@ -5,30 +5,46 @@ header('Access-Control-Allow-Headers: Content-Type');
 header('Access-Control-Allow-Methods: GET,POST,OPTIONS');
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') exit;
 
+$cfg = require __DIR__ . '/../config.php';
+
+function log_error(Throwable $e){
+    $dir = __DIR__ . '/../storage/logs';
+    if (!is_dir($dir)) mkdir($dir,0777,true);
+    $msg = '['.date('c').'] '.$e->getMessage().' in '.$e->getFile().':'.$e->getLine()."\n".$e->getTraceAsString()."\n";
+    file_put_contents($dir.'/app.log',$msg,FILE_APPEND);
+}
+
 set_exception_handler(function($e){
-  http_response_code(500);
-  echo json_encode(['error' => 'server_error', 'message' => $e->getMessage()]);
-  exit;
+    log_error($e);
+    http_response_code(500);
+    echo json_encode(['error'=>'server_error','message'=>$e->getMessage()]);
+    exit;
 });
 
-// Conexión a MySQL (puerto exclusivo 3307)
 $pdo = new PDO(
-  'mysql:host=127.0.0.1;port=3307;dbname=base_dest;charset=utf8mb4',
-  'root',
-  'Bermudez2020*',
-  [
-    PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-  ]
-
+    'mysql:host='.$cfg['db_host'].';port='.$cfg['db_port'].';dbname='.$cfg['db_name'].';charset=utf8mb4',
+    $cfg['db_user'],
+    $cfg['db_pass'],
+    [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+    ]
 );
 
-// Normaliza path y base /api
+$MAX_PAYLOAD = 1024 * 1024; // 1MB
+if (in_array($_SERVER['REQUEST_METHOD'], ['POST','PUT','PATCH'])) {
+    $len = $_SERVER['CONTENT_LENGTH'] ?? 0;
+    if ($len > $MAX_PAYLOAD) {
+        http_response_code(413);
+        echo json_encode(['error'=>'payload_too_large','message'=>'Payload exceeds 1MB']);
+        exit;
+    }
+}
+
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $path = preg_replace('#^/api#','',$path);
 $method = $_SERVER['REQUEST_METHOD'];
 
-// Aliases bilingües (ES/EN) para comodidad de consumo
 $aliases = [
   '/regiones'    => '/regions',
   '/canales'     => '/channels',
@@ -47,11 +63,12 @@ function json_out($x, $status = 200) {
 function json($x){ json_out($x); }
 function rows($pdo,$sql,$p=[]){ $s=$pdo->prepare($sql); $s->execute($p); return $s->fetchAll(); }
 function row($pdo,$sql,$p=[]){ $s=$pdo->prepare($sql); $s->execute($p); return $s->fetch(); }
+function valid_id($x,$max){ return is_string($x) && strlen($x) <= $max; }
 
 // ---------- ENDPOINTS ----------
 
 // Healthcheck
-if ($path === '/health' && $_SERVER['REQUEST_METHOD'] === 'GET') {
+if ($path === '/health' && $method === 'GET') {
   $db = true;
   try {
     $pdo->query('SELECT 1');
@@ -62,28 +79,20 @@ if ($path === '/health' && $_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 // Regiones
-if ($path === '/regions' && $_SERVER['REQUEST_METHOD']==='GET') {
+if ($path === '/regions' && $method==='GET') {
   json(rows($pdo,"SELECT id, nombre AS name FROM regiones ORDER BY nombre"));
 }
 
 // Subterritories (lista completa) — acepta EN/ES
 if ($method === 'GET' && ($path === '/subterritories' || $path === '/subterritorios')) {
-  // Filtro opcional por región: /subterritories?region_id=region-andina
   $regionId = $_GET['region_id'] ?? null;
-
   if ($regionId) {
     $data = rows($pdo,
-      'SELECT id, region_id, nombre AS name
-       FROM subterritorios
-       WHERE region_id = ?
-       ORDER BY nombre', [$regionId]);
+      'SELECT id, region_id, nombre AS name FROM subterritorios WHERE region_id = ? ORDER BY nombre', [$regionId]);
   } else {
     $data = rows($pdo,
-      'SELECT id, region_id, nombre AS name
-       FROM subterritorios
-       ORDER BY nombre');
+      'SELECT id, region_id, nombre AS name FROM subterritorios ORDER BY nombre');
   }
-
   json($data);
 }
 
@@ -121,12 +130,12 @@ if ($path === '/pdvs' && $method === 'GET') {
 }
 
 // Canales
-if ($path === '/channels' && $_SERVER['REQUEST_METHOD']==='GET') {
+if ($path === '/channels' && $method==='GET') {
   json(rows($pdo,"SELECT id, nombre AS name FROM canales ORDER BY nombre"));
 }
 
 // Materiales por canal (usa materiales_por_canal)
-if (preg_match('#^/channels/([^/]+)/materials$#',$path,$m) && $_SERVER['REQUEST_METHOD']==='GET') {
+if (preg_match('#^/channels/([^/]+)/materials$#',$path,$m) && $method==='GET') {
   $sql = "SELECT m.id, m.nombre AS name, COALESCE(mpc.stock, m.stock) AS stock
           FROM materiales m
           JOIN materiales_por_canal mpc ON mpc.material_id=m.id
@@ -136,20 +145,20 @@ if (preg_match('#^/channels/([^/]+)/materials$#',$path,$m) && $_SERVER['REQUEST_
 }
 
 // Catálogo materiales (opcional)
-if ($path === '/materials' && $_SERVER['REQUEST_METHOD']==='GET') {
+if ($path === '/materials' && $method==='GET') {
   json(rows($pdo,"SELECT id, nombre AS name, descripcion AS description, stock FROM materiales ORDER BY nombre"));
 }
 
 // Campañas (y si se quiere, ampliar con relaciones)
-if ($path === '/campaigns' && $_SERVER['REQUEST_METHOD']==='GET') {
+if ($path === '/campaigns' && $method==='GET') {
   json(rows($pdo,"SELECT id, nombre AS name, prioridad AS priority FROM campañas ORDER BY nombre"));
 }
 
 // Crear solicitud (encabezado + items)
 if ($method === 'POST' && $path === '/requests') {
-  $payload = json_decode(file_get_contents('php://input'), true);
+  $payloadRaw = file_get_contents('php://input');
+  $payload = json_decode($payloadRaw, true);
 
-  // Validación mínima
   if (!is_array($payload)) {
     json_out(['error'=>'bad_request','message'=>'JSON inválido'], 400);
   }
@@ -157,17 +166,20 @@ if ($method === 'POST' && $path === '/requests') {
     json_out(['error'=>'bad_request','message'=>'Faltan campos: pdv_id o items'], 400);
   }
 
-  // Campos
-  $regionId       = $payload['region_id']        ?? null;  // VARCHAR
-  $subterritId    = $payload['subterritorio_id'] ?? null;  // VARCHAR
-  $pdvId          = $payload['pdv_id'];                   // VARCHAR(128)
-  $campañaId      = $payload['campaña_id']       ?? null;  // VARCHAR
+  $regionId       = $payload['region_id']        ?? null;
+  $subterritId    = $payload['subterritorio_id'] ?? null;
+  $pdvId          = $payload['pdv_id'];
+  $campañaId      = $payload['campaña_id']       ?? null;
   $prioridad      = $payload['prioridad']        ?? null;
-  $zonas          = $payload['zonas']            ?? [];    // array -> JSON
+  $zonas          = $payload['zonas']            ?? [];
   $observaciones  = $payload['observaciones']    ?? null;
   $creadoPor      = $payload['creado_por']       ?? null;
 
-  // (Opcional) Validación estricta de FKs — dejar desactivada de momento
+  if (!valid_id($pdvId,128)) json_out(['error'=>'validation_error','message'=>'pdv_id inválido'],400);
+  if ($regionId && !valid_id($regionId,32)) json_out(['error'=>'validation_error','message'=>'region_id inválido'],400);
+  if ($subterritId && !valid_id($subterritId,32)) json_out(['error'=>'validation_error','message'=>'subterritorio_id inválido'],400);
+  if ($campañaId && !valid_id($campañaId,32)) json_out(['error'=>'validation_error','message'=>'campaña_id inválido'],400);
+
   $STRICT_VALIDATE = false;
   if ($STRICT_VALIDATE) {
     $check = function($table,$id) use($pdo){
@@ -175,22 +187,20 @@ if ($method === 'POST' && $path === '/requests') {
       $r = row($pdo, "SELECT 1 FROM `$table` WHERE id = ? LIMIT 1", [$id]);
       return (bool)$r;
     };
-    if ($regionId && !$check('regiones',$regionId))        json_out(['error'=>'bad_request','message'=>'region_id inexistente'], 400);
-    if ($subterritId && !$check('subterritorios',$subterritId)) json_out(['error'=>'bad_request','message'=>'subterritorio_id inexistente'], 400);
-    if (!$check('pdvs',$pdvId))                             json_out(['error'=>'bad_request','message'=>'pdv_id inexistente'], 400);
-    if ($campañaId && !$check('campañas',$campañaId))       json_out(['error'=>'bad_request','message'=>'campaña_id inexistente'], 400);
+    if ($regionId && !$check('regiones',$regionId))        json_out(['error'=>'validation_error','message'=>'region_id inexistente'],400);
+    if ($subterritId && !$check('subterritorios',$subterritId)) json_out(['error'=>'validation_error','message'=>'subterritorio_id inexistente'],400);
+    if (!$check('pdvs',$pdvId))                             json_out(['error'=>'validation_error','message'=>'pdv_id inexistente'],400);
+    if ($campañaId && !$check('campañas',$campañaId))       json_out(['error'=>'validation_error','message'=>'campaña_id inexistente'],400);
     foreach ($payload['items'] as $it) {
-      if (!isset($it['material_id'])) json_out(['error'=>'bad_request','message'=>'Cada item requiere material_id'], 400);
-      if (!$check('materiales',$it['material_id'])) json_out(['error'=>'bad_request','message'=>'material_id inexistente: '.$it['material_id']], 400);
+      if (!isset($it['material_id'])) json_out(['error'=>'validation_error','message'=>'Cada item requiere material_id'],400);
+      if (!$check('materiales',$it['material_id'])) json_out(['error'=>'validation_error','message'=>'material_id inexistente: '.$it['material_id']],400);
     }
   }
 
-  // (Opcional) Descuento de stock detrás de flag
-  $DECREMENT_STOCK = false; // poner true cuando se quiera restar stock global en `materiales`
+  $DECREMENT_STOCK = false;
 
   $pdo->beginTransaction();
   try {
-    // Cabecera
     $sql1 = 'INSERT INTO solicitudes
       (region_id, subterritorio_id, pdv_id, campaña_id, prioridad, zonas, observaciones, creado_por)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
@@ -207,7 +217,6 @@ if ($method === 'POST' && $path === '/requests') {
     ]);
     $solicitudId = (int)$pdo->lastInsertId();
 
-    // Items
     $sql2 = 'INSERT INTO solicitud_items
       (solicitud_id, material_id, cantidad, medida_etiqueta, medida_custom, observaciones)
       VALUES (?, ?, ?, ?, ?, ?)';
@@ -215,12 +224,10 @@ if ($method === 'POST' && $path === '/requests') {
 
     foreach ($payload['items'] as $it) {
       if (!isset($it['material_id'])) throw new Exception('Cada item requiere material_id');
-
       $cantidad       = (int)($it['cantidad'] ?? 0);
       $medidaEtiqueta = $it['medida_etiqueta'] ?? null;
       $medidaCustom   = $it['medida_custom']   ?? null;
       $obsItem        = $it['observaciones']   ?? null;
-
       $st2->execute([
         $solicitudId,
         $it['material_id'],
@@ -229,8 +236,6 @@ if ($method === 'POST' && $path === '/requests') {
         $medidaCustom,
         $obsItem
       ]);
-
-      // (Opcional) Descontar stock global en `materiales`
       if ($DECREMENT_STOCK && $cantidad > 0) {
         $upd = $pdo->prepare('UPDATE materiales SET stock = GREATEST(0, stock - ?) WHERE id = ?');
         $upd->execute([$cantidad, $it['material_id']]);
@@ -242,18 +247,17 @@ if ($method === 'POST' && $path === '/requests') {
 
   } catch (Throwable $e) {
     $pdo->rollBack();
-    throw $e; // handler global devolverá 500 JSON
+    throw $e;
   }
 }
 
-// GET /requests?limit=20&offset=0&region_id=...&subterritorio_id=...&pdv_id=...&campaña_id=...
+// GET /requests
 if ($method === 'GET' && $path === '/requests') {
   $limit  = max(1, min(100, (int)($_GET['limit']  ?? 20)));
   $offset = max(0, (int)($_GET['offset'] ?? 0));
 
   $conds = [];
   $args  = [];
-
   foreach (['region_id','subterritorio_id','pdv_id','campaña_id'] as $f) {
     if (!empty($_GET[$f])) {
       $conds[] = "s.$f = ?";
@@ -274,8 +278,6 @@ if ($method === 'GET' && $path === '/requests') {
   ";
 
   $data = rows($pdo, $sql, $args);
-
-  // total (para paginación)
   $total = row($pdo, "SELECT COUNT(*) AS c FROM solicitudes s $where", $args)['c'] ?? 0;
 
   json_out([
@@ -287,13 +289,10 @@ if ($method === 'GET' && $path === '/requests') {
 // Obtener solicitud (cabecera + items)
 if ($method === 'GET' && preg_match('#^/requests/(\d+)$#', $path, $m)) {
   $reqId = (int)$m[1];
-
-  $cab = row($pdo, 'SELECT id, region_id, subterritorio_id, pdv_id, campaña_id, prioridad, zonas, observaciones, creado_por, creado_en
-                    FROM solicitudes WHERE id = ?', [$reqId]);
+  $cab = row($pdo, 'SELECT id, region_id, subterritorio_id, pdv_id, campaña_id, prioridad, zonas, observaciones, creado_por, creado_en FROM solicitudes WHERE id = ?', [$reqId]);
   if (!$cab) json_out(['error'=>'not_found','path'=>$path], 404);
 
-  $items = rows($pdo, 'SELECT id, material_id, cantidad, medida_etiqueta, medida_custom, observaciones, creado_en
-                       FROM solicitud_items WHERE solicitud_id = ? ORDER BY id', [$reqId]);
+  $items = rows($pdo, 'SELECT id, material_id, cantidad, medida_etiqueta, medida_custom, observaciones, creado_en FROM solicitud_items WHERE solicitud_id = ? ORDER BY id', [$reqId]);
 
   if (isset($cab['zonas']) && is_string($cab['zonas'])) {
     $z = json_decode($cab['zonas'], true);
@@ -303,6 +302,5 @@ if ($method === 'GET' && preg_match('#^/requests/(\d+)$#', $path, $m)) {
   json_out(['id'=>(int)$cab['id'], 'header'=>$cab, 'items'=>$items], 200);
 }
 
-// 404
 http_response_code(404);
 json(['error' => 'not_found', 'path' => $path]);

@@ -1,5 +1,16 @@
 # Changelog
 
+## 2025-08-29
+- Configuración .env y `backend/config.php` con fallback seguro.
+- Limitación de payload y logging básico.
+- Docker compose y Dockerfile opcional para dev.
+- Makefile y scripts npm.
+- Migraciones, seeds y documentación SQL.
+- OpenAPI 3.0, diccionario de datos y diagrama ER.
+- Postman final + instrucciones Newman.
+- Ajustes frontend (RequestDetail, env configurable).
+- README actualizado y entradas de errores.
+
 ## 2025-08-27
 - Inicialización del backend.
 - Creación de tablas y catálogos base.

@@ -1,0 +1,67 @@
+Table regiones {
+  id varchar [pk]
+  nombre varchar
+}
+
+Table subterritorios {
+  id varchar [pk]
+  region_id varchar [ref: > regiones.id]
+  nombre varchar
+}
+
+Table pdvs {
+  id varchar [pk]
+  subterritorio_id varchar [ref: > subterritorios.id]
+  nombre varchar
+}
+
+Table canales {
+  id varchar [pk]
+  nombre varchar
+}
+
+Table materiales {
+  id varchar [pk]
+  nombre varchar
+  descripcion text
+  stock int
+}
+
+Table campañas {
+  id varchar [pk]
+  nombre varchar
+  prioridad int
+}
+
+Table materiales_por_canal {
+  material_id varchar [ref: > materiales.id]
+  canal_id varchar [ref: > canales.id]
+  stock int
+  indexes {
+    (material_id, canal_id) [pk]
+  }
+}
+
+Table solicitudes {
+  id int [pk, increment]
+  region_id varchar [ref: > regiones.id]
+  subterritorio_id varchar [ref: > subterritorios.id]
+  pdv_id varchar [ref: > pdvs.id]
+  campaña_id varchar [ref: > campañas.id]
+  prioridad int
+  zonas text
+  observaciones text
+  creado_por varchar
+  creado_en timestamp
+}
+
+Table solicitud_items {
+  id int [pk, increment]
+  solicitud_id int [ref: > solicitudes.id]
+  material_id varchar [ref: > materiales.id]
+  cantidad int
+  medida_etiqueta varchar
+  medida_custom varchar
+  observaciones text
+  creado_en timestamp
+}
