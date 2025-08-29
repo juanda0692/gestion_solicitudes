@@ -1,0 +1,126 @@
+openapi: 3.0.3
+info:
+  title: Base Destinatarios API
+  version: '1.0'
+servers:
+  - url: http://localhost:8000/api
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: ok
+  /regions:
+    get:
+      summary: List regions
+      responses:
+        '200': { description: ok }
+  /subterritories:
+    get:
+      summary: List subterritories
+      parameters:
+        - in: query
+          name: region_id
+          schema: { type: string }
+      responses:
+        '200': { description: ok }
+  /pdvs:
+    get:
+      summary: List PDVs
+      parameters:
+        - in: query
+          name: subterritorio_id
+          schema: { type: string }
+      responses:
+        '200': { description: ok }
+  /channels:
+    get:
+      summary: List channels
+      responses:
+        '200': { description: ok }
+  /channels/{id}/materials:
+    get:
+      summary: Materials by channel
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: ok }
+  /materials:
+    get:
+      summary: List materials
+      responses:
+        '200': { description: ok }
+  /campaigns:
+    get:
+      summary: List campaigns
+      responses:
+        '200': { description: ok }
+  /requests:
+    get:
+      summary: List requests
+      parameters:
+        - in: query
+          name: limit
+          schema: { type: integer, minimum: 1, maximum: 100 }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0 }
+        - in: query
+          name: region_id
+          schema: { type: string }
+        - in: query
+          name: subterritorio_id
+          schema: { type: string }
+        - in: query
+          name: pdv_id
+          schema: { type: string }
+        - in: query
+          name: campaña_id
+          schema: { type: string }
+      responses:
+        '200': { description: ok }
+    post:
+      summary: Create request
+      requestBody:
+        required: true
+        content:
+          application/json:
+            example:
+              pdv_id: pdv-001
+              items:
+                - material_id: mat-afiche
+                  cantidad: 5
+      responses:
+        '201': { description: created }
+  /requests/{id}:
+    get:
+      summary: Get request
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: ok
+          content:
+            application/json:
+              example:
+                id: 1
+                header:
+                  pdv_id: pdv-001
+                items:
+                  - material_id: mat-afiche
+                    cantidad: 5
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+security:
+  - bearerAuth: []

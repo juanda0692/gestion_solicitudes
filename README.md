@@ -1,82 +1,90 @@
 # Base de Destinatarios – Gestión de Material POP
 
-Aplicativo de referencia para gestionar solicitudes de material POP y el catálogo de puntos de venta de la compañía. Incluye un backend PHP + MySQL y un frontend React listos para ser extendidos por el equipo de desarrollo.
+Aplicativo de referencia para Trade Marketing. Backend PHP + MySQL y frontend React.
 
-## Estado del proyecto
-- **Backend**: API REST con PHP 8 y MySQL. Expuestos los endpoints principales (`/regions`, `/subterritories`, `/pdvs`, `/channels`, `/channels/{id}/materials`, `/materials`, `/campaigns`, `/requests`, `/requests/{id}`, `/health`).
-- **Frontend**: vista de historial de solicitudes y componente para detalle individual. Servicios HTTP centralizados.
-- **Base de datos**: se provee `base_destinatarios_final.sql` con catálogos y un par de solicitudes de ejemplo.
+## Arquitectura
+- PHP API (backend/public/index.php)
+- React frontend (`src/`)
+- MySQL 8 (esquema `base_dest`)
 
-Pendiente: autenticación, exportaciones avanzadas, roles y mejoras de validación.
-
-## Dependencias
+## Requisitos
 - PHP 8+
-- MySQL/MariaDB (configurado en `127.0.0.1:3307`)
-- Node.js 18+ / npm
-- Postman (opcional, colección en `docs/BaseDestinatarios.postman_collection.json`)
+- MySQL/MariaDB
+- Node.js 18+
+- (Opcional) Docker & docker compose
 
-## Puesta en marcha
-### 1. Importar base de datos
-```bash
-mariadb -uroot -pBermudez2020* --host 127.0.0.1 --port 3307 < base_destinatarios_final.sql
-```
-Contenido principal:
-- **regiones**, **subterritorios**, **pdvs**
-- **canales**, **materiales**, **campañas**, **materiales_por_canal**
-- **solicitudes**, **solicitud_items** (con ejemplos)
+## Setup
+### 1. Variables de entorno
+Copiar `.env.example` → `.env` para el backend y `web/.env.example` → `web/.env` para el frontend.
 
-### 2. Levantar backend
+### 2. Base de datos
+- Dump completo:
+  ```bash
+  mariadb -uroot -pBermudez2020* --host 127.0.0.1 --port 3307 < docs/sql/base_destinatarios_import_final.sql
+  ```
+- Migraciones + seeds:
+  ```bash
+  mariadb -uroot -pBermudez2020* --host 127.0.0.1 --port 3307 base_dest < docs/sql/migrations/0001_init.sql
+  mariadb -uroot -pBermudez2020* --host 127.0.0.1 --port 3307 base_dest < docs/sql/seeds/0001_bootstrap.sql
+  ```
+
+### 3. Backend
 ```bash
 php -S localhost:8000 backend/router.php
 ```
-Banderas disponibles dentro de `backend/public/index.php`:
-- `$STRICT_VALIDATE`: valida FK al crear solicitudes.
-- `$DECREMENT_STOCK`: descuenta del stock global de `materiales`.
+Flags en `backend/public/index.php`:
+- `$STRICT_VALIDATE` – valida FKs (lanza `validation_error`).
+- `$DECREMENT_STOCK` – descuenta stock global.
 
-### 3. Ejecutar frontend
+### 4. Frontend
 ```bash
 npm install
-npm run dev      # ó npm start
+npm start
 ```
-Abrir `http://localhost:3000` y navegar a **/requests** para ver el historial.
+La API se toma de `import.meta.env.VITE_API` o `process.env.REACT_APP_API` (fallback `http://localhost:8000/api`).
 
-## Endpoints principales
-| Método | Ruta | Descripción |
-|--------|------|-------------|
-| GET | `/health` | Estado del servicio y conexión a BD |
-| GET | `/regions` (`/regiones`) | Catálogo de regiones |
-| GET | `/subterritories` (`/subterritorios`) | Catálogo de subterritorios, filtro `region_id` opcional |
-| GET | `/pdvs` | PDVs, filtro `subterritorio_id` opcional |
-| GET | `/channels` (`/canales`) | Catálogo de canales |
-| GET | `/channels/{id}/materials` | Materiales disponibles para un canal |
-| GET | `/materials` (`/materiales`) | Catálogo general de materiales |
-| GET | `/campaigns` (`/campanas`) | Catálogo de campañas |
-| POST | `/requests` (`/solicitudes`) | Crear solicitud con items |
-| GET | `/requests` | Listar solicitudes con `limit`/`offset` |
-| GET | `/requests/{id}` | Obtener solicitud y sus items |
-
-Ejemplo de creación de solicitud:
+### 5. Postman
+Colección y environment finales en `docs/postman/`.
 ```bash
-curl -X POST http://localhost:8000/api/requests \
-  -H 'Content-Type: application/json' \
-  -d '{
-        "pdv_id":"pdv-001",
-        "items":[{"material_id":"mat-afiche","cantidad":5}]
-      }'
+npx newman run docs/postman/BaseDestinatarios.final.postman_collection.json -e docs/postman/BaseDestinatarios.local.final.postman_environment.json
 ```
 
-## Colección Postman
-Importar `docs/BaseDestinatarios.postman_collection.json` y configurar la variable `base_url` (por defecto `http://localhost:8000/api`). La colección incluye ejemplos para todos los endpoints.
+### 6. Docker (opcional)
+```bash
+docker compose up -d
+```
+Levanta MySQL (3307) y PHP (8000).
 
-## Estructura relevante
-- **backend/router.php** – enruta `/api` hacia `backend/public/index.php`.
-- **backend/public/index.php** – implementación completa de la API.
-- **src/services/api.js** – funciones de consumo HTTP.
-- **src/pages/RequestsHistory.jsx** – listado paginado de solicitudes.
-- **src/pages/RequestDetail.jsx** – visualización de una solicitud.
+## API
+Límite de payload: 1MB (HTTP 413 si se excede).
+Paginación: `limit` (1–100), `offset` (>=0). Filtros: `region_id`, `subterritorio_id`, `pdv_id`, `campaña_id`. Orden: `id DESC`.
+Tiempo en UTC.
 
-## Próximos pasos sugeridos
-- Exportar resultados a Excel desde el front con [SheetJS](https://sheetjs.com/).
-- Incorporar autenticación y manejo de roles.
-- Validaciones de stock y claves foráneas más estrictas.
-- Deploy en servidor real (Apache/Nginx + MySQL remoto).
+| Método | Ruta | Descripción |
+| ------ | ---- | ----------- |
+| GET | `/health` | Estado del servicio |
+| GET | `/regions` | Catálogo de regiones |
+| GET | `/subterritories` | Catálogo de subterritorios |
+| GET | `/pdvs` | Puntos de venta |
+| GET | `/channels` | Canales |
+| GET | `/channels/{id}/materials` | Materiales por canal |
+| GET | `/materials` | Catálogo de materiales |
+| GET | `/campaigns` | Campañas |
+| POST | `/requests` | Crear solicitud |
+| GET | `/requests` | Listar solicitudes |
+| GET | `/requests/{id}` | Obtener solicitud |
+
+## Troubleshooting
+- Página en blanco → revisar logs en `backend/storage/logs/app.log`.
+- CORS → editar `Access-Control-Allow-Origin` en `backend/public/index.php`.
+- Error SQL 1064 → confirmar importación de base y puerto 3307.
+- Para producción: no usar root/puerto público, desactivar debug, realizar backups.
+
+## Próximos pasos
+- Exportación a Excel
+- Autenticación/roles y CORS restringido
+- Logs estructurados y despliegue real
+
+## ER Diagram
+Archivo DBML en `docs/er/base_dest.dbml` (exportar a PNG con dbdiagram).
+
