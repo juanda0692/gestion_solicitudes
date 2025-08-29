@@ -1,0 +1,22 @@
+{
+  "info": {
+    "name": "Base Destinatarios",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Colección de endpoints para el proyecto Base de Destinatarios"
+  },
+  "item": [
+    {"name":"Health","request":{"method":"GET","url":{"raw":"{{base_url}}/health","host":["{{base_url}}"],"path":["health"]}}},
+    {"name":"Regions","request":{"method":"GET","url":{"raw":"{{base_url}}/regions","host":["{{base_url}}"],"path":["regions"]}}},
+    {"name":"Subterritories","request":{"method":"GET","url":{"raw":"{{base_url}}/subterritories","host":["{{base_url}}"],"path":["subterritories"]}}},
+    {"name":"PDVs","request":{"method":"GET","url":{"raw":"{{base_url}}/pdvs","host":["{{base_url}}"],"path":["pdvs"]}}},
+    {"name":"Channels","request":{"method":"GET","url":{"raw":"{{base_url}}/channels","host":["{{base_url}}"],"path":["channels"]}}},
+    {"name":"Materials","request":{"method":"GET","url":{"raw":"{{base_url}}/materials","host":["{{base_url}}"],"path":["materials"]}}},
+    {"name":"Campaigns","request":{"method":"GET","url":{"raw":"{{base_url}}/campaigns","host":["{{base_url}}"],"path":["campaigns"]}}},
+    {"name":"Requests list","request":{"method":"GET","url":{"raw":"{{base_url}}/requests","host":["{{base_url}}"],"path":["requests"]}}},
+    {"name":"Create request","request":{"method":"POST","header":[{"key":"Content-Type","value":"application/json"}],"body":{"mode":"raw","raw":"{\n  \"pdv_id\": \"pdv-001\",\n  \"items\": [{ \"material_id\": \"mat-afiche\", \"cantidad\": 5 }]\n}"},"url":{"raw":"{{base_url}}/requests","host":["{{base_url}}"],"path":["requests"]}}},
+    {"name":"Request detail","request":{"method":"GET","url":{"raw":"{{base_url}}/requests/1","host":["{{base_url}}"],"path":["requests","1"]}}}
+  ],
+  "variable": [
+    {"key":"base_url","value":"http://localhost:8000/api"}
+  ]
+}

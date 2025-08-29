@@ -28,6 +28,17 @@ $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $path = preg_replace('#^/api#','',$path);
 $method = $_SERVER['REQUEST_METHOD'];
 
+// Aliases bilingües (ES/EN) para comodidad de consumo
+$aliases = [
+  '/regiones'    => '/regions',
+  '/canales'     => '/channels',
+  '/materiales'  => '/materials',
+  '/campanas'    => '/campaigns',
+  '/campañas'    => '/campaigns',
+  '/solicitudes' => '/requests',
+];
+if (isset($aliases[$path])) $path = $aliases[$path];
+
 function json_out($x, $status = 200) {
   http_response_code($status);
   echo json_encode($x, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
@@ -92,6 +103,21 @@ if ($method === 'GET' && preg_match('#^/(subterritories|subterritorios)/([^/]+)/
     "SELECT id, nombre AS name FROM pdvs WHERE subterritorio_id=? ORDER BY nombre",
     [$subId]
   ));
+}
+
+// Listado de PDVs con filtro opcional por subterritorio
+if ($path === '/pdvs' && $method === 'GET') {
+  $subId = $_GET['subterritorio_id'] ?? null;
+  if ($subId) {
+    json(rows($pdo,
+      "SELECT id, subterritorio_id, nombre AS name FROM pdvs WHERE subterritorio_id=? ORDER BY nombre",
+      [$subId]
+    ));
+  } else {
+    json(rows($pdo,
+      "SELECT id, subterritorio_id, nombre AS name FROM pdvs ORDER BY nombre"
+    ));
+  }
 }
 
 // Canales
@@ -244,14 +270,10 @@ if ($method === 'GET' && $path === '/requests') {
     FROM solicitudes s
     $where
     ORDER BY s.id DESC
-    LIMIT ? OFFSET ?
+    LIMIT $limit OFFSET $offset
   ";
 
-  $args2 = $args;
-  $args2[] = $limit;
-  $args2[] = $offset;
-
-  $data = rows($pdo, $sql, $args2);
+  $data = rows($pdo, $sql, $args);
 
   // total (para paginación)
   $total = row($pdo, "SELECT COUNT(*) AS c FROM solicitudes s $where", $args)['c'] ?? 0;
