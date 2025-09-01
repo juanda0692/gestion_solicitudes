@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { listRequests, getRegions, getSubterritories, getPdvs, getCampaigns } from '../services/api';
+import { listRequests } from '../services/requests';
+import { getRegions, getSubterritories, getPdvs, getCampaigns } from '../services/api';
 
 export default function RequestsHistory() {
   const [regions, setRegions] = useState([]);
@@ -30,26 +31,35 @@ export default function RequestsHistory() {
   }, []);
 
   // Dependencia: región -> subterritorios
+  const regionId = filters.region_id;
   useEffect(() => {
     (async () => {
-      setSubs([]); setPdvs([]);
+      setSubs([]);
+      setPdvs([]);
       setFilters(f => ({ ...f, subterritorio_id: '', pdv_id: '' }));
-      if (!filters.region_id) return;
-      try { setSubs(await getSubterritories(filters.region_id)); } catch (e) { console.error(e); }
+      if (!regionId) return;
+      try {
+        setSubs(await getSubterritories(regionId));
+      } catch (e) {
+        console.error(e);
+      }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.region_id]);
+  }, [regionId]);
 
   // Dependencia: subterritorio -> pdvs
+  const subId = filters.subterritorio_id;
   useEffect(() => {
     (async () => {
       setPdvs([]);
       setFilters(f => ({ ...f, pdv_id: '' }));
-      if (!filters.subterritorio_id) return;
-      try { setPdvs(await getPdvs(filters.subterritorio_id)); } catch (e) { console.error(e); }
+      if (!subId) return;
+      try {
+        setPdvs(await getPdvs(subId));
+      } catch (e) {
+        console.error(e);
+      }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filters.subterritorio_id]);
+  }, [subId]);
 
   const queryKey = useMemo(
     () => JSON.stringify({ limit: page.limit, offset: page.offset, filters }),
