@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getRequest } from '../services/api';
+import { getRequest } from '../services/requests';
 
 export default function RequestDetail() {
   const { id } = useParams();

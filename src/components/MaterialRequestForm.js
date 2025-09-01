@@ -3,8 +3,8 @@ import {
   getChannels,
   getMaterialsByChannel,
   getCampaigns,
-  createRequest,
 } from '../services/api';
+import { createRequest } from '../services/requests';
 import ContextInfo from './ContextInfo';
 import SingleSelectModal from './SingleSelectModal';
 import PreviousCampaignsModal from './PreviousCampaignsModal';
