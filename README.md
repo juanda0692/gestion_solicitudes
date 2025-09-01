@@ -20,12 +20,12 @@ Copiar `.env.example` → `.env` para el backend y `web/.env.example` → `web/.
 ### 2. Base de datos
 - Dump completo:
   ```bash
-  mariadb -uroot -pBermudez2020* --host 127.0.0.1 --port 3307 < docs/sql/base_destinatarios_import_final.sql
+  mariadb -uroot -[CONTRASEÑA] --host 127.0.0.1 --port 3307 < docs/sql/base_destinatarios_import_final.sql
   ```
 - Migraciones + seeds:
   ```bash
-  mariadb -uroot -pBermudez2020* --host 127.0.0.1 --port 3307 base_dest < docs/sql/migrations/0001_init.sql
-  mariadb -uroot -pBermudez2020* --host 127.0.0.1 --port 3307 base_dest < docs/sql/seeds/0001_bootstrap.sql
+  mariadb -uroot -[CONTRASEÑA] --host 127.0.0.1 --port 3307 base_dest < docs/sql/migrations/0001_init.sql
+  mariadb -uroot -[CONTRASEÑA] --host 127.0.0.1 --port 3307 base_dest < docs/sql/seeds/0001_bootstrap.sql
   ```
 
 ### 3. Backend
