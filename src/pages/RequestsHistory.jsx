@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { listRequests, getRegions, getSubterritories, getPdvs, getCampaigns } from '../services/api';
+import { listRequests } from '../services/requests';
+import { getRegions, getSubterritories, getPdvs, getCampaigns } from '../services/api';
 
 export default function RequestsHistory() {
   const [regions, setRegions] = useState([]);

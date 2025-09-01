@@ -55,6 +55,9 @@ docker compose up -d
 ```
 Levanta MySQL (3307) y PHP (8000).
 
+## Modo demo
+En modo demo, las solicitudes se guardan en `LocalStorage`. Para producción, debe reemplazarse esta lógica con los endpoints reales del backend.
+
 ## API
 Límite de payload: 1MB (HTTP 413 si se excede).
 Paginación: `limit` (1–100), `offset` (>=0). Filtros: `region_id`, `subterritorio_id`, `pdv_id`, `campaña_id`. Orden: `id DESC`.
