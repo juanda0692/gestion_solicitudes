@@ -1,4 +1,4 @@
-Base de Destinatarios – Gestión de Material POP
+Base de Destinatarios – Gestión de Material POP.
 
 Aplicación web de referencia para gestionar solicitudes de material POP a nivel de Región → Subterritorio → Punto de Venta (PDV).
 Su objetivo principal es centralizar y organizar la información de campo de manera visual, estructurada y usable por el área de Trade Marketing, sirviendo como puente entre las solicitudes de materiales físicos y la gestión logística posterior.
