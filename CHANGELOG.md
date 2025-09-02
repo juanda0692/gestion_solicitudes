@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-09-05
+- Eliminado menú de ajustes y componentes asociados.
+- Centralizado acceso a `LocalStorage` mediante utilidades.
+- Documentación principal reescrita y limpieza de archivos huérfanos.
+- Eliminada referencia residual a `DeveloperPanel` que causaba fallas de compilación.
+
 ## 2025-09-02
 - Integración de Utils con almacenamiento de demo.
 - Regiones unificadas: Sur, Andina, Bogota y Costa (migración LocalStorage).

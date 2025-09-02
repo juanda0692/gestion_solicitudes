@@ -29,7 +29,6 @@ import ExportData from './components/ExportData';
 import LoginScreen from './components/LoginScreen';
 import ChannelMenu from './components/ChannelMenu';
 import Sidebar from './components/Sidebar';
-import DeveloperPanel from './components/settings/DeveloperPanel';
 import { getStorageItem, setStorageItem } from './utils/storage';
 import { sanitizeOnBoot } from './utils/cleanupLocalStorage';
 import exportToExcel from './utils/exportToExcel';
@@ -145,10 +144,6 @@ const App = () => {
     setCurrentPage('export-data');
   };
 
-  const handleOpenSettings = () => {
-    setCurrentPage('developer-panel');
-  };
-
   // Navegar directamente al formulario de creación de campaña
   const handleCreateCampaign = () => {
     setCurrentPage('create-campaign');
@@ -260,8 +255,6 @@ const App = () => {
         return 'Gestionar Campañas';
       case 'export-data':
         return 'Exportar Datos';
-      case 'developer-panel':
-        return 'Ajustes';
       case 'previous-requests':
         return 'Solicitudes Anteriores';
       case 'channel-requests':
@@ -309,9 +302,6 @@ const App = () => {
       case 'export-data':
         setCurrentPage('pdv-actions');
         break;
-      case 'developer-panel':
-        setCurrentPage('pdv-actions');
-        break;
       case 'confirm-request':
       case 'confirm-update':
         setCurrentPage('home');
@@ -338,7 +328,6 @@ const App = () => {
             onChannels={() => setCurrentPage('channel-select')}
             onCampaigns={() => setCurrentPage('campaigns-menu')}
             onExport={handleExportData}
-            onSettings={handleOpenSettings}
             onLogout={handleLogout}
             showManagement={selectedTradeType === 'nacional'}
           />
@@ -464,11 +453,6 @@ const App = () => {
         {/* Exportar datos */}
         {isLoggedIn && currentPage === 'export-data' && (
           <ExportData onBack={handleBack} onExport={performExport} />
-        )}
-
-        {/* Panel de ajustes para desarrolladores */}
-        {isLoggedIn && currentPage === 'developer-panel' && (
-          <DeveloperPanel onBack={handleBack} onLoadLocations={handleOpenLocationLoader} />
         )}
 
         {/* Mensaje de confirmación de acciones */}
