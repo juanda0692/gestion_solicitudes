@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { campaigns as defaultCampaigns } from '../mock/campaigns';
-import { getStorageItem } from '../utils/storage';
+import { getStorageItem, setStorageItem } from '../utils/storage';
 import { channels as defaultChannels } from '../mock/channels';
 import { materials as defaultMaterials } from '../mock/materials';
 import { channelMaterials as defaultChannelMaterials } from '../mock/channelMaterials';
@@ -42,21 +42,24 @@ const ManageCampaigns = ({ onBack }) => {
   }, [channelMaterials, materials]);
 
   useEffect(() => {
-    const stored = JSON.parse(localStorage.getItem('campaigns'));
+    // TODO backend: reemplazar LocalStorage por endpoint de campañas
+    const stored = getStorageItem('campaigns');
     setList(stored || defaultCampaigns);
   }, []);
 
   const handleDelete = (id) => {
     const updated = list.filter((c) => c.id !== id);
     setList(updated);
-    localStorage.setItem('campaigns', JSON.stringify(updated));
+    // TODO backend: persistir eliminación de campaña
+    setStorageItem('campaigns', updated);
   };
 
   const updateCampaign = (index, field, value) => {
     const updated = [...list];
     updated[index] = { ...updated[index], [field]: value };
     setList(updated);
-    localStorage.setItem('campaigns', JSON.stringify(updated));
+    // TODO backend: persistir edición de campaña
+    setStorageItem('campaigns', updated);
   };
 
   const toggleArrayValue = (array = [], value) =>

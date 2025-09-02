@@ -5,7 +5,8 @@ import { getDisplayName, formatQuantity } from '../utils/materialDisplay';
 
 const PreviousCampaignsModal = ({ pdvId, onSelect, onClose }) => {
   const [search, setSearch] = useState('');
-  const campaignsList = JSON.parse(localStorage.getItem('campaigns')) || defaultCampaigns;
+  // TODO backend: reemplazar LocalStorage por endpoint de campañas
+  const campaignsList = getStorageItem('campaigns') || defaultCampaigns;
   const requests = (getStorageItem('material-requests') || []).filter((r) => r.pdvId === pdvId);
 
   const filterByCampaignName = (req) => {

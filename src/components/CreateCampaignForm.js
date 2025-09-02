@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { campaigns } from '../mock/campaigns';
-import { getStorageItem } from '../utils/storage';
+import { getStorageItem, setStorageItem } from '../utils/storage';
 import { channels as defaultChannels } from '../mock/channels';
 import { materials as defaultMaterials } from '../mock/materials';
 import { channelMaterials as defaultChannelMaterials } from '../mock/channelMaterials';
@@ -38,7 +38,8 @@ const CreateCampaignForm = ({ onBack }) => {
       alert('Completa todos los campos para guardar la campaña');
       return;
     }
-    const stored = JSON.parse(localStorage.getItem('campaigns')) || campaigns;
+    // TODO backend: reemplazar LocalStorage por endpoint de campañas
+    const stored = getStorageItem('campaigns') || campaigns;
     const newCampaign = {
       id: `camp-${Date.now()}`,
       name,
@@ -53,7 +54,8 @@ const CreateCampaignForm = ({ onBack }) => {
             : { id: data.measure, name: data.measure },
       })),
     };
-    localStorage.setItem('campaigns', JSON.stringify([...stored, newCampaign]));
+    // TODO backend: persistir nueva campaña
+    setStorageItem('campaigns', [...stored, newCampaign]);
     onBack();
   };
   const toggleMaterial = (id, stock) =>
