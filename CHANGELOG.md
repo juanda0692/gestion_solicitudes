@@ -1,5 +1,10 @@
 # Changelog
 
+## 2025-09-02
+- Integración de Utils con almacenamiento de demo.
+- Regiones unificadas: Sur, Andina, Bogota y Costa (migración LocalStorage).
+- Limpieza de archivos y datos de ejemplo.
+
 ## 2025-08-29
 - Configuración .env y `backend/config.php` con fallback seguro.
 - Limitación de payload y logging básico.

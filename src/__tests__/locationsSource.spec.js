@@ -6,12 +6,11 @@ describe('locations dataset', () => {
     window.localStorage.clear();
   });
 
-  test('includes Centro region and exposes full hierarchy', () => {
+  test('only exposes Sur, Andina, Bogota y Costa', () => {
     const { regions, subterritories, pdvs } = getActiveLocations();
 
-    // Región Centro incluida explícitamente
-    const regionIds = regions.map((r) => r.id);
-    expect(regionIds).toContain('region-centro');
+    const names = regions.map((r) => r.name).sort();
+    expect(names).toEqual(['Andina', 'Bogota', 'Costa', 'Sur']);
 
     // IDs de subterritorios únicos
     const subIds = Object.values(subterritories).flat().map((s) => s.id);
@@ -22,9 +21,9 @@ describe('locations dataset', () => {
     expect(new Set(pdvIds).size).toBe(pdvIds.length);
 
     // Selector de PDVs carga jerarquía usando IDs estáticos
-    const centerPdvs = pdvsForSub('sub-centro-1');
-    const centerPdvIds = centerPdvs.map((p) => p.id);
-    expect(centerPdvIds).toContain('pdv-c1-001');
+    const surPdvs = pdvsForSub('sub-sur-1');
+    const surPdvIds = surPdvs.map((p) => p.id);
+    expect(surPdvIds).toContain('pdv-s1-001');
   });
 });
 
