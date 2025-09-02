@@ -9,7 +9,6 @@ const Sidebar = ({
   onChannels,
   onCampaigns,
   onExport,
-  onSettings,
   onLogout,
   showManagement,
 }) => {
@@ -95,24 +94,6 @@ const Sidebar = ({
               </svg>
             </Item>
           </>
-        )}
-        {process.env.NODE_ENV === 'development' && onSettings && (
-          <Item onClick={onSettings} label="Ajustes">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2"
-              stroke="currentColor"
-              className="w-5 h-5"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M11.983 2.25c-.9 0-1.734.516-2.09 1.323L8.35 6.522a1.59 1.59 0 01-1.094.917l-3.492.78c-.87.195-1.592.87-1.592 1.782 0 .913.722 1.588 1.592 1.783l3.492.78c.5.11.9.46 1.094.917l1.543 2.95c.356.807 1.19 1.323 2.09 1.323.9 0 1.734-.516 2.09-1.323l1.543-2.95a1.59 1.59 0 011.094-.917l3.492-.78c.87-.195 1.592-.87 1.592-1.783 0-.912-.722-1.587-1.592-1.782l-3.492-.78a1.59 1.59 0 01-1.094-.917l-1.543-2.95c-.356-.807-1.19-1.323-2.09-1.323z"
-              />
-            </svg>
-          </Item>
         )}
         <Item onClick={onLogout} label="Salir">
           <svg
