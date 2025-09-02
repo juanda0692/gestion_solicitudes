@@ -1,9 +1,5 @@
-import {
-  regions as bundledRegions,
-  subterritories as bundledSubs,
-  pdvs as bundledPdvs,
-} from '../mock/locationsNormalized';
 import { getStorageItem, setStorageItem, removeStorageItem } from './storage';
+import { bootstrapDemoData } from './bootstrapDemoData';
 
 export const LS_KEY_DATA = 'locations/imported';
 export const LS_KEY_SOURCE = 'locations/source';
@@ -39,6 +35,7 @@ export const hasImportedData = (imported) =>
 // API ------------------------------------------------------------------
 
 export function getActiveLocations() {
+  // TODO backend: reemplazar LocalStorage por consultas a la API real
   const imported = getStorageItem(LS_KEY_DATA);
   const source = getStorageItem(LS_KEY_SOURCE);
 
@@ -56,16 +53,17 @@ export function getActiveLocations() {
     };
   }
 
-  // fallback a bundled
+  // fallback a datos en LocalStorage sembrados por el modo demo
+  bootstrapDemoData();
   setStorageItem(LS_KEY_SOURCE, 'bundled');
   if (process.env.NODE_ENV === 'development') {
     // eslint-disable-next-line no-console
     console.log('[locations] Usando dataset base');
   }
   return {
-    regions: bundledRegions,
-    subterritories: bundledSubs,
-    pdvs: bundledPdvs,
+    regions: getStorageItem('regions') || [],
+    subterritories: getStorageItem('subterritories') || {},
+    pdvs: getStorageItem('pdvs') || {},
     source: 'bundled',
   };
 }

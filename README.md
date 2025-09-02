@@ -56,7 +56,19 @@ docker compose up -d
 Levanta MySQL (3307) y PHP (8000).
 
 ## Modo demo
-En modo demo, los catálogos y las solicitudes se cargan desde `LocalStorage` utilizando los mocks incluidos. Para producción, esta lógica se reemplaza por llamadas a la API real del backend.
+Los catálogos y las solicitudes se cargan desde `LocalStorage` utilizando los mocks incluidos.
+// TODO backend: esta capa se reemplaza por llamadas a la API real.
+
+Regiones disponibles:
+
+- Sur
+- Andina
+- Bogota
+- Costa
+
+Al inicializarse, el demo migra datos antiguos en `localStorage`:
+- elimina la región **Centro** y sus registros relacionados.
+- renombra **Bogotá** → **Bogota**.
 
 ## API
 Límite de payload: 1MB (HTTP 413 si se excede).

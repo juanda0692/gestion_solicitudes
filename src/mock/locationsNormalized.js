@@ -3,34 +3,30 @@ import { validateNewPdv } from '../utils/locationNormalizer';
 export const regions = [
   {
     "id": "region-bogota",
-    "name": "Bogotá"
+    "name": "Bogota"
   },
   {
     "id": "region-sur",
-    "name": "RegióN Sur"
+    "name": "Sur"
   },
   {
     "id": "region-costa",
-    "name": "RegióN Costa"
+    "name": "Costa"
   },
   {
     "id": "region-andina",
     "name": "Andina"
-  },
-  {
-    "id": "region-centro",
-    "name": "Centro"
   }
 ];
 export const subterritories = {
   "region-bogota": [
     {
       "id": "sub-bogota-1",
-      "name": "Bogotá Zona 1"
+      "name": "Bogota Zona 1"
     },
     {
       "id": "sub-bogota-2",
-      "name": "Bogotá Zona 2"
+      "name": "Bogota Zona 2"
     }
   ],
   "region-sur": [
@@ -41,16 +37,6 @@ export const subterritories = {
     {
       "id": "sub-sur-2",
       "name": "Subterritorio Sur 2"
-    }
-  ],
-  "region-centro": [
-    {
-      "id": "sub-centro-1",
-      "name": "Subterritorio Centro 1"
-    },
-    {
-      "id": "sub-centro-2",
-      "name": "Subterritorio Centro 2"
     }
   ],
   "region-andina": [
@@ -72,7 +58,7 @@ export const pdvs = {
   "sub-bogota-1": [
     {
       "id": "pdv-b1-001",
-      "name": "Pdv Bogotá 1 - 001",
+      "name": "Pdv Bogota 1 - 001",
       "regionId": "region-bogota",
       "subterritoryId": "sub-bogota-1",
       "city": "",
@@ -85,7 +71,7 @@ export const pdvs = {
     },
     {
       "id": "pdv-b1-002",
-      "name": "Pdv Bogotá 1 - 002",
+      "name": "Pdv Bogota 1 - 002",
       "regionId": "region-bogota",
       "subterritoryId": "sub-bogota-1",
       "city": "",
@@ -100,7 +86,7 @@ export const pdvs = {
   "sub-bogota-2": [
     {
       "id": "pdv-b2-001",
-      "name": "Pdv Bogotá 2 - 001",
+      "name": "Pdv Bogota 2 - 001",
       "regionId": "region-bogota",
       "subterritoryId": "sub-bogota-2",
       "city": "",
@@ -113,7 +99,7 @@ export const pdvs = {
     },
     {
       "id": "pdv-b2-002",
-      "name": "Pdv Bogotá 2 - 002",
+      "name": "Pdv Bogota 2 - 002",
       "regionId": "region-bogota",
       "subterritoryId": "sub-bogota-2",
       "city": "",
@@ -172,62 +158,6 @@ export const pdvs = {
       "name": "Pdv Sur 2 - 002",
       "regionId": "region-sur",
       "subterritoryId": "sub-sur-2",
-      "city": "",
-      "address": "Sin dirección",
-      "contactName": "",
-      "contactPhone": "",
-      "contact": "",
-      "notes": "",
-      "complete": false
-    }
-  ],
-  "sub-centro-1": [
-    {
-      "id": "pdv-c1-001",
-      "name": "Pdv Centro 1 - 001",
-      "regionId": "region-centro",
-      "subterritoryId": "sub-centro-1",
-      "city": "",
-      "address": "Sin dirección",
-      "contactName": "",
-      "contactPhone": "",
-      "contact": "",
-      "notes": "",
-      "complete": false
-    },
-    {
-      "id": "pdv-c1-002",
-      "name": "Pdv Centro 1 - 002",
-      "regionId": "region-centro",
-      "subterritoryId": "sub-centro-1",
-      "city": "",
-      "address": "Sin dirección",
-      "contactName": "",
-      "contactPhone": "",
-      "contact": "",
-      "notes": "",
-      "complete": false
-    }
-  ],
-  "sub-centro-2": [
-    {
-      "id": "pdv-c2-001",
-      "name": "Pdv Centro 2 - 001",
-      "regionId": "region-centro",
-      "subterritoryId": "sub-centro-2",
-      "city": "",
-      "address": "Sin dirección",
-      "contactName": "",
-      "contactPhone": "",
-      "contact": "",
-      "notes": "",
-      "complete": false
-    },
-    {
-      "id": "pdv-c2-002",
-      "name": "Pdv Centro 2 - 002",
-      "regionId": "region-centro",
-      "subterritoryId": "sub-centro-2",
       "city": "",
       "address": "Sin dirección",
       "contactName": "",
