@@ -302,9 +302,6 @@ const App = () => {
       case 'export-data':
         setCurrentPage('pdv-actions');
         break;
-      case 'developer-panel':
-        setCurrentPage('pdv-actions');
-        break;
       case 'confirm-request':
       case 'confirm-update':
         setCurrentPage('home');
