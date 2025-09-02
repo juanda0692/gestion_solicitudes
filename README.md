@@ -1,53 +1,167 @@
-# Base de Destinatarios – Gestión de Material POP
+Base de Destinatarios – Gestión de Material POP
 
-Aplicación de referencia para gestionar solicitudes de material POP a nivel de región → subterritorio → PDV.
+Aplicación web de referencia para gestionar solicitudes de material POP a nivel de Región → Subterritorio → Punto de Venta (PDV).
+Su objetivo principal es centralizar y organizar la información de campo de manera visual, estructurada y usable por el área de Trade Marketing, sirviendo como puente entre las solicitudes de materiales físicos y la gestión logística posterior.
 
-## Estado
+📌 Estado del Proyecto
 
-- **Frontend**: React operativo en modo demo usando LocalStorage.
-- **Backend**: prototipo en PHP + MySQL como referencia.
-- Falta: API real integrada, autenticación, seguridad, despliegue y exportación avanzada a Excel.
+Frontend (React):
+100% operativo en modo demo, usando LocalStorage como base de datos simulada.
+Incluye: selección jerárquica (regiones → subterritorios → PDVs), selección de campañas y materiales, creación de solicitudes y visualización en historial y detalle.
 
-## Arquitectura
+Backend (PHP + MySQL prototipo):
+Implementación mínima de referencia, no productiva, usada solo para pruebas locales y definir los contratos de endpoints.
 
-- `src/` – frontend React. En ausencia de API todas las lecturas/escrituras se hacen sobre `LocalStorage`.
-- `backend/` – ejemplo de API PHP + MySQL.
-- `docs/` – OpenAPI, diccionario de datos, diagramas ER y colección Postman.
+Documentación:
 
-## Cómo ejecutar
+docs/openapi.yml → Especificación de la API.
 
-### Modo demo (sin API)
+docs/postman/ → Colección y environment Postman.
 
-1. `npm install`
-2. `npm start`
-3. Al iniciar, `LocalStorage` se alimenta con los mocks (`utils/bootstrapDemoData`). Los datos persisten en el navegador; para reiniciar se puede limpiar el almacenamiento.
-// TODO backend: reemplazar LocalStorage por la API real.
+docs/sql/ → Volcado SQL completo, migraciones y seeds mínimas.
 
-### Modo con API real
+docs/er/ → Diagrama entidad–relación y diccionario de datos.
 
-1. Levantar el backend: `php -S localhost:8000 backend/router.php`.
-2. Definir la URL del API en la variable `VITE_API` o `REACT_APP_API`.
-3. El frontend consumirá los catálogos y solicitudes desde el endpoint configurado.
+CHANGELOG.md → Cambios recientes registrados.
 
-## Datos
+CODEMAP.md → (incluido) Estructura de carpetas y explicación de archivos clave.
 
-Regiones disponibles: **Sur**, **Andina**, **Bogota**, **Costa**.
-La migración inicial elimina la región *Centro* y renombra "Bogotá" a "Bogota".
+Faltante / Próximos pasos:
 
-## Endpoints previstos
+Sustituir LocalStorage por API real.
 
-Documentados en `docs/openapi.yml` y en la colección Postman (`docs/postman/`).
-En modo demo se simulan mediante `LocalStorage`.
+Implementar autenticación y roles.
 
-## Roadmap
+Mejorar seguridad (CORS restringido, logging estructurado, auditoría de accesos).
 
-- Sustituir LocalStorage por API real.
-- Autenticación, roles y CORS.
-- Logging estructurado y despliegue.
-- Exportación avanzada a Excel.
+Despliegue en infraestructura corporativa con monitoreo y backups.
 
-## Troubleshooting
+Exportación avanzada de solicitudes a Excel (stub listo en frontend).
 
-- Página en blanco: revisar `backend/storage/logs/app.log`.
-- Errores CORS: editar `Access-Control-Allow-Origin` en `backend/public/index.php`.
-- Problemas con rutas o datos: limpiar `LocalStorage`.
+🏗️ Arquitectura del repositorio
+
+src/ → Frontend en React.
+
+Modo demo: catálogos y solicitudes gestionados en LocalStorage.
+
+Servicios y utils con marcadores claros // TODO backend para reemplazar por API.
+
+backend/ → Prototipo PHP + MySQL.
+
+Router simple (backend/router.php).
+
+Endpoints básicos (/regions, /subterritories, /pdvs, /campaigns, /materials, /requests).
+
+Solo para referencia / pruebas locales.
+
+docs/ → Documentación.
+
+OpenAPI, Postman, SQL, diagramas ER, diccionario de datos, QA manual.
+
+🚀 Cómo ejecutar
+1. Modo demo (sin API real)
+npm install
+npm start
+
+Al iniciar, LocalStorage se alimenta automáticamente con los catálogos desde utils/bootstrapDemoData.
+
+Los datos persisten en el navegador; para reiniciar, limpiar manualmente el almacenamiento del navegador.
+
+Nota: los servicios tienen marcadores // TODO backend donde se sustituye LocalStorage por API real.
+
+2. Modo con backend de referencia
+   php -S localhost:8000 backend/router.php
+
+Configurar VITE_API o REACT_APP_API con la URL del backend.
+
+El frontend consumirá datos reales desde la API.
+
+🌍 Datos incluidos
+
+Regiones definitivas:
+
+Sur
+
+Andina
+
+Bogota
+
+Costa
+
+(El proceso de migración elimina la región Centro y renombra “Bogotá” a “Bogota”).
+
+Relación jerárquica:
+
+Región → Subterritorio → PDV
+
+Cada PDV asociado a campañas y materiales disponibles.
+
+📡 Endpoints previstos
+
+Documentados en docs/openapi.yml y colección Postman (docs/postman/).
+
+En modo demo, se simulan con LocalStorage.
+
+Ejemplos:
+
+GET /regions
+
+GET /regions/{id}/subterritories
+
+GET /subterritories/{id}/pdvs
+
+GET /channels/{id}/materials
+
+POST /requests
+
+GET /requests/{id}
+
+🛠️ Roadmap y siguientes pasos
+
+Integración de backend real
+
+Implementar la API productiva respetando los endpoints documentados.
+
+Sustituir el uso de LocalStorage en frontend por llamadas a la API.
+
+Seguridad y autenticación
+
+Autenticación de usuarios (JWT u otro estándar).
+
+Roles (administrador, usuario, solo lectura).
+
+Restricciones de CORS y auditoría de accesos.
+
+Infraestructura y despliegue
+
+Desplegar en servidor corporativo (con logs, monitoreo, backups).
+
+Procesos CI/CD para mantener la aplicación.
+
+Funcionalidades adicionales
+
+Exportación avanzada a Excel (ya hay un stub en frontend).
+
+Manejo de stock en tiempo real.
+
+Actualización de PDVs y catálogos dinámicos desde backend.
+
+🧰 Troubleshooting
+
+Página en blanco (backend): revisar logs en backend/storage/logs/app.log.
+
+Errores CORS: editar cabecera Access-Control-Allow-Origin en backend/public/index.php.
+
+Datos inconsistentes: limpiar LocalStorage y reiniciar el demo.
+
+API no responde: confirmar que php -S localhost:8000 backend/router.php está corriendo en el puerto correcto.
+
+📑 Estado para entrega
+
+Este repositorio está en estado prototipo funcional en demo:
+
+Muestra el flujo completo del negocio (desde región → solicitud → historial → detalle).
+
+Deja definido qué falta y cómo continuar.
+
+Documentación actualizada para que la persona encargada del backend real pueda entrar sin perder tiempo y comenzar directamente la implementación productiva.
