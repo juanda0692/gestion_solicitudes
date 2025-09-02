@@ -1,5 +1,5 @@
-import React from 'react';
-import { channels } from '../mock/channels';
+import React, { useEffect, useState } from 'react';
+import { getChannels } from '../services/api';
 
 /**
  * Selector de canal.
@@ -13,11 +13,17 @@ import { channels } from '../mock/channels';
 // `onCreateCampaign` y `onExportData` son opcionales y permiten acceder
 // directamente a la creación de campañas o a la exportación de datos.
 const ChannelSelector = ({ onSelectChannel, onCreateCampaign, onExportData }) => {
+  const [channels, setChannels] = useState([]);
+
+  useEffect(() => {
+    getChannels().then(setChannels).catch(console.error);
+  }, []);
+
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg max-w-3xl mx-auto mt-8">
       <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Selecciona un Canal</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Reemplazar `channels` por datos obtenidos desde la API */}
+        {/* TODO backend: obtener canales desde API real */}
         {channels.map((channel) => (
           <button
             key={channel.id}

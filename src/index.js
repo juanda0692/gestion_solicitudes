@@ -9,6 +9,11 @@ import App from "./App";
 import RequestsHistory from "./pages/RequestsHistory";
 import RequestDetail from "./pages/RequestDetail";
 import { ToastProvider } from "./components/ui/ToastProvider";
+import { bootstrapDemoData } from "./utils/bootstrapDemoData";
+
+// Inicializa datos de demostración en LocalStorage
+// TODO backend: reemplazar con carga desde API al conectar el servidor real
+bootstrapDemoData();
 
 const root = createRoot(document.getElementById("root"));
 root.render(
