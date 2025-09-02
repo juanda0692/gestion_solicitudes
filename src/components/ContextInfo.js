@@ -1,5 +1,5 @@
-import React from 'react';
-import { channels } from '../mock/channels';
+import React, { useEffect, useState } from 'react';
+import { getChannels } from '../services/api';
 
 /**
  * Muestra un resumen del contexto desde el cual se realiza la solicitud.
@@ -8,7 +8,15 @@ import { channels } from '../mock/channels';
  * el subterritorio, la región y el canal actual mientras revisa el carrito.
  */
 const ContextInfo = ({ pdvName, subterritoryName, regionName, channelId }) => {
-  const channelName = channels.find((c) => c.id === channelId)?.name || channelId;
+  const [channelName, setChannelName] = useState(channelId);
+
+  useEffect(() => {
+    getChannels()
+      .then((list) => {
+        setChannelName(list.find((c) => c.id === channelId)?.name || channelId);
+      })
+      .catch(console.error);
+  }, [channelId]);
   return (
     <div className="mb-4 bg-tigo-light p-3 rounded-lg text-gray-800 text-sm">
       <p className="font-semibold">PDV: {pdvName}</p>

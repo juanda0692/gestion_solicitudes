@@ -34,7 +34,7 @@ import { getStorageItem, setStorageItem } from './utils/storage';
 import { sanitizeOnBoot } from './utils/cleanupLocalStorage';
 import exportToExcel from './utils/exportToExcel';
 import exportToJson from './utils/exportToJson';
-import { channels } from './mock/channels';
+import { getChannels } from './services/api';
 import { getActiveLocations } from './utils/locationsSource';
 import { useToast } from './components/ui/ToastProvider';
 
@@ -51,6 +51,7 @@ const App = () => {
 
   // Identificador del canal seleccionado
   const [selectedChannelId, setSelectedChannelId] = useState('');
+  const [channelList, setChannelList] = useState([]);
 
   // Identificador del PDV seleccionado
   const [selectedPdvId, setSelectedPdvId] = useState('');
@@ -76,6 +77,11 @@ const App = () => {
     if (process.env.NODE_ENV === 'development') {
       console.log('sanitizeOnBoot report', report);
     }
+  }, []);
+
+  // Cargar canales disponibles desde LocalStorage
+  useEffect(() => {
+    getChannels().then(setChannelList).catch(console.error);
   }, []);
 
   // Usuario selecciona si trabajará con Trade Nacional o Regional
@@ -237,7 +243,7 @@ const App = () => {
       case 'channel-select':
         return 'Selección de Canal';
       case 'channel-menu':
-        return `Canal ${channels.find((c) => c.id === selectedChannelId)?.name || selectedChannelId}`;
+        return `Canal ${channelList.find((c) => c.id === selectedChannelId)?.name || selectedChannelId}`;
       case 'location-select':
         return 'Selección de Ubicación';
       case 'pdv-actions':

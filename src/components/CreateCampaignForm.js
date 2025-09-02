@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { campaigns } from '../mock/campaigns';
-import { channels } from '../mock/channels';
-import { materials } from '../mock/materials';
-import { channelMaterials } from '../mock/channelMaterials';
+import { getStorageItem } from '../utils/storage';
+import { channels as defaultChannels } from '../mock/channels';
+import { materials as defaultMaterials } from '../mock/materials';
+import { channelMaterials as defaultChannelMaterials } from '../mock/channelMaterials';
 import MaterialSelectorModal from './MaterialSelectorModal';
 import { getDisplayName, formatQuantity } from '../utils/materialDisplay';
 
@@ -84,6 +85,16 @@ const CreateCampaignForm = ({ onBack }) => {
       [id]: { ...prev[id], customMeasure: value },
     }));
 
+  const [channels, setChannels] = useState([]);
+  const [materials, setMaterials] = useState([]);
+  const [channelMaterials, setChannelMaterials] = useState({});
+
+  useEffect(() => {
+    setChannels(getStorageItem('channels') || defaultChannels);
+    setMaterials(getStorageItem('materials') || defaultMaterials);
+    setChannelMaterials(getStorageItem('channelMaterials') || defaultChannelMaterials);
+  }, []);
+
   const materialsWithChannels = React.useMemo(() => {
     const result = {};
     Object.entries(channelMaterials).forEach(([ch, mats]) => {
@@ -106,7 +117,7 @@ const CreateCampaignForm = ({ onBack }) => {
         (cid) => channels.find((c) => c.id === cid)?.name || cid,
       ),
     }));
-  }, []);
+  }, [channelMaterials, materials, channels]);
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto space-y-4">

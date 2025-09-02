@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { channels } from '../mock/channels';
+import { getChannels } from '../services/api';
 import { getActiveLocations } from '../utils/locationsSource';
 import { pdvsForSub } from '../utils/locationSelectors';
 import { getStorageItem } from '../utils/storage';
@@ -38,6 +38,7 @@ const getPdvInfo = (pdvId) => {
 
 const ExportData = ({ onBack, onExport }) => {
   const { regions, subterritories } = getActiveLocations();
+  const [channels, setChannels] = useState([]);
   const [customMode, setCustomMode] = useState(false);
   const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedSubterritory, setSelectedSubterritory] = useState('');
@@ -48,6 +49,10 @@ const ExportData = ({ onBack, onExport }) => {
   const summaryRef = useRef(null);
   const noDataRef = useRef(null);
   const lastFocused = useRef(null);
+
+  useEffect(() => {
+    getChannels().then(setChannels).catch(console.error);
+  }, []);
 
   useEffect(() => {
     if (showSummaryModal && summaryRef.current) {

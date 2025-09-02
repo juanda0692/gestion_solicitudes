@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { getStorageItem } from '../utils/storage';
 import HistoryList from './history/HistoryList';
 import { adaptMaterialRequests, adaptPdvUpdates, buildPdvIdMap } from '../utils/historyAdapter';
 import { getActiveLocations } from '../utils/locationsSource';
-import { channels } from '../mock/channels';
+import { getChannels } from '../services/api';
 
 const ChannelRequests = ({ channelId, onBack }) => {
   const { regions, subterritories, pdvs } = getActiveLocations();
@@ -18,7 +18,15 @@ const ChannelRequests = ({ channelId, onBack }) => {
 
   const requests = adaptMaterialRequests(materialRequests, { idMap });
   const updates = adaptPdvUpdates(updateRequests, { idMap });
-  const channelName = channels.find((c) => c.id === channelId)?.name || channelId;
+  const [channelName, setChannelName] = useState(channelId);
+
+  useEffect(() => {
+    getChannels()
+      .then((list) => {
+        setChannelName(list.find((c) => c.id === channelId)?.name || channelId);
+      })
+      .catch(console.error);
+  }, [channelId]);
 
   return (
     <HistoryList

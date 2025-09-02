@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { campaigns as defaultCampaigns } from '../mock/campaigns';
-import { channels } from '../mock/channels';
-import { materials } from '../mock/materials';
-import { channelMaterials } from '../mock/channelMaterials';
+import { getStorageItem } from '../utils/storage';
+import { channels as defaultChannels } from '../mock/channels';
+import { materials as defaultMaterials } from '../mock/materials';
+import { channelMaterials as defaultChannelMaterials } from '../mock/channelMaterials';
 
 /**
  * Panel para editar o eliminar campañas existentes.
@@ -10,6 +11,16 @@ import { channelMaterials } from '../mock/channelMaterials';
  */
 const ManageCampaigns = ({ onBack }) => {
   const [list, setList] = useState([]);
+
+  const [channels, setChannels] = useState([]);
+  const [materials, setMaterials] = useState([]);
+  const [channelMaterials, setChannelMaterials] = useState({});
+
+  useEffect(() => {
+    setChannels(getStorageItem('channels') || defaultChannels);
+    setMaterials(getStorageItem('materials') || defaultMaterials);
+    setChannelMaterials(getStorageItem('channelMaterials') || defaultChannelMaterials);
+  }, []);
 
   const channelsByMaterial = React.useMemo(() => {
     const result = {};
@@ -28,7 +39,7 @@ const ManageCampaigns = ({ onBack }) => {
       }
     });
     return result;
-  }, []);
+  }, [channelMaterials, materials]);
 
   useEffect(() => {
     const stored = JSON.parse(localStorage.getItem('campaigns'));

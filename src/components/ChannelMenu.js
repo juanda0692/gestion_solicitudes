@@ -1,5 +1,5 @@
-import React from 'react';
-import { channels } from '../mock/channels';
+import React, { useEffect, useState } from 'react';
+import { getChannels } from '../services/api';
 
 /**
  * Menú principal de un canal.
@@ -8,7 +8,15 @@ import { channels } from '../mock/channels';
  * consultar el historial de solicitudes del canal.
  */
 const ChannelMenu = ({ channelId, onSelectPdv, onViewRequests }) => {
-  const channelName = channels.find((c) => c.id === channelId)?.name || channelId;
+  const [channelName, setChannelName] = useState(channelId);
+
+  useEffect(() => {
+    getChannels()
+      .then((list) => {
+        setChannelName(list.find((c) => c.id === channelId)?.name || channelId);
+      })
+      .catch(console.error);
+  }, [channelId]);
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto text-center">
