@@ -33,6 +33,7 @@ import { getStorageItem, setStorageItem } from './utils/storage';
 import { sanitizeOnBoot } from './utils/cleanupLocalStorage';
 import exportToExcel from './utils/exportToExcel';
 import exportToJson from './utils/exportToJson';
+import exportPdvs from './utils/exportPdvs';
 import { getChannels } from './services/api';
 import { getActiveLocations } from './utils/locationsSource';
 import { useToast } from './components/ui/ToastProvider';
@@ -163,7 +164,14 @@ const App = () => {
   const performExport = (exportObj, options = {}) => {
     const { excel = true, json = false } = options;
     let ok = true;
-    if (excel) ok = exportToExcel(exportObj) && ok;
+    if (excel) {
+      if (exportObj?.meta?.type === 'pdv-list') {
+        // Exportación de PDVs (modo demo)
+        ok = exportPdvs(exportObj) && ok; // TODO backend/export
+      } else {
+        ok = exportToExcel(exportObj) && ok;
+      }
+    }
     if (json) ok = exportToJson(exportObj) && ok;
 
     if (ok) {
