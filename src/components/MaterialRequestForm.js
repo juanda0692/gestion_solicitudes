@@ -25,7 +25,7 @@ import { getStorageItem } from '../utils/storage';
 // Zonas disponibles para solicitar material
 const zones = ['Fachada', 'Zona de experiencia', 'Mesas asesores'];
 // Prioridades definidas por el negocio
-const priorities = ['Prioridad 1', 'Prioridad 2', 'Prioridad 3'];
+// const priorities = ['Prioridad 1', 'Prioridad 2', 'Prioridad 3'];
 
 const MaterialRequestForm = ({
   onConfirmRequest,
@@ -73,9 +73,17 @@ const MaterialRequestForm = ({
     getChannels().then(setChannels).catch(console.error);
   }, []);
 
+  // useEffect(() => {
+  //   getCampaigns().then(setCampaignList).catch(console.error);
+  // }, []);
   useEffect(() => {
-    getCampaigns().then(setCampaignList).catch(console.error);
-  }, []);
+  getCampaigns()
+    .then(response => {
+      // Assuming response is an array of campaign objects with id, name, and priority
+      setCampaignList(response);
+    })
+    .catch(console.error);
+}, []);
 
   useEffect(() => {
     if (!selectedChannelId) {
@@ -86,41 +94,112 @@ const MaterialRequestForm = ({
   }, [selectedChannelId]);
 
   // Medidas disponibles según el material seleccionado
+  // const availableMeasures = React.useMemo(() => {
+  //   const material = materials.find((m) => m.id === selectedMaterial);
+  //   const base = material?.medidas || [];
+  //   const opts = base.map((m) => ({ id: m, name: m }));
+  //   opts.push({ id: 'otro', name: 'Otro' });
+  //   return opts;
+  // }, [selectedMaterial]);
   const availableMeasures = React.useMemo(() => {
-    const material = materials.find((m) => m.id === selectedMaterial);
-    const base = material?.medidas || [];
-    const opts = base.map((m) => ({ id: m, name: m }));
-    opts.push({ id: 'otro', name: 'Otro' });
-    return opts;
-  }, [selectedMaterial]);
+  const material = materials.find((m) => m.material_id === selectedMaterial);
+  if (!material) return [{ id: 'otro', name: 'Otro' }];
+  
+  // Add the default size from the API
+  const measures = [{ id: material.size, name: material.size }];
+  // Add the "Otro" option
+  measures.push({ id: 'otro', name: 'Otro' });
+  return measures;
+}, [selectedMaterial, materials]);
 
   // Agrega el material actual al carrito de la solicitud
-  const handleAddToCart = () => {
-    const materialDetails = materials.find((m) => m.id === selectedMaterial);
-    if (selectedMaterial && quantity > 0 && (selectedMeasures || customMeasure)) {
-      const measureDetails =
-        selectedMeasures === 'otro'
-          ? { id: 'otro', name: customMeasure || 'Personalizado' }
-          : { id: selectedMeasures, name: selectedMeasures };
-      setCart((prevCart) => [
-        ...prevCart,
-        {
-          id: `${materialDetails.id}-${Date.now()}`,
-          material: materialDetails,
-          measures: measureDetails,
-          quantity,
-          notes,
-        },
-      ]);
-      setSelectedMaterial('');
-      setQuantity(1);
-      setSelectedMeasures('');
-      setCustomMeasure('');
-      setNotes('');
-    } else {
-      alert('Por favor, selecciona un material válido del canal, medidas y una cantidad correcta.');
-    }
+//   const handleAddToCart = () => {
+//   if (!selectedMaterial || !selectedMeasures) {
+//     alert('Por favor selecciona material y medidas');
+//     return;
+//   }
+
+//   const material = materials.find((m) => m.material_id === selectedMaterial);
+//   if (!material) {
+//     alert('Material no encontrado');
+//     return;
+//   }
+
+//   // Create measures object with the correct structure
+//   const measuresObj = selectedMeasures === 'otro'
+//     ? { id: 'otro', name: customMeasure }
+//     : { id: selectedMeasures, name: selectedMeasures };
+
+//   const newItem = {
+//     id: `${Date.now()}`, // Unique ID for cart item
+//     material: {
+//       id: material.material_id,
+//       name: material.name,
+//       stock: material.stock
+//     },
+//     measures: measuresObj,
+//     quantity: quantity,
+//     notes: notes
+//   };
+
+//   setCart([...cart, newItem]);
+  
+//   // Reset form
+//   setSelectedMaterial(null);
+//   setSelectedMeasures('');
+//   setCustomMeasure('');
+//   setQuantity(1);
+//   setNotes('');
+  
+//   alert('Material agregado al carrito');
+// };
+
+const handleAddToCart = () => {
+  if (!selectedMaterial || !selectedMeasures) {
+    alert('Por favor selecciona material y medidas');
+    return;
+  }
+
+  const material = materials.find((m) => m.material_id === selectedMaterial);
+  if (!material) {
+    alert('Material no encontrado');
+    return;
+  }
+
+  // Stock validation
+  if (quantity > material.stock) {
+    alert(`La cantidad solicitada (${quantity}) supera el stock disponible (${material.stock})`);
+    return;
+  }
+
+  // Create measures object with the correct structure
+  const measuresObj = selectedMeasures === 'otro'
+    ? { id: 'otro', name: customMeasure }
+    : { id: selectedMeasures, name: selectedMeasures };
+
+  const newItem = {
+    id: `${Date.now()}`,
+    material: {
+      id: material.material_id,
+      name: material.name,
+      stock: material.stock
+    },
+    measures: measuresObj,
+    quantity: quantity,
+    notes: notes
   };
+
+  setCart([...cart, newItem]);
+  
+  // Reset form
+  setSelectedMaterial(null);
+  setSelectedMeasures('');
+  setCustomMeasure('');
+  setQuantity(1);
+  setNotes('');
+  
+  alert('Material agregado al carrito');
+};
 
   // Elimina un elemento del carrito
   const handleRemoveFromCart = (itemId) => {
@@ -157,16 +236,30 @@ const MaterialRequestForm = ({
       alert('Selecciona Región, Subterritorio y PDV antes de confirmar.');
       return;
     }
-    if (
-      selectedZones.length === 0 ||
-      !selectedPriority ||
-      !selectedCampaign
-    ) {
-      alert(
-        'Por favor completa Zona, Prioridad y Nombre de campaña antes de continuar.'
-      );
-      return;
+    // if (
+    //   selectedZones.length === 0 ||
+    //   !selectedPriority ||
+    //   !selectedCampaign
+    // ) {
+    //   alert(
+    //     'Por favor completa Zona y Nombre de campaña antes de continuar.'
+    //   );
+    //   return;
+    // }
+    // Solo validar zona y campaña para trade regional
+    if (tradeType === 'regional') {
+      if (
+        selectedZones.length === 0 ||
+        !selectedPriority ||
+        !selectedCampaign
+      ) {
+        alert(
+          'Por favor completa Zona y Nombre de campaña antes de continuar.'
+        );
+        return;
+      }
     }
+
     const snap = getStorageItem(`pdv-${selectedPdvId}-data`) || {};
     setPdvSnapshot({
       contactName: snap.contactName || '',
@@ -186,23 +279,43 @@ const MaterialRequestForm = ({
         displayName: getDisplayName(item.material.name),
       }));
 
+      // const payload = {
+      //   regionId: selectedRegionId,
+      //   subterritoryId: selectedSubId,
+      //   pdvId: selectedPdvId,
+      //   campaignId: selectedCampaign || null,
+      //   priority: selectedPriority || null,
+      //   zones: selectedZones,
+      //   observations: '',
+      //   items: cart.map((item) => ({
+      //     materialId: item.material.id,
+      //     quantity: item.quantity,
+      //     measureTag: item.measures.id === 'otro' ? 'Otro' : item.measures.name,
+      //     measureCustom: item.measures.id === 'otro' ? item.measures.name : undefined,
+      //     observations: item.notes || null,
+      //   })),
+      //   createdBy: 'usuario@empresa.com',
+      // };
+
       const payload = {
-        regionId: selectedRegionId,
-        subterritoryId: selectedSubId,
-        pdvId: selectedPdvId,
-        campaignId: selectedCampaign || null,
-        priority: selectedPriority || null,
-        zones: selectedZones,
-        observations: '',
-        items: cart.map((item) => ({
-          materialId: item.material.id,
-          quantity: item.quantity,
-          measureTag: item.measures.id === 'otro' ? 'Otro' : item.measures.name,
-          measureCustom: item.measures.id === 'otro' ? item.measures.name : undefined,
-          observations: item.notes || null,
-        })),
-        createdBy: 'usuario@empresa.com',
-      };
+  regionId: selectedRegionId,
+  subterritoryId: selectedSubId,
+  pdvId: selectedPdvId,
+  campaignId: selectedCampaign || null,
+  // Extraer el número de la prioridad (ej: "Prioridad 1" → 1)
+  priority: selectedPriority ? parseInt(selectedPriority.replace(/\D/g, '')) || null : null,
+  zones: selectedZones,
+  observations: '',
+  items: cart.map((item) => ({
+    materialId: item.material.id,
+    quantity: item.quantity,
+    measureTag: item.measures.id === 'otro' ? 'Otro' : item.measures.name,
+    measureCustom: item.measures.id === 'otro' ? item.measures.name : undefined,
+    observations: item.notes || null,
+  })),
+  createdBy: 'usuario@empresa.com',
+};
+
 
       try {
         const res = await createRequest(payload);
@@ -244,57 +357,65 @@ const MaterialRequestForm = ({
         <div className="mb-4">
           <h3 className="font-semibold mb-2">Material</h3>
           <button
-            type="button"
-            onClick={() => setShowMaterialModal(true)}
-            className="w-full bg-gray-100 border border-gray-300 py-2 px-3 rounded-lg text-left"
-          >
-            {selectedMaterial
-              ? getDisplayName(
-                  materials.find((m) => m.id === selectedMaterial)?.name,
-                )
-              : 'Seleccionar material'}
-          </button>
+  type="button"
+  onClick={() => setShowMaterialModal(true)}
+  className="w-full bg-gray-100 border border-gray-300 py-2 px-3 rounded-lg text-left"
+>
+  {(() => {
+    const selected = materials.find(
+      (m) => m.material_id === selectedMaterial
+    );
+    return selected
+      ? getDisplayName(selected.name)
+      : 'Seleccionar material';
+  })()}
+</button>
           {selectedMaterial && (
             <p className="text-sm text-gray-600 mt-1">
               {materials.find((m) => m.id === selectedMaterial)?.requiresCotizacion
                 ? 'Este material será cotizado y producido bajo pedido por Trade Nacional.'
                 : `Pertenece al canal ${channelName}. Stock disponible: ${
-                    materials.find((m) => m.id === selectedMaterial)?.stock || 0
+                    materials.find(m => m.material_id === selectedMaterial).stock || 0
                   }`}
             </p>
           )}
         </div>
 
         <div className="mb-4">
-          <label
-            htmlFor="measures-select"
-            className="block text-gray-700 text-sm font-bold mb-2"
-          >
-            Medidas:
-          </label>
-          <select
-            id="measures-select"
-            className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200"
-            value={selectedMeasures}
-            onChange={(e) => setSelectedMeasures(e.target.value)}
-          >
-            <option value="">Selecciona las medidas</option>
-            {availableMeasures.map((measure) => (
-              <option key={measure.id} value={measure.id}>
-                {measure.name}
-              </option>
-            ))}
-          </select>
-          {selectedMeasures === 'otro' && (
-            <input
-              type="text"
-              className="mt-2 w-full bg-gray-100 border border-gray-300 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all"
-              placeholder="Especifica las medidas"
-              value={customMeasure}
-              onChange={(e) => setCustomMeasure(e.target.value)}
-            />
-          )}
-        </div>
+  <label
+    htmlFor="measures-select"
+    className="block text-gray-700 text-sm font-bold mb-2"
+  >
+    Medidas:
+  </label>
+  <select
+    id="measures-select"
+    className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200"
+    value={selectedMeasures}
+    onChange={(e) => setSelectedMeasures(e.target.value)}
+  >
+    <option value="">Selecciona las medidas</option>
+    {availableMeasures.map((measure) => (
+      <option key={measure.id} value={measure.id}>
+        {measure.name}
+      </option>
+    ))}
+  </select>
+  {selectedMeasures === 'otro' && (
+    <input
+      type="text"
+      className="mt-2 w-full bg-gray-100 border border-gray-300 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all"
+      placeholder="Especifica las medidas"
+      value={customMeasure}
+      onChange={(e) => setCustomMeasure(e.target.value)}
+    />
+  )}
+  {selectedMeasures && selectedMeasures !== 'otro' && (
+    <p className="text-sm text-gray-600 mt-1">
+      Medida estándar del material
+    </p>
+  )}
+</div>
 
         <div className="mb-4">
           <label
@@ -337,12 +458,12 @@ const MaterialRequestForm = ({
         >
           Agregar al Carrito
         </button>
-        <button
+        {/* <button
           onClick={() => setShowPreviousModal(true)}
           className="w-full mt-2 bg-indigo-500 text-white py-3 px-4 rounded-lg shadow-md hover:bg-indigo-600 transition-all duration-300 ease-in-out transform hover:scale-105"
         >
           Solicitar campañas anteriores
-        </button>
+        </button> */}
       </div>
 
       {/* Sección del Carrito y contexto */}
@@ -437,7 +558,7 @@ const MaterialRequestForm = ({
               </label>
             ))}
           </div>
-          <div>
+          {/* <div>
             <h3 className="font-semibold mb-2">Nombre de la prioridad</h3>
             <select
               className="w-full bg-gray-100 border border-gray-300 py-2 px-3 rounded-lg"
@@ -452,8 +573,8 @@ const MaterialRequestForm = ({
                   </option>
                 ))}
               </select>
-            </div>
-            <div>
+            </div> */}
+            {/* <div>
               <h3 className="font-semibold mb-2">Campaña</h3>
               <button
                 type="button"
@@ -464,7 +585,32 @@ const MaterialRequestForm = ({
                   ? campaignList.find((c) => c.id === selectedCampaign)?.name
                 : 'Selecciona una campaña'}
             </button>
+          </div> */}
+          <div>
+  <h3 className="font-semibold mb-2">Campaña</h3>
+  <button
+    type="button"
+    onClick={() => setShowCampaignModal(true)}
+    className="w-full bg-gray-100 border border-gray-300 py-2 px-3 rounded-lg text-left"
+  >
+    {(() => {
+      const selected = campaignList.find(
+        (c) => c.id === selectedCampaign
+      );
+      if (selected) {
+        return (
+          <div>
+            <div>{selected.name}</div>
+            <div className="text-sm text-gray-600">
+              Prioridad: {selected.prioridad}
+            </div>
           </div>
+        );
+      }
+      return 'Selecciona una campaña';
+    })()}
+  </button>
+</div>
         </div>
       )}
 
@@ -481,7 +627,7 @@ const MaterialRequestForm = ({
         />
       )}
 
-      {showCampaignModal && (
+      {/* {showCampaignModal && (
         <SingleSelectModal
           title="Seleccionar campaña"
           items={campaignList}
@@ -492,7 +638,30 @@ const MaterialRequestForm = ({
           onClose={() => setShowCampaignModal(false)}
           placeholder="Buscar campaña"
         />
-      )}
+      )} */}
+{showCampaignModal && (
+  <SingleSelectModal
+    title="Seleccionar campaña"
+    items={campaignList.map(c => ({
+      material_id: c.id, // Mapear id a material_id para compatibilidad
+      name: c.name,
+      prioridad: c.prioridad
+    }))}
+    selectedId={selectedCampaign}
+    onSelect={(id) => {
+      const campaign = campaignList.find(c => c.id === id);
+      if (campaign) {
+        setSelectedCampaign(id);
+        setSelectedPriority(`Prioridad ${campaign.prioridad}`);
+      }
+      setShowCampaignModal(false);
+    }}
+    search={campaignSearch}
+    setSearch={setCampaignSearch}
+    onClose={() => setShowCampaignModal(false)}
+    placeholder="Buscar campaña"
+  />
+)}
 
       {showPreviousModal && (
         <PreviousCampaignsModal

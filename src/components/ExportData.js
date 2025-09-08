@@ -197,13 +197,13 @@ const ExportData = ({ onBack, onExport }) => {
         >
           Exportar datos
         </button>
-        <button
+        {/* <button
           onClick={() => setShowCustom(true)}
           disabled={selectedPdvs.length === 0}
           className="w-full bg-gray-600 text-white py-2 px-4 rounded-lg shadow-md hover:bg-gray-700 transition-all disabled:opacity-50"
         >
           Personalizado
-        </button>
+        </button> */}
         <button
           onClick={onBack}
           className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all"

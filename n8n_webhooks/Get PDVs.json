@@ -1,0 +1,162 @@
+{
+  "name": "Get PDVs",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "pdvs",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "e1329836-9fdd-411a-8b79-461a730f6a68",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        96
+      ],
+      "webhookId": "pdvs-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Obtener parámetros de query\nconst query = $json.query || {};\nconst subterritorioId = query.subterritorio_id;\n\n// Construir URL base\nlet url = 'https://ftftlekcgthgrbmvoajd.supabase.co/rest/v1/pdvs';\nlet queryParams = 'select=id,subterritorio_id,nombre&order=nombre.asc';\n\n// Si hay subterritorio_id, agregar filtro\nif (subterritorioId) {\n  queryParams += `&subterritorio_id=eq.${subterritorioId}`;\n}\n\nreturn {\n  json: {\n    url: `${url}?${queryParams}`,\n    hasFilter: !!subterritorioId,\n    subterritorioId: subterritorioId\n  }\n};"
+      },
+      "id": "674931ac-569c-499d-ab68-44533bc922b5",
+      "name": "Build Query",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -112,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0ZnRsZWtjZ3RoZ3JibXZvYWpkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NjUwMDUxOSwiZXhwIjoyMDcyMDc2NTE5fQ.AMRs2dBcIRQuryFErHHqR5dSX1BnBdlBuluVNhTFw9I"
+            },
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0ZnRsZWtjZ3RoZ3JibXZvYWpkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NjUwMDUxOSwiZXhwIjoyMDcyMDc2NTE5fQ.AMRs2dBcIRQuryFErHHqR5dSX1BnBdlBuluVNhTFw9I"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "9341d1d1-e033-4982-a831-bb83a5eeb84c",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        128,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Formatear respuesta usando $input.all() para procesar todos los elementos\nconst pdvs = $input.all().map(item => item.json);\n\n// Transformar {id, subterritorio_id, nombre} a {id, subterritorio_id, name}\nconst formattedPdvs = pdvs.map(pdv => ({\n  id: pdv.id,\n  subterritorio_id: pdv.subterritorio_id,\n  name: pdv.nombre\n}));\n\n// Retornar como array de objetos\nreturn formattedPdvs.map(p => ({ json: p }));"
+      },
+      "id": "51b25466-cb8d-4c43-9dd0-ccca86db2ddf",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        352,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "GET, POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "b804ac00-eee4-4647-aa1d-1fcc513dd5e9",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        576,
+        96
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Build Query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Query": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a07eb676-049b-4738-ab70-669d3871a86d",
+  "meta": {
+    "instanceId": "492e1639c541052b06da65989914634d56c64d16473a6c4b9076af8d9c81bd21"
+  },
+  "id": "9Dv3ZoTRuhInRB8w",
+  "tags": []
+}

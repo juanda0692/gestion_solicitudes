@@ -1,0 +1,151 @@
+{
+  "name": "Get Channels",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "channels",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "ed9f2621-6683-4c1e-85f0-17b88a8775bf",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "channels-webhook"
+    },
+    {
+      "parameters": {
+        "url": "https://ftftlekcgthgrbmvoajd.supabase.co/rest/v1/canales",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "select",
+              "value": "id,nombre"
+            },
+            {
+              "name": "order",
+              "value": "nombre.asc"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0ZnRsZWtjZ3RoZ3JibXZvYWpkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NjUwMDUxOSwiZXhwIjoyMDcyMDc2NTE5fQ.AMRs2dBcIRQuryFErHHqR5dSX1BnBdlBuluVNhTFw9I"
+            },
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0ZnRsZWtjZ3RoZ3JibXZvYWpkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NjUwMDUxOSwiZXhwIjoyMDcyMDc2NTE5fQ.AMRs2dBcIRQuryFErHHqR5dSX1BnBdlBuluVNhTFw9I"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "40fb2758-98e9-42c4-9789-3437a8f239ca",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const channels = $input.all().map(item => item.json);\n\n// Transformar {id, nombre} a {id, name}\nconst formattedChannels = channels.map(channel => ({\n  id: channel.id,\n  name: channel.nombre\n}));\n\n// Retornar como array de objetos\nreturn formattedChannels.map(c => ({ json: c }));"
+      },
+      "id": "62be986b-2a02-4fed-8c73-a2c586fcbfe1",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "GET, POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "fb5ccad9-150c-4ef9-897d-1688acadf6e4",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        672,
+        0
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "44dec717-55fe-4831-9d25-92a1d4bf24af",
+  "meta": {
+    "instanceId": "492e1639c541052b06da65989914634d56c64d16473a6c4b9076af8d9c81bd21"
+  },
+  "id": "ZkMk2upJ7XUItJkw",
+  "tags": []
+}

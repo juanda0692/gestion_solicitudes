@@ -2,7 +2,7 @@
 // los datos almacenados en LocalStorage (modo demo).
 const API_BASE =
   (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API) ||
-  process.env.REACT_APP_API ||
+  process.env.REACT_APP_API_BASE_URL ||
   '';
 
 import { getStorageItem, setStorageItem } from '../utils/storage';
@@ -75,9 +75,10 @@ export const getMaterials = () => {
   return Promise.resolve(seed('materials', mockMaterials));
 };
 
+// export const getMaterialsByChannel = (channelId) => http(`/channel-materials?channel_id=${encodeURIComponent(channelId)}`);
 export const getMaterialsByChannel = (channelId) => {
   if (API_BASE)
-    return http(`/channels/${encodeURIComponent(channelId)}/materials`);
+    return http(`/channel-materials?channel_id=${encodeURIComponent(channelId)}`);
   // TODO backend: reemplazar por llamada al API real
   const map = seed('channelMaterials', mockChannelMaterials);
   const mats = seed('materials', mockMaterials);

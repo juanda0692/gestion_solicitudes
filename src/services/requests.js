@@ -1,5 +1,5 @@
 const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API)
-  || process.env.REACT_APP_API;
+  || process.env.REACT_APP_API_BASE_URL;
 
 import { getStorageItem, setStorageItem } from '../utils/storage';
 
@@ -44,24 +44,122 @@ export function saveRequestLocal(payload) {
   return record;
 }
 
+// export async function createRequest(payload) {
+//   if (API_BASE) {
+//     // TODO backend: reemplazar o ajustar llamada a la API real según sea necesario
+//     console.log('Enviando solicitud a:', `${API_BASE}/requests`);
+//     console.log('Payload:', JSON.stringify({ body: payload }, null, 2));
+    
+//     const res = await fetch(`${API_BASE}/requests`, {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify({ body: payload }),
+//     });
+    
+//     console.log('Response status:', res.status);
+//     console.log('Response headers:', Object.fromEntries(res.headers.entries()));
+    
+//     if (!res.ok) {
+//       const txt = await res.text().catch(() => '');
+//       console.error('Error response:', txt);
+//       throw new Error(`HTTP ${res.status} ${txt}`);
+//     }
+    
+//     const responseData = await res.json();
+//     console.log('Response data:', responseData);
+//     return responseData;
+//   }
+//   // TODO backend: utilizar API real en lugar de LocalStorage
+//   const record = saveRequestLocal(payload);
+//   return { id: record.id };
+// }
+
+// export async function createRequest(payload) {
+//   if (API_BASE) {    
+//         // TODO backend: reemplazar o ajustar llamada a la API real según sea necesario
+//     const res = await fetch(`${API_BASE}/requests`, {
+//       method: 'POST',
+//       headers: { 'Content-Type': 'application/json' },
+//       body: JSON.stringify(payload),
+//     });
+    
+//     if (!res.ok) {
+//       const txt = await res.text().catch(() => '');
+//       throw new Error(`HTTP ${res.status} ${txt}`);
+//     }
+    
+//     // Manejar respuesta vacía
+//     const responseText = await res.text();
+//     if (!responseText.trim()) {
+//       // Si la respuesta está vacía, asumir que fue exitosa y retornar un ID simulado
+//       console.log('Respuesta vacía recibida, asumiendo éxito');
+//       return { id: Date.now() }; // ID temporal
+//     }
+    
+//     try {
+//       return JSON.parse(responseText);
+//     } catch (e) {
+//       console.error('Error parsing JSON:', e, 'Response:', responseText);
+//       throw new Error('Respuesta inválida del servidor');
+//     }
+//   }
+//   // Modo local
+//   const record = saveRequestLocal(payload);
+//   return { id: record.id };
+// }
+
 export async function createRequest(payload) {
   if (API_BASE) {
-    // TODO backend: reemplazar o ajustar llamada a la API real según sea necesario
-    const res = await fetch(`${API_BASE}/requests`, {
+    // Transformar campos del inglés al español para Supabase
+    const supabasePayload = {
+      region_id: payload.regionId,
+      subterritorio_id: payload.subterritoryId,
+      pdv_id: payload.pdvId,
+      campaña_id: payload.campaignId || null,
+      prioridad: payload.priority || null,
+      zonas: payload.zones || [],
+      observaciones: payload.observations || '',
+      creado_por: payload.createdBy || '',
+      items: payload.items.map(item => ({
+        material_id: item.materialId,
+        cantidad: item.quantity,
+        medida_etiqueta: item.measureTag,
+        medida_custom: item.measureCustom || null,
+        observaciones: item.observations || null
+      }))
+    };
+    
+      const res = await fetch(`${API_BASE}/requests`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(supabasePayload), // Enviar directamente, sin wrapper 'body'
     });
+    
     if (!res.ok) {
       const txt = await res.text().catch(() => '');
       throw new Error(`HTTP ${res.status} ${txt}`);
     }
-    return res.json();
+    
+    // Manejar respuesta vacía
+    const responseText = await res.text();
+    if (!responseText.trim()) {
+      console.log('Respuesta vacía recibida, asumiendo éxito');
+      return { id: Date.now() };
+    }
+    
+    try {
+      return JSON.parse(responseText);
+    } catch (e) {
+      console.error('Error parsing JSON:', e, 'Response:', responseText);
+      throw new Error('Respuesta inválida del servidor');
+    }
   }
-  // TODO backend: utilizar API real en lugar de LocalStorage
+  // Modo local
   const record = saveRequestLocal(payload);
   return { id: record.id };
 }
+
+
 
 export async function listRequests({ limit = 10, offset = 0, filters = {} } = {}) {
   if (API_BASE) {
@@ -119,4 +217,3 @@ export async function getRequest(id) {
   if (!rec) throw new Error('Solicitud no encontrada');
   return rec;
 }
-
