@@ -421,6 +421,7 @@ const App = () => {
           selectedSubName={selectedSubName}
           selectedChannelId={selectedChannelId}
           tradeType={selectedTradeType}
+          addToast={addToast}
         />
         )}
 

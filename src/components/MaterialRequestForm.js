@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import {
   getChannels,
   getMaterialsByChannel,
@@ -38,7 +40,9 @@ const MaterialRequestForm = ({
   selectedSubName,
   selectedChannelId,
   tradeType,
+  addToast
 }) => {
+  const navigate = useNavigate();
   const [channels, setChannels] = useState([]);
   const [materials, setMaterials] = useState([]);
   const channelName = channels.find((c) => c.id === selectedChannelId)?.name || selectedChannelId;
@@ -73,9 +77,6 @@ const MaterialRequestForm = ({
     getChannels().then(setChannels).catch(console.error);
   }, []);
 
-  // useEffect(() => {
-  //   getCampaigns().then(setCampaignList).catch(console.error);
-  // }, []);
   useEffect(() => {
   getCampaigns()
     .then(response => {
@@ -94,13 +95,6 @@ const MaterialRequestForm = ({
   }, [selectedChannelId]);
 
   // Medidas disponibles según el material seleccionado
-  // const availableMeasures = React.useMemo(() => {
-  //   const material = materials.find((m) => m.id === selectedMaterial);
-  //   const base = material?.medidas || [];
-  //   const opts = base.map((m) => ({ id: m, name: m }));
-  //   opts.push({ id: 'otro', name: 'Otro' });
-  //   return opts;
-  // }, [selectedMaterial]);
   const availableMeasures = React.useMemo(() => {
   const material = materials.find((m) => m.material_id === selectedMaterial);
   if (!material) return [{ id: 'otro', name: 'Otro' }];
@@ -113,49 +107,9 @@ const MaterialRequestForm = ({
 }, [selectedMaterial, materials]);
 
   // Agrega el material actual al carrito de la solicitud
-//   const handleAddToCart = () => {
-//   if (!selectedMaterial || !selectedMeasures) {
-//     alert('Por favor selecciona material y medidas');
-//     return;
-//   }
 
-//   const material = materials.find((m) => m.material_id === selectedMaterial);
-//   if (!material) {
-//     alert('Material no encontrado');
-//     return;
-//   }
-
-//   // Create measures object with the correct structure
-//   const measuresObj = selectedMeasures === 'otro'
-//     ? { id: 'otro', name: customMeasure }
-//     : { id: selectedMeasures, name: selectedMeasures };
-
-//   const newItem = {
-//     id: `${Date.now()}`, // Unique ID for cart item
-//     material: {
-//       id: material.material_id,
-//       name: material.name,
-//       stock: material.stock
-//     },
-//     measures: measuresObj,
-//     quantity: quantity,
-//     notes: notes
-//   };
-
-//   setCart([...cart, newItem]);
-  
-//   // Reset form
-//   setSelectedMaterial(null);
-//   setSelectedMeasures('');
-//   setCustomMeasure('');
-//   setQuantity(1);
-//   setNotes('');
-  
-//   alert('Material agregado al carrito');
-// };
-
-const handleAddToCart = () => {
-  if (!selectedMaterial || !selectedMeasures) {
+  const handleAddToCart = () => {
+    if (!selectedMaterial || !selectedMeasures) {
     alert('Por favor selecciona material y medidas');
     return;
   }
@@ -236,16 +190,7 @@ const handleAddToCart = () => {
       alert('Selecciona Región, Subterritorio y PDV antes de confirmar.');
       return;
     }
-    // if (
-    //   selectedZones.length === 0 ||
-    //   !selectedPriority ||
-    //   !selectedCampaign
-    // ) {
-    //   alert(
-    //     'Por favor completa Zona y Nombre de campaña antes de continuar.'
-    //   );
-    //   return;
-    // }
+  
     // Solo validar zona y campaña para trade regional
     if (tradeType === 'regional') {
       if (
@@ -272,73 +217,89 @@ const handleAddToCart = () => {
   };
 
   // Envía la solicitud al componente padre cuando el carrito tiene información
-  const handleConfirmCart = async () => {
-    if (cart.length > 0) {
-      const itemsToStore = cart.map((item) => ({
-        ...item,
-        displayName: getDisplayName(item.material.name),
-      }));
+const handleConfirmCart = async () => {
+  if (cart.length === 0) {
+    window?.showToast?.({
+      title: 'Carrito vacío',
+      description: 'Agrega al menos un material',
+      variant: 'destructive',
+    });
+    return;
+  }
 
-      // const payload = {
-      //   regionId: selectedRegionId,
-      //   subterritoryId: selectedSubId,
-      //   pdvId: selectedPdvId,
-      //   campaignId: selectedCampaign || null,
-      //   priority: selectedPriority || null,
-      //   zones: selectedZones,
-      //   observations: '',
-      //   items: cart.map((item) => ({
-      //     materialId: item.material.id,
-      //     quantity: item.quantity,
-      //     measureTag: item.measures.id === 'otro' ? 'Otro' : item.measures.name,
-      //     measureCustom: item.measures.id === 'otro' ? item.measures.name : undefined,
-      //     observations: item.notes || null,
-      //   })),
-      //   createdBy: 'usuario@empresa.com',
-      // };
+  // Para tu preview local
+  const itemsToStore = cart.map((item) => ({
+    ...item,
+    displayName: getDisplayName(item.material?.name ?? item.name ?? ''),
+  }));
 
-      const payload = {
-  regionId: selectedRegionId,
-  subterritoryId: selectedSubId,
-  pdvId: selectedPdvId,
-  campaignId: selectedCampaign || null,
-  // Extraer el número de la prioridad (ej: "Prioridad 1" → 1)
-  priority: selectedPriority ? parseInt(selectedPriority.replace(/\D/g, '')) || null : null,
-  zones: selectedZones,
-  observations: '',
-  items: cart.map((item) => ({
-    materialId: item.material.id,
-    quantity: item.quantity,
-    measureTag: item.measures.id === 'otro' ? 'Otro' : item.measures.name,
-    measureCustom: item.measures.id === 'otro' ? item.measures.name : undefined,
-    observations: item.notes || null,
-  })),
-  createdBy: 'usuario@empresa.com',
-};
-
-
-      try {
-        const res = await createRequest(payload);
-        alert(`Solicitud creada: #${res.id}`);
-      } catch (e) {
-        console.error(e);
-        alert('No se pudo crear la solicitud');
-      }
-
-      onConfirmRequest({
-        pdvId: selectedPdvId,
-        pdvSnapshot,
-        region: selectedRegionName,
-        subterritory: selectedSubName,
-        zones: selectedZones,
-        priority: selectedPriority,
-        campaigns: selectedCampaign ? [selectedCampaign] : [],
-        channelId: selectedChannelId,
-        items: itemsToStore,
-      });
-    }
-    setShowConfirmModal(false);
+  // Construye payload usando TUS estados reales
+  const payload = {
+    region_id: selectedRegionId || null,
+    subterritorio_id: selectedSubId || null,
+    pdv_id: selectedPdvId,                                    // 🔴 requerido
+    campaña_id: selectedCampaign || null,                     // string id o null
+    prioridad: Number(selectedPriority) || 0,                 // conviértelo a número
+    zonas: Array.isArray(selectedZones) ? selectedZones : null,
+    observaciones: notes || '',
+    creado_por: '',
+    items: cart.map((item) => ({
+      material_id: item.material?.id ?? item.id,              // cubre ambos casos
+      cantidad: Number(item.qty) || 0,
+      medida_etiqueta: item.labelSize ?? null,
+      medida_custom: item.customSize ?? null,
+      observaciones: item.note ?? null,
+    })),
   };
+
+  // Validaciones rápidas coherentes con n8n
+  const clientErrors = [];
+  if (!payload.pdv_id) clientErrors.push('Debes seleccionar un PDV');
+  if (!Array.isArray(payload.items) || payload.items.length === 0) clientErrors.push('Agrega al menos un material');
+  if (payload.items.some(it => !it.material_id)) clientErrors.push('Cada ítem debe tener material_id');
+  if (payload.items.some(it => typeof it.cantidad !== 'number' || it.cantidad < 0)) clientErrors.push('cantidad debe ser número ≥ 0');
+
+  if (clientErrors.length) {
+    window?.showToast?.({
+      title: 'Formulario incompleto',
+      description: clientErrors.join(' • '),
+      variant: 'destructive',
+    });
+    return;
+  }
+
+  try {
+      const res = await createRequest(payload);
+
+      // ✅ toast de éxito
+      addToast?.(`Solicitud creada`, 'success');
+
+      // actualiza preview local si lo necesitas
+      onConfirmRequest({ /* ... */ });
+
+      // cierra modal y navega a /success
+      setShowConfirmModal(false);
+      navigate('/success', {
+        replace: true,
+        state: { solicitudId: res.solicitud_id, items: res.items },
+      });
+
+    } catch (err) {
+      const details = err?.body?.details;
+      const msg = Array.isArray(details) && details.length
+        ? details.join(' • ')
+        : (err?.body?.error || err.message || 'Error al crear la solicitud');
+
+      // ❌ toast de error
+      addToast?.(msg, 'error');
+
+      // si quieres, también puedes mantener el modal abierto aquí
+      // return;
+    } finally {
+      // si prefieres cerrarlo siempre, déjalo aquí:
+      setShowConfirmModal(false);
+    }
+};
 
   return (
 

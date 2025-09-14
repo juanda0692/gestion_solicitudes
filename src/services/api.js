@@ -1,7 +1,7 @@
 // URL base para la API real. Si no está configurada, se utilizarán
 // los datos almacenados en LocalStorage (modo demo).
 const API_BASE =
-  (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API) ||
+  // (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API) ||
   process.env.REACT_APP_API_BASE_URL ||
   '';
 
@@ -16,17 +16,34 @@ import { materials as mockMaterials } from '../mock/materials';
 import { channelMaterials as mockChannelMaterials } from '../mock/channelMaterials';
 import { campaigns as mockCampaigns } from '../mock/campaigns';
 
-async function http(path, options = {}) {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
+export async function http(path, options = {}) {
+    const res = await fetch(`${API_BASE}${path}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': process.env.REACT_APP_API_KEY || 'tigo-pop-key',
+      ...(options.headers || {}),
+    },
     ...options,
   });
+
+  const text = await res.text(); 
+
   if (!res.ok) {
-    const txt = await res.text().catch(() => '');
-    throw new Error(`HTTP ${res.status} ${txt}`);
+    let errBody;
+    try { errBody = JSON.parse(text); } catch { errBody = text || ''; }
+    const err = new Error(`HTTP ${res.status}`);
+    err.status = res.status;
+    err.body = errBody;
+    throw err;
   }
-  return res.status === 204 ? null : res.json();
+
+  if (res.status === 204 || text.trim() === '') return null;
+  try { return JSON.parse(text); } catch {
+    return text;
+  }
 }
+
+
 
 // Helper para obtener/sembrar valores en LocalStorage
 const seed = (key, mock) => {
@@ -53,6 +70,7 @@ export const getSubterritories = (regionId) => {
   return Promise.resolve(regionId ? subs[regionId] || [] : Object.values(subs).flat());
 };
 
+
 export const getPdvs = (subId) => {
   if (API_BASE)
     return subId
@@ -75,7 +93,6 @@ export const getMaterials = () => {
   return Promise.resolve(seed('materials', mockMaterials));
 };
 
-// export const getMaterialsByChannel = (channelId) => http(`/channel-materials?channel_id=${encodeURIComponent(channelId)}`);
 export const getMaterialsByChannel = (channelId) => {
   if (API_BASE)
     return http(`/channel-materials?channel_id=${encodeURIComponent(channelId)}`);
