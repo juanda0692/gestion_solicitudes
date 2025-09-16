@@ -103,6 +103,8 @@ const MaterialRequestForm = ({
   const measures = [{ id: material.size, name: material.size }];
   // Add the "Otro" option
   measures.push({ id: 'otro', name: 'Otro' });
+  console.log("mesaures: ",measures);
+  
   return measures;
 }, [selectedMaterial, materials]);
 
@@ -128,7 +130,7 @@ const MaterialRequestForm = ({
 
   // Create measures object with the correct structure
   const measuresObj = selectedMeasures === 'otro'
-    ? { id: 'otro', name: customMeasure }
+    ? { id: customMeasure, name: customMeasure }
     : { id: selectedMeasures, name: selectedMeasures };
 
   const newItem = {
@@ -142,6 +144,8 @@ const MaterialRequestForm = ({
     quantity: quantity,
     notes: notes
   };
+  console.log(newItem);
+  
 
   setCart([...cart, newItem]);
   
@@ -154,6 +158,9 @@ const MaterialRequestForm = ({
   
   alert('Material agregado al carrito');
 };
+
+
+
 
   // Elimina un elemento del carrito
   const handleRemoveFromCart = (itemId) => {
@@ -233,24 +240,56 @@ const handleConfirmCart = async () => {
     displayName: getDisplayName(item.material?.name ?? item.name ?? ''),
   }));
 
+  // cuando seleccionas campaña en el modal/lista
+const handleSelectCampaign = (campaignId) => {
+  setSelectedCampaign(campaignId);
+  const c = campaignList.find(x => x.id === campaignId);
+  setSelectedPriority(Number(c?.prioridad || 0)); // 👈 fuerza number ya aquí
+};
+
   // Construye payload usando TUS estados reales
-  const payload = {
-    region_id: selectedRegionId || null,
-    subterritorio_id: selectedSubId || null,
-    pdv_id: selectedPdvId,                                    // 🔴 requerido
-    campaña_id: selectedCampaign || null,                     // string id o null
-    prioridad: Number(selectedPriority) || 0,                 // conviértelo a número
-    zonas: Array.isArray(selectedZones) ? selectedZones : null,
-    observaciones: notes || '',
-    creado_por: '',
-    items: cart.map((item) => ({
-      material_id: item.material?.id ?? item.id,              // cubre ambos casos
-      cantidad: Number(item.qty) || 0,
-      medida_etiqueta: item.labelSize ?? null,
-      medida_custom: item.customSize ?? null,
-      observaciones: item.note ?? null,
-    })),
-  };
+  // const payload = {
+  //   region_id: selectedRegionId || null,
+  //   subterritorio_id: selectedSubId || null,
+  //   pdv_id: selectedPdvId,                                    // 🔴 requerido
+  //   campaña_id: selectedCampaign || null,                     // string id o null
+  //   prioridad: Number(selectedPriority) || 0,                 // conviértelo a número
+  //   zonas: Array.isArray(selectedZones) ? selectedZones : null,
+  //   observaciones: notes || '',
+  //   creado_por: '',
+  //   items: cart.map((item) => ({
+  //     material_id: item.material?.id ?? item.id,              // cubre ambos casos
+  //     cantidad: Number(item.qty) || 0,
+  //     medida_etiqueta: item.labelSize ?? null,
+  //     medida_custom: item.customSize ?? null,
+  //     observaciones: item.note ?? null,
+  //   })),
+  // };
+
+  const toInt = (v, d = 0) => Number.isFinite(Number(v)) ? Number(v) : d;
+  const priorityFromCampaign = Number(
+  campaignList.find(c => c.id === selectedCampaign)?.prioridad ?? selectedPriority ?? 0
+);
+
+const payload = {
+  region_id: selectedRegionId || null,
+  subterritorio_id: selectedSubId || null,
+  pdv_id: selectedPdvId,
+  campaña_id: selectedCampaign || null,
+  prioridad: priorityFromCampaign || 1, // ← número
+  zonas: Array.isArray(selectedZones) ? selectedZones : null,
+  observaciones: notes || '',
+  creado_por: '',    // TODO por vacío. Luego se debe validar con user
+  items: cart.map((it) => ({
+    log: console.log("material elegido: ", it),
+    material_id: it.material?.id ?? it.id,                   // cubre ambos
+    cantidad: toInt(it.qty ?? it.quantity, 0),               // ← número
+    medida_etiqueta: it.measures.name ?? null,
+    medida_custom:   it.measures.name   ?? null,
+    observaciones:   it.observaciones   ?? it.note       ?? it.notes           ?? null,
+  })),
+};
+
 
   // Validaciones rápidas coherentes con n8n
   const clientErrors = [];
@@ -269,6 +308,8 @@ const handleConfirmCart = async () => {
   }
 
   try {
+      console.log('FE → payload', JSON.stringify(payload, null, 2));
+
       const res = await createRequest(payload);
 
       // ✅ toast de éxito
@@ -279,9 +320,9 @@ const handleConfirmCart = async () => {
 
       // cierra modal y navega a /success
       setShowConfirmModal(false);
-      navigate('/success', {
+      navigate('/confirm', {
         replace: true,
-        state: { solicitudId: res.solicitud_id, items: res.items },
+        state: { ok:true, solicitudId: res.solicitud_id, items: res.items },
       });
 
     } catch (err) {
@@ -292,13 +333,15 @@ const handleConfirmCart = async () => {
 
       // ❌ toast de error
       addToast?.(msg, 'error');
-
+      setShowConfirmModal(false);
+      navigate("/confirm", { replace: true, state: { ok: false, error: msg } });
       // si quieres, también puedes mantener el modal abierto aquí
       // return;
-    } finally {
-      // si prefieres cerrarlo siempre, déjalo aquí:
-      setShowConfirmModal(false);
-    }
+    } 
+    // finally {
+    //   // si prefieres cerrarlo siempre, déjalo aquí:
+    //   setShowConfirmModal(false);
+    // }
 };
 
   return (
