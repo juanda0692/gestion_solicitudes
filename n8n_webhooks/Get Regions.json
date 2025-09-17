@@ -1,0 +1,151 @@
+{
+  "name": "Get Regions",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "regions",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "e96ab6a0-5355-4f9a-a820-6836be7b2ede",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        144,
+        112
+      ],
+      "webhookId": "ad3ec8db-f745-4878-b969-9a4b3f433c69"
+    },
+    {
+      "parameters": {
+        "url": "https://ftftlekcgthgrbmvoajd.supabase.co/rest/v1/regiones",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "select",
+              "value": "id,nombre"
+            },
+            {
+              "name": "order",
+              "value": "nombre.asc"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0ZnRsZWtjZ3RoZ3JibXZvYWpkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NjUwMDUxOSwiZXhwIjoyMDcyMDc2NTE5fQ.AMRs2dBcIRQuryFErHHqR5dSX1BnBdlBuluVNhTFw9I"
+            },
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0ZnRsZWtjZ3RoZ3JibXZvYWpkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NjUwMDUxOSwiZXhwIjoyMDcyMDc2NTE5fQ.AMRs2dBcIRQuryFErHHqR5dSX1BnBdlBuluVNhTFw9I"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "4f683c6d-dc48-40e2-98f0-6723a9a3c623",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        368,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const regions = $input.all().map(item => item.json);\n\n// Transformar {id, nombre} a {id, name}\nconst formattedRegions = regions.map(region => ({\n  id: region.id,\n  name: region.nombre\n}));\n\n// Retornar como array de objetos (cada item en su propio json)\nreturn formattedRegions.map(r => ({ json: r }));"
+      },
+      "id": "24d8160a-0804-420f-8f24-d720b51dcfd9",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        592,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "GET, POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "59a4c265-aaad-4db1-941b-f8443609179c",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        816,
+        112
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "fab37992-faf4-4c90-acd9-63a0fef39b2b",
+  "meta": {
+    "instanceId": "492e1639c541052b06da65989914634d56c64d16473a6c4b9076af8d9c81bd21"
+  },
+  "id": "3Z3OwW7DLYkuXXiK",
+  "tags": []
+}

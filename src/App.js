@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from "react-router-dom";
 
 /**
  * Componente principal de la aplicación.
@@ -54,8 +55,8 @@ const App = () => {
   const [channelList, setChannelList] = useState([]);
 
   // Identificador del PDV seleccionado
-  const [selectedPdvId, setSelectedPdvId] = useState('');
-  const [selectedPdvName, setSelectedPdvName] = useState('');
+  // const [selectedPdvId, setSelectedPdvId] = useState('');
+  // const [selectedPdvName, setSelectedPdvName] = useState('');
   const [selectedRegionId, setSelectedRegionId] = useState('');
   const [selectedRegionName, setSelectedRegionName] = useState('');
   const [selectedSubId, setSelectedSubId] = useState('');
@@ -65,6 +66,11 @@ const App = () => {
   const [confirmationMessage, setConfirmationMessage] = useState('');
 
   const addToast = useToast();
+
+  const location = useLocation();
+  const [view, setView] = useState(location.state?.view || "default");
+  const [selectedPdvId, setSelectedPdvId] = useState(location.state?.pdvId || "");
+  const [selectedPdvName, setSelectedPdvName] = useState(location.state?.pdvName || "");
 
   // Limpieza y saneamiento inicial de localStorage
   useEffect(() => {
@@ -421,6 +427,7 @@ const App = () => {
           selectedSubName={selectedSubName}
           selectedChannelId={selectedChannelId}
           tradeType={selectedTradeType}
+          addToast={addToast}
         />
         )}
 

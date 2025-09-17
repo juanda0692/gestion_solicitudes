@@ -28,12 +28,15 @@ const SingleSelectModal = ({
         {items
           .filter((it) => it.name.toLowerCase().includes(search.toLowerCase()))
           .map((it) => (
-            <label key={it.id} className="flex items-center cursor-pointer">
+            <label key={it.material_id} className="flex items-center cursor-pointer">
               <input
                 type="radio"
+                name="material"
                 className="mr-2"
-                checked={selectedId === it.id}
-                onChange={() => onSelect(it.id)}
+                checked={selectedId === it.material_id}
+                onChange={() => {
+                  onSelect(it.material_id);
+                }}
               />
               {getDisplayName(it.name)}
             </label>
@@ -46,7 +49,7 @@ const SingleSelectModal = ({
         onClick={onClose}
         className="w-full mt-4 bg-tigo-blue text-white py-2 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all"
       >
-        Aceptar
+        Cerrar
       </button>
     </div>
   </div>

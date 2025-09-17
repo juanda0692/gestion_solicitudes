@@ -1,8 +1,8 @@
-const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API)
-  || process.env.REACT_APP_API;
-
 import { getStorageItem, setStorageItem } from '../utils/storage';
+import { http } from './api';
 
+const API_BASE = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API)
+  || process.env.REACT_APP_API_BASE_URL;
 const STORAGE_KEY = 'requests';
 
 export function getRequestsLocal() {
@@ -44,24 +44,57 @@ export function saveRequestLocal(payload) {
   return record;
 }
 
-export async function createRequest(payload) {
-  if (API_BASE) {
-    // TODO backend: reemplazar o ajustar llamada a la API real según sea necesario
-    const res = await fetch(`${API_BASE}/requests`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    if (!res.ok) {
-      const txt = await res.text().catch(() => '');
-      throw new Error(`HTTP ${res.status} ${txt}`);
-    }
-    return res.json();
-  }
-  // TODO backend: utilizar API real en lugar de LocalStorage
-  const record = saveRequestLocal(payload);
-  return { id: record.id };
+function normalizeRequestPayload(data = {}) {
+  const toNull = (v) => (v === undefined ? null : v);
+
+  const solicitud = {
+    region_id:        toNull(data.region_id ?? data.regionId),
+    subterritorio_id: toNull(data.subterritorio_id ?? data.subterritoryId),
+    pdv_id:           data.pdv_id ?? data.pdvId,              // 👈 acepta ambos
+    campaña_id:       toNull(data.campaña_id ?? data.campaignId),
+    prioridad:        data.prioridad ?? data.priority ?? 0,
+    zonas:            data.zonas ?? data.zones ?? null,       // json/array/obj
+    observaciones:    toNull(data.observaciones ?? data.notes),
+    creado_por:       toNull(data.creado_por ?? data.createdBy),
+  };
+
+  const items = Array.isArray(data.items) ? data.items.map((it) => ({
+    material_id:     it.material_id ?? it.materialId,         // 👈 ambos
+    cantidad:        it.cantidad ?? it.quantity ?? 0,
+    medida_etiqueta: toNull(it.medida_etiqueta ?? it.labelSize),
+    medida_custom:   toNull(it.medida_custom ?? it.customSize),
+    observaciones:   toNull(it.observaciones ?? it.notes),
+  })) : [];
+
+  return { solicitud, items };
 }
+
+export async function createRequest(data) {
+  // Normaliza primero
+  const { solicitud, items } = normalizeRequestPayload(data);
+
+  // Validación en FE (coherente con n8n)
+  const errors = [];
+  if (!solicitud.pdv_id) errors.push('pdv_id es requerido');
+  if (!Array.isArray(items) || items.length === 0) errors.push('Debe enviar al menos un item');
+  if (items.some(it => !it.material_id)) errors.push('Cada item requiere material_id');
+  if (items.some(it => typeof it.cantidad !== 'number' || it.cantidad < 0)) errors.push('cantidad debe ser número >= 0');
+
+  if (errors.length) {
+    const err = new Error(errors[0]);
+    err.status = 400;
+    err.body = { error: 'VALIDATION_FAILED', details: errors };
+    throw err;
+  }
+
+  // Envía al backend usando nombres de columna + items
+  const payload = { ...solicitud, items };
+  return http('/requests', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
 
 export async function listRequests({ limit = 10, offset = 0, filters = {} } = {}) {
   if (API_BASE) {
@@ -119,4 +152,3 @@ export async function getRequest(id) {
   if (!rec) throw new Error('Solicitud no encontrada');
   return rec;
 }
-

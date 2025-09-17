@@ -1,24 +1,14 @@
-version: '3.8'
 services:
-  mysql:
-    image: mysql:8
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: n8n-service
     ports:
-      - "3307:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: Bermudez2020*
-      MYSQL_DATABASE: base_dest
+      - "5678:5678"
+    env_file:
+      - .env
     volumes:
-      - mysql_data:/var/lib/mysql
-      - ./docs/sql/base_destinatarios_import_final.sql:/docker-entrypoint-initdb.d/base.sql:ro
-  php:
-    build: ./backend/docker
-    working_dir: /app
-    volumes:
-      - .:/app
-    command: php -S 0.0.0.0:8000 backend/router.php
-    ports:
-      - "8000:8000"
-    depends_on:
-      - mysql
+      - n8n_data:/home/node/.n8n
+    restart: unless-stopped
+
 volumes:
-  mysql_data:
+  n8n_data: {}

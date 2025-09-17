@@ -1,0 +1,156 @@
+{
+  "name": "Get Channel Materials",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "channel-materials",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "c3e6ec02-42df-449a-ba10-a52a72ed1035",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        320,
+        96
+      ],
+      "webhookId": "channel-materials-webhook"
+    },
+    {
+      "parameters": {
+        "url": "https://ftftlekcgthgrbmvoajd.supabase.co/rest/v1/materiales_por_canal",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "canal_id",
+              "value": "=eq.{{ $json.query.channel_id }}"
+            },
+            {
+              "name": "order",
+              "value": "material_id.asc"
+            },
+            {
+              "name": "select",
+              "value": "material_id,materiales(nombre,medidas),stock,created_at,updated_at"
+            }
+          ]
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0ZnRsZWtjZ3RoZ3JibXZvYWpkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NjUwMDUxOSwiZXhwIjoyMDcyMDc2NTE5fQ.AMRs2dBcIRQuryFErHHqR5dSX1BnBdlBuluVNhTFw9I"
+            },
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0ZnRsZWtjZ3RoZ3JibXZvYWpkIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NjUwMDUxOSwiZXhwIjoyMDcyMDc2NTE5fQ.AMRs2dBcIRQuryFErHHqR5dSX1BnBdlBuluVNhTFw9I"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "ec285eb8-6145-4217-9a3f-3cc81ab25eda",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        768,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const channelMaterials = $input.all().map(item => item.json);\n\n// Simplemente retornar los datos de la tabla materiales_por_canal\nconst formattedMaterials = channelMaterials.map(item => ({\n  material_id: item.material_id,\n  name: item.materiales.nombre,\n  size: item.materiales.medidas,\n  canal_id: item.canal_id,\n  stock: item.stock,\n  created_at: item.created_at,\n  updated_at: item.updated_at\n}));\n\n// Retornar como array de objetos\nreturn formattedMaterials.map(m => ({ json: m }));"
+      },
+      "id": "0d0cd6eb-0751-4cc7-9efb-d16271f33e06",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1088,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "allIncomingItems",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Access-Control-Allow-Methods",
+                "value": "GET, POST, OPTIONS"
+              },
+              {
+                "name": "Access-Control-Allow-Headers",
+                "value": "Content-Type"
+              }
+            ]
+          }
+        }
+      },
+      "id": "66a7d637-27fa-4893-bfb4-fceb5abce6f1",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        96
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "da29e97b-e5c1-49f6-ab18-141de1c136d2",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "492e1639c541052b06da65989914634d56c64d16473a6c4b9076af8d9c81bd21"
+  },
+  "id": "yb7NE61hzEEIuCEK",
+  "tags": []
+}
