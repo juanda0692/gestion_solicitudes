@@ -1,14 +1,15 @@
 services:
   n8n:
-    image: n8nio/n8n:latest
+    image: docker.n8n.io/n8nio/n8n
     container_name: n8n-service
     ports:
       - "5678:5678"
     env_file:
       - .env
     volumes:
-      - n8n_data:/home/node/.n8n
+      - tigo_gestion_solicitudes_n8n_data:/home/node/.n8n
     restart: unless-stopped
 
 volumes:
-  n8n_data: {}
+  tigo_gestion_solicitudes_n8n_data:
+    external: true
