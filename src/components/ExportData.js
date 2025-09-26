@@ -54,14 +54,24 @@ const ExportData = ({ onBack, onExport }) => {
 
   // Filtrado por texto
   useEffect(() => {
-    const term = search.toLowerCase();
-    setFilteredPdvs(
-      pdvs.filter(
-        (p) =>
-          p.name.toLowerCase().includes(term) ||
-          p.id.toLowerCase().includes(term),
-      ),
-    );
+    // const term = search.toLowerCase();
+    // setFilteredPdvs(
+    //   pdvs.filter(
+    //     (p) =>
+    //       p.name.toLowerCase().includes(term) ||
+    //       p.id.toLowerCase().includes(term),
+    //   ),
+    // );
+     const safeLower = (v) => String(v ?? '').toLowerCase();
+      const term = safeLower(search);
+      // Si no hay término, mostrar todo
+      if (!term) { setFilteredPdvs(pdvs); return; }
+      setFilteredPdvs(
+        pdvs.filter((p) =>
+          safeLower(p.name).includes(term) ||
+          safeLower(p.id).includes(term)
+        )
+      );
   }, [search, pdvs]);
 
   const togglePdv = (id) => {
@@ -73,19 +83,37 @@ const ExportData = ({ onBack, onExport }) => {
   const handleSelectAll = () => setSelectedPdvs(pdvs.map((p) => p.id));
   const handleClearSelection = () => setSelectedPdvs([]);
 
-  const handleExport = () => {
-    const regionName = regions.find((r) => r.id === selectedRegion)?.name || '';
-    const channelName =
-      channels.find((c) => c.id === selectedChannel)?.name || '';
-    const list = pdvs.filter((p) => selectedPdvs.includes(p.id));
-    const exportObj = {
-      regionName,
-      channelName,
-      pdvs: list,
-      meta: { type: 'pdv-list' },
-    };
-    onExport(exportObj, { excel: true });
+  // const handleExport = () => {
+  //   const regionName = regions.find((r) => r.id === selectedRegion)?.name || '';
+  //   const channelName =
+  //     channels.find((c) => c.id === selectedChannel)?.name || '';
+  //   const list = pdvs.filter((p) => selectedPdvs.includes(p.id));
+  //   const exportObj = {
+  //     regionName,
+  //     channelName,
+  //     pdvs: list,
+  //     meta: { type: 'pdv-list' },
+  //   };
+  //   onExport(exportObj, { excel: true });
+  // };
+
+    const handleExport = () => {
+      const regionName = regions.find((r) => r.id === selectedRegion)?.name || '';
+      const channelName =
+        channels.find((c) => c.id === selectedChannel)?.name || '';
+      const list = pdvs.filter((p) => selectedPdvs.includes(p.id));
+    //   const exportObj = {
+    //     regionName,
+    //     channelName,
+    //     canalId: selectedChannel,           // <--- ID del canal seleccionado
+    //     pdvIds: list.map(p => p.id),        // <--- IDs de PDV seleccionados (cómodo para el padre)
+    //     pdvs: list,
+    //     meta: { type: 'pdv-list' },
+    // };
+    // onExport(exportObj);
+      onExport({ pdvIds: list.map(p => p.id), canalId: selectedChannel, regionName, channelName })
   };
+
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg max-w-xl mx-auto">
@@ -109,7 +137,7 @@ const ExportData = ({ onBack, onExport }) => {
             <option value="">Selecciona una región</option>
             {regions.map((r) => (
               <option key={r.id} value={r.id}>
-                {r.name}
+                {r.name ?? r.nombre ?? '(sin nombre)'}
               </option>
             ))}
           </select>
@@ -125,10 +153,10 @@ const ExportData = ({ onBack, onExport }) => {
             }}
             className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg"
           >
-            <option value="">Todos</option>
+            <option value="">Seleccione un Canal</option>
             {channels.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name}
+                {c.name ?? c.nombre ?? '(sin nombre)'}
               </option>
             ))}
           </select>
@@ -161,7 +189,7 @@ const ExportData = ({ onBack, onExport }) => {
                       checked={selectedPdvs.includes(p.id)}
                       onChange={() => togglePdv(p.id)}
                     />
-                    <span>{p.name}</span>
+                    <span>{p.name ?? p.nombre}</span>
                   </label>
                 ))}
             </div>

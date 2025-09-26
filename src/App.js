@@ -156,34 +156,46 @@ const App = () => {
     setCurrentPage('create-campaign');
   };
 
-  // Exporta la información a un archivo Excel utilizando la utilidad dedicada.
-  /**
-   * Ejecuta la exportación de datos.
-   * Por defecto solo genera Excel, pero puede opcionalmente crear
-   * un archivo JSON según la configuración recibida.
-   *
-   * @param {Object} exportObj - datos a exportar
-   * @param {Object} [options]
-   * @param {boolean} [options.excel=true] - generar archivo Excel
-   * @param {boolean} [options.json=false] - generar archivo JSON
-   */
-  const performExport = (exportObj, options = {}) => {
-    const { excel = true, json = false } = options;
-    let ok = true;
-    if (excel) {
-      if (exportObj?.meta?.type === 'pdv-list') {
-        // Exportación de PDVs (modo demo)
-        ok = exportPdvs(exportObj) && ok; // TODO backend/export
-      } else {
-        ok = exportToExcel(exportObj) && ok;
-      }
-    }
-    if (json) ok = exportToJson(exportObj) && ok;
+  // // Exporta la información a un archivo Excel utilizando la utilidad dedicada.
+  // /**
+  //  * Ejecuta la exportación de datos.
+  //  * Por defecto solo genera Excel, pero puede opcionalmente crear
+  //  * un archivo JSON según la configuración recibida.
+  //  *
+  //  * @param {Object} exportObj - datos a exportar
+  //  * @param {Object} [options]
+  //  * @param {boolean} [options.excel=true] - generar archivo Excel
+  //  * @param {boolean} [options.json=false] - generar archivo JSON
+  //  */
+  // const performExport = (exportObj, options = {}) => {
+  //   const { excel = true, json = false } = options;
+  //   let ok = true;
+  //   if (excel) {
+  //     if (exportObj?.meta?.type === 'pdv-list') {
+  //       // Exportación de PDVs (modo demo)
+  //       ok = exportPdvs(exportObj) && ok; // TODO backend/export
+  //     } else {
+  //       ok = exportToExcel(exportObj) && ok;
+  //     }
+  //   }
+  //   if (json) ok = exportToJson(exportObj) && ok;
 
-    if (ok) {
+  //   if (ok) {
+  //     addToast('Exportación completada');
+  //   } else {
+  //     addToast('No se pudo generar el archivo. Intenta de nuevo.', 'error');
+  //   }
+  // };
+
+  const performExport = async (exportObj) => {
+    try {
+      // exportToExcel (tu util) debe YA llamar a n8n /webhook/solicitudes/export y descargar el blob
+      const ok = await exportToExcel(exportObj);
+      if (!ok) throw new Error('No se pudo generar el archivo');
       addToast('Exportación completada');
-    } else {
-      addToast('No se pudo generar el archivo. Intenta de nuevo.', 'error');
+    } catch (e) {
+      console.error(e);
+      addToast(e.message || 'No se pudo generar el archivo. Intenta de nuevo.', 'error');
     }
   };
 

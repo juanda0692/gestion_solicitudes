@@ -1,10 +1,5 @@
 // URL base para la API real. Si no está configurada, se utilizarán
 // los datos almacenados en LocalStorage (modo demo).
-const API_BASE =
-  // (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API) ||
-  process.env.REACT_APP_API_BASE_URL ||
-  '';
-
 import { getStorageItem, setStorageItem } from '../utils/storage';
 import {
   regions as mockRegions,
@@ -16,11 +11,13 @@ import { materials as mockMaterials } from '../mock/materials';
 import { channelMaterials as mockChannelMaterials } from '../mock/channelMaterials';
 import { campaigns as mockCampaigns } from '../mock/campaigns';
 
+const API_BASE = process.env.REACT_APP_API_BASE_URL;
+
 export async function http(path, options = {}) {
     const res = await fetch(`${API_BASE}${path}`, {
     headers: {
       'Content-Type': 'application/json',
-      'x-api-key': process.env.REACT_APP_API_KEY || 'tigo-pop-key',
+      'x-api-key': process.env.REACT_APP_API_KEY || process.env.VALID_API_KEYS,
       ...(options.headers || {}),
     },
     ...options,
