@@ -102,15 +102,16 @@ const ExportData = ({ onBack, onExport }) => {
       const channelName =
         channels.find((c) => c.id === selectedChannel)?.name || '';
       const list = pdvs.filter((p) => selectedPdvs.includes(p.id));
-      const exportObj = {
-        regionName,
-        channelName,
-        canalId: selectedChannel,           // <--- ID del canal seleccionado
-        pdvIds: list.map(p => p.id),        // <--- IDs de PDV seleccionados (cómodo para el padre)
-        pdvs: list,
-        meta: { type: 'pdv-list' },
-    };
-    onExport(exportObj, { excel: true });
+    //   const exportObj = {
+    //     regionName,
+    //     channelName,
+    //     canalId: selectedChannel,           // <--- ID del canal seleccionado
+    //     pdvIds: list.map(p => p.id),        // <--- IDs de PDV seleccionados (cómodo para el padre)
+    //     pdvs: list,
+    //     meta: { type: 'pdv-list' },
+    // };
+    // onExport(exportObj);
+      onExport({ pdvIds: list.map(p => p.id), canalId: selectedChannel, regionName, channelName })
   };
 
 
@@ -152,7 +153,7 @@ const ExportData = ({ onBack, onExport }) => {
             }}
             className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg"
           >
-            <option value="">Todos</option>
+            <option value="">Seleccione un Canal</option>
             {channels.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name ?? c.nombre ?? '(sin nombre)'}

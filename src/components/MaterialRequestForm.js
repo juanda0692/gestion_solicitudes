@@ -103,7 +103,7 @@ const MaterialRequestForm = ({
   const measures = [{ id: material.size, name: material.size }];
   // Add the "Otro" option
   measures.push({ id: 'otro', name: 'Otro' });
-  console.log("mesaures: ",measures);
+  // console.log("mesaures: ",measures);
   
   return measures;
 }, [selectedMaterial, materials]);
