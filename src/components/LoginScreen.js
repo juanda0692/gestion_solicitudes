@@ -1,54 +1,66 @@
 import React, { useState } from 'react';
 import TigoLogo from '../assets/TigoLogo';
 
-/**
- * Pantalla de inicio de sesión.
- *
- * Es un formulario visual que luego se conectará
- * con el backend para autenticar al usuario.
- */
-const LoginScreen = ({ onLogin }) => {
+const LoginScreen = ({ onLogin, providerLabel = 'fake' }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!username.trim() || !password.trim()) {
-      setError('Usuario y contraseña requeridos');
+      setError('Usuario y contrasena requeridos');
       return;
     }
+
+    setLoading(true);
     setError('');
-    onLogin();
+    try {
+      await onLogin({
+        username,
+        email: username,
+        password,
+      });
+    } catch (loginError) {
+      setError(loginError.message || 'No se pudo iniciar sesion');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto text-center space-y-4">
       <TigoLogo className="h-12 mx-auto" />
-      <h2 className="text-2xl font-semibold text-gray-800">Iniciar Sesión</h2>
+      <div className="space-y-1">
+        <h2 className="text-2xl font-semibold text-gray-800">Iniciar Sesion</h2>
+        <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
+          {providerLabel === 'supabase' ? 'Modo Real / Supabase' : 'Modo Fake / Demo'}
+        </p>
+      </div>
       {error && <p className="text-red-600 text-sm">{error}</p>}
       <input
         type="text"
-        placeholder="Usuario"
+        placeholder={providerLabel === 'supabase' ? 'Correo' : 'Usuario demo'}
         value={username}
-        onChange={(e) => setUsername(e.target.value)}
+        onChange={(event) => setUsername(event.target.value)}
         className="w-full bg-gray-100 border border-gray-300 py-2 px-3 rounded-lg focus:outline-none"
       />
       <input
         type="password"
-        placeholder="Contraseña"
+        placeholder="Contrasena"
         value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        onChange={(event) => setPassword(event.target.value)}
         className="w-full bg-gray-100 border border-gray-300 py-2 px-3 rounded-lg focus:outline-none"
       />
       <button
         onClick={handleSubmit}
-        className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all duration-300 ease-in-out transform hover:scale-105"
+        disabled={loading}
+        className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all duration-300 ease-in-out transform hover:scale-105 disabled:opacity-60 disabled:transform-none"
       >
-        Iniciar sesión
+        {loading ? 'Ingresando...' : 'Iniciar sesion'}
       </button>
     </div>
   );
 };
 
 export default LoginScreen;
-

@@ -5,9 +5,10 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "dev:api": "php -S localhost:8000 backend/router.php",
     "dev:web": "react-scripts start",
-    "test:web": "npm test -- --watchAll=false"
+    "test:web": "npm test -- --watchAll=false",
+    "supabase:types": "echo \"Use Supabase CLI to generate types in real env\"",
+    "supabase:reset": "echo \"Use supabase db reset in linked environments\""
   },
   "dependencies": {
     "autoprefixer": "^10.0.0",

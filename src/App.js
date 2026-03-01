@@ -33,15 +33,16 @@ import Sidebar from './components/Sidebar';
 import { getStorageItem, setStorageItem } from './utils/storage';
 import { sanitizeOnBoot } from './utils/cleanupLocalStorage';
 import exportToExcel from './utils/exportToExcel';
-import exportToJson from './utils/exportToJson';
-import exportPdvs from './utils/exportPdvs';
 import { getChannels } from './services/api';
+import { getSession, signIn, signOut } from './services/auth';
 import { getActiveLocations } from './utils/locationsSource';
 import { useToast } from './components/ui/ToastProvider';
+import { DATA_PROVIDER } from './app/env';
 
 const App = () => {
   // Controla si el usuario ha iniciado sesión
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [authReady, setAuthReady] = useState(false);
 
   // Página o vista que se está mostrando actualmente
   // (home, selección de canal, formulario, etc.)
@@ -88,6 +89,29 @@ const App = () => {
   // Cargar canales disponibles desde LocalStorage
   useEffect(() => {
     getChannels().then(setChannelList).catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    let alive = true;
+    getSession()
+      .then((session) => {
+        if (!alive) return;
+        setIsLoggedIn(Boolean(session));
+        setCurrentPage(session ? 'home' : 'login');
+      })
+      .catch((error) => {
+        console.error(error);
+        if (!alive) return;
+        setIsLoggedIn(false);
+        setCurrentPage('login');
+      })
+      .finally(() => {
+        if (alive) setAuthReady(true);
+      });
+
+    return () => {
+      alive = false;
+    };
   }, []);
 
   // Usuario selecciona si trabajará con Trade Nacional o Regional
@@ -204,6 +228,7 @@ const App = () => {
   const handleConfirmRequest = (requestDetails) => {
     const requestWithDate = {
       ...requestDetails,
+      channelId: selectedChannelId,
       pdvData: requestDetails.pdvSnapshot,
       date: new Date().toISOString(),
     };
@@ -239,13 +264,16 @@ const App = () => {
   };
 
   // Al iniciar sesión correctamente mostramos la página principal
-  const handleLogin = () => {
+  const handleLogin = async (credentials) => {
+    await signIn(credentials);
     setIsLoggedIn(true);
     setCurrentPage('home');
+    addToast(DATA_PROVIDER === 'supabase' ? 'Sesion iniciada con Supabase' : 'Sesion demo iniciada');
   };
 
   // Cerrar sesión y volver al login
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await signOut();
     handleGoHome();
     setIsLoggedIn(false);
     setCurrentPage('login');
@@ -337,6 +365,16 @@ const App = () => {
     }
   };
 
+  if (!authReady) {
+    return (
+      <div className="min-h-screen bg-tigo-light flex items-center justify-center">
+        <div className="bg-white rounded-xl shadow-lg px-6 py-4 text-sm text-gray-700">
+          Inicializando sesion...
+        </div>
+      </div>
+    );
+  }
+
   return (
     // Contenedor general con encabezado fijo y área de contenido
     <div className="min-h-screen bg-tigo-light flex flex-col">
@@ -361,7 +399,7 @@ const App = () => {
 
         <main className="flex-grow p-4 flex items-center justify-center">
         {!isLoggedIn && (
-          <LoginScreen onLogin={handleLogin} />
+          <LoginScreen onLogin={handleLogin} providerLabel={DATA_PROVIDER} />
         )}
 
         {/* Vista de inicio con selección de tipo de trade */}

@@ -12,6 +12,7 @@ import SingleSelectModal from './SingleSelectModal';
 import PreviousCampaignsModal from './PreviousCampaignsModal';
 import { getDisplayName, formatQuantity } from '../utils/materialDisplay';
 import { getStorageItem } from '../utils/storage';
+import { createClientRequestId } from '../data/providers/shared';
 
 
 
@@ -98,27 +99,30 @@ const MaterialRequestForm = ({
   const availableMeasures = React.useMemo(() => {
   const material = materials.find((m) => m.material_id === selectedMaterial);
   if (!material) return [{ id: 'otro', name: 'Otro' }];
-  
-  // Add the default size from the API
-  const measures = [{ id: material.size, name: material.size }];
-  // Add the "Otro" option
+
+  const defaultMeasure = String(material.medida_estandar || material.size || '').trim();
+  const measures = defaultMeasure ? [{ id: defaultMeasure, name: defaultMeasure }] : [];
   measures.push({ id: 'otro', name: 'Otro' });
-  // console.log("mesaures: ",measures);
-  
+
   return measures;
 }, [selectedMaterial, materials]);
 
   // Agrega el material actual al carrito de la solicitud
 
   const handleAddToCart = () => {
-    if (!selectedMaterial || !selectedMeasures) {
-    alert('Por favor selecciona material y medidas');
-    return;
-  }
+	    if (!selectedMaterial || !selectedMeasures) {
+	    alert('Por favor selecciona material y medidas');
+	    return;
+	  }
 
-  const material = materials.find((m) => m.material_id === selectedMaterial);
-  if (!material) {
-    alert('Material no encontrado');
+    if (selectedMeasures === 'otro' && !String(customMeasure || '').trim()) {
+      alert('Debes especificar una medida personalizada');
+      return;
+    }
+	
+	  const material = materials.find((m) => m.material_id === selectedMaterial);
+	  if (!material) {
+	    alert('Material no encontrado');
     return;
   }
 
@@ -128,10 +132,10 @@ const MaterialRequestForm = ({
     return;
   }
 
-  // Create measures object with the correct structure
-  const measuresObj = selectedMeasures === 'otro'
-    ? { id: customMeasure, name: customMeasure }
-    : { id: selectedMeasures, name: selectedMeasures };
+	  // Create measures object with the correct structure
+	  const measuresObj = selectedMeasures === 'otro'
+	    ? { id: 'otro', name: String(customMeasure || '').trim() }
+	    : { id: selectedMeasures, name: selectedMeasures };
 
   const newItem = {
     id: `${Date.now()}`,
@@ -150,7 +154,7 @@ const MaterialRequestForm = ({
   setCart([...cart, newItem]);
   
   // Reset form
-  setSelectedMaterial(null);
+	  setSelectedMaterial('');
   setSelectedMeasures('');
   setCustomMeasure('');
   setQuantity(1);
@@ -271,29 +275,31 @@ const handleSelectCampaign = (campaignId) => {
   campaignList.find(c => c.id === selectedCampaign)?.prioridad ?? selectedPriority ?? 0
 );
 
-const payload = {
-  region_id: selectedRegionId || null,
-  subterritorio_id: selectedSubId || null,
-  pdv_id: selectedPdvId,
+	const payload = {
+	  client_request_id: createClientRequestId(),
+	  region_id: selectedRegionId || null,
+	  subterritorio_id: selectedSubId || null,
+	  pdv_id: selectedPdvId,
+	  canal_id: selectedChannelId,
   campaña_id: selectedCampaign || null,
   prioridad: priorityFromCampaign || 1, // ← número
   zonas: Array.isArray(selectedZones) ? selectedZones : null,
   observaciones: notes || '',
-  creado_por: '',    // TODO por vacío. Luego se debe validar con user
-  items: cart.map((it) => ({
-    log: console.log("material elegido: ", it),
-    material_id: it.material?.id ?? it.id,                   // cubre ambos
-    cantidad: toInt(it.qty ?? it.quantity, 0),               // ← número
-    medida_etiqueta: it.measures.name ?? null,
-    medida_custom:   it.measures.name   ?? null,
-    observaciones:   it.observaciones   ?? it.note       ?? it.notes           ?? null,
-  })),
-};
+	  creado_por: '',    // TODO por vacío. Luego se debe validar con user
+	  items: cart.map((it) => ({
+	    material_id: it.material?.id ?? it.id,                   // cubre ambos
+	    cantidad: toInt(it.qty ?? it.quantity, 0),               // ← número
+	    medida_etiqueta: it.measures.id === 'otro' ? 'Otro' : (it.measures.name ?? null),
+	    medida_custom:   it.measures.id === 'otro' ? (it.measures.name ?? null) : null,
+	    observaciones:   it.observaciones   ?? it.note       ?? it.notes           ?? null,
+	  })),
+	};
 
 
   // Validaciones rápidas coherentes con n8n
   const clientErrors = [];
   if (!payload.pdv_id) clientErrors.push('Debes seleccionar un PDV');
+  if (!payload.canal_id) clientErrors.push('Debes seleccionar un canal');
   if (!Array.isArray(payload.items) || payload.items.length === 0) clientErrors.push('Agrega al menos un material');
   if (payload.items.some(it => !it.material_id)) clientErrors.push('Cada ítem debe tener material_id');
   if (payload.items.some(it => typeof it.cantidad !== 'number' || it.cantidad < 0)) clientErrors.push('cantidad debe ser número ≥ 0');
@@ -315,14 +321,31 @@ const payload = {
       // ✅ toast de éxito
       addToast?.(`Solicitud creada`, 'success');
 
-      // actualiza preview local si lo necesitas
-      onConfirmRequest({ /* ... */ });
+      // Mantiene el historial demo alineado con el nuevo provider fake.
+      onConfirmRequest({
+        pdvId: selectedPdvId,
+        pdvName: selectedPdvName,
+        regionName: selectedRegionName,
+        subterritoryName: selectedSubName,
+        campaignId: selectedCampaign || null,
+        campaigns: selectedCampaign ? [selectedCampaign] : [],
+        priority: priorityFromCampaign || 1,
+        zone: selectedZones,
+        items: itemsToStore,
+        pdvSnapshot,
+      });
 
       // cierra modal y navega a /success
       setShowConfirmModal(false);
       navigate('/confirm', {
         replace: true,
-        state: { ok:true, solicitudId: res.solicitud_id, items: res.items },
+        state: {
+          ok: true,
+          solicitudId: res.solicitud_id || res.requestId,
+          items: res.items_count ?? res.items ?? cart.length,
+          pdvId: selectedPdvId,
+          pdvName: selectedPdvName,
+        },
       });
 
     } catch (err) {
@@ -397,11 +420,11 @@ const payload = {
     className="block w-full bg-gray-100 border border-gray-300 text-gray-900 py-2 px-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-tigo-blue transition-all duration-200"
     value={selectedMeasures}
     onChange={(e) => setSelectedMeasures(e.target.value)}
-  >
-    <option value="">Selecciona las medidas</option>
-    {availableMeasures.map((measure) => (
-      <option key={measure.id} value={measure.id}>
-        {measure.name}
+	  >
+	    <option value="">Selecciona una medida</option>
+	    {availableMeasures.map((measure) => (
+	      <option key={measure.id} value={measure.id}>
+	        {measure.name}
       </option>
     ))}
   </select>
