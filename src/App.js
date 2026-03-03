@@ -213,10 +213,9 @@ const App = () => {
 
   const performExport = async (exportObj) => {
     try {
-      // exportToExcel (tu util) debe YA llamar a n8n /webhook/solicitudes/export y descargar el blob
-      const ok = await exportToExcel(exportObj);
-      if (!ok) throw new Error('No se pudo generar el archivo');
-      addToast('Exportación completada');
+      const result = await exportToExcel(exportObj);
+      if (!result?.ok) throw new Error('No se pudo generar el archivo');
+      addToast(`Exportación completada: ${result.fileName}`);
     } catch (e) {
       console.error(e);
       addToast(e.message || 'No se pudo generar el archivo. Intenta de nuevo.', 'error');
@@ -268,7 +267,7 @@ const App = () => {
     await signIn(credentials);
     setIsLoggedIn(true);
     setCurrentPage('home');
-    addToast(DATA_PROVIDER === 'supabase' ? 'Sesion iniciada con Supabase' : 'Sesion demo iniciada');
+    addToast(DATA_PROVIDER === 'supabase' ? 'Sesion iniciada' : 'Sesion demo iniciada');
   };
 
   // Cerrar sesión y volver al login

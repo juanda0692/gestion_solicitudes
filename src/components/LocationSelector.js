@@ -86,7 +86,7 @@ const LocationSelector = ({ onSelectPdv }) => {
 
       {selectedSubterritory && (
         <div className="mb-6">
-          <label htmlFor="pdv-search" className="block text-gray-700 text-sm font-bold mb-2">
+          {/*<label htmlFor="pdv-search" className="block text-gray-700 text-sm font-bold mb-2">
             Buscar PDV:
           </label>
           <input
@@ -96,7 +96,7 @@ const LocationSelector = ({ onSelectPdv }) => {
             placeholder="Ingresa nombre o código"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          />*/}
           <label htmlFor="pdv-select" className="block text-gray-700 text-sm font-bold mb-2">
             Punto de Venta (PDV):
           </label>

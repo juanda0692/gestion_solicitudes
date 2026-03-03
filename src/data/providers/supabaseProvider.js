@@ -1,4 +1,4 @@
-import { EXPORT_MODE, SUPABASE_ANON_KEY, SUPABASE_URL } from '../../app/env';
+import { SUPABASE_ANON_KEY, SUPABASE_URL } from '../../app/env';
 import {
   createClientRequestId,
   STORAGE_KEYS,
@@ -227,26 +227,33 @@ const getSolicitudDetalle = async (id) => rpc('rpc_get_request_detail', { p_requ
 const startExport = async (filters = {}) => {
   const session = await getSession();
   requireSession(session);
-  if (EXPORT_MODE !== 'gateway') {
-    throw new Error('El export real requiere REACT_APP_EXPORT_MODE=gateway');
-  }
-  const response = await fetch(restUrl('/functions/v1/export-start'), {
+  const response = await fetch(restUrl('/rest/v1/rpc/rpc_export_dataset'), {
     method: 'POST',
     headers: buildHeaders(session),
-    body: JSON.stringify(filters),
+    body: JSON.stringify({
+      filters: {
+        canal_id: filters.canal_id || null,
+        region_id: filters.region_id || null,
+        subterritorio_id: filters.subterritorio_id || null,
+        pdv_id: filters.pdv_id || null,
+        campania_id: filters.campania_id || null,
+        status: filters.status || null,
+        pdvIds: Array.isArray(filters.pdvIds) ? filters.pdvIds : [],
+      },
+    }),
   });
-  return readJson(response);
+  const rows = await readJson(response);
+  if (!Array.isArray(rows) || rows.length === 0) {
+    throw new Error('No hay solicitudes para exportar');
+  }
+  return {
+    rows,
+    fileName: filters.fileName || `solicitudes_${new Date().toISOString().slice(0, 10)}.xlsx`,
+  };
 };
 
 const getExportJob = async (id) => {
-  const session = await getSession();
-  requireSession(session);
-  const response = await fetch(restUrl(`/rest/v1/export_jobs?select=*&id=eq.${Number(id)}&limit=1`), {
-    headers: buildHeaders(session),
-  });
-  const [job] = await readJson(response);
-  if (!job) throw new Error('Export no encontrado');
-  return job;
+  throw new Error(`Export jobs no estan disponibles en descarga directa: ${id}`);
 };
 
 export const supabaseProvider = {

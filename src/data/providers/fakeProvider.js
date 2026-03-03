@@ -1,4 +1,3 @@
-import * as XLSX from 'xlsx';
 import { bootstrapDemoData } from '../../utils/bootstrapDemoData';
 import { getStorageItem, setStorageItem } from '../../utils/storage';
 import { materials as mockMaterials } from '../../mock/materials';
@@ -14,10 +13,6 @@ import {
   STORAGE_KEYS,
   writeStoredSession,
 } from './shared';
-
-const saveWorkbook = (workbook, fileName) => {
-  XLSX.writeFile(workbook, fileName);
-};
 
 const safeDate = (value) => new Date(value || Date.now()).toISOString();
 
@@ -359,41 +354,35 @@ const getSolicitudDetalle = async (id) => {
   };
 };
 
-const buildExportRows = (requests) => {
-  const requestRows = requests.map((request) => ({
-    'Solicitud ID': request.id,
-    Fecha: request.created_at,
-    Estado: request.status,
-    Canal: request.canal_name,
-    Region: request.region_name,
-    Subterritorio: request.subterritorio_name,
-    'PDV ID': request.pdv_id,
-    PDV: request.pdv_name,
-    Campania: request.campania_name,
-    Prioridad: request.prioridad ?? '',
-    'Solicitado por': request.created_by,
-    Observaciones: sanitizeSpreadsheetValue(request.observaciones || ''),
-    'Items count': request.items_count,
-  }));
-
-  const itemRows = requests.flatMap((request) =>
+const buildExportRows = (requests) =>
+  requests.flatMap((request) =>
     request.items.map((item) => ({
-      'Solicitud ID': request.id,
-      Fecha: request.created_at,
-      'PDV ID': request.pdv_id,
-      PDV: request.pdv_name,
-      Canal: request.canal_name,
-      'Material ID': item.material_id,
-      Material: item.material_name,
-      Cantidad: item.cantidad,
-      'Medida etiqueta': sanitizeSpreadsheetValue(item.medida_etiqueta || ''),
-      'Medida custom': sanitizeSpreadsheetValue(item.medida_custom || ''),
-      'Observaciones item': sanitizeSpreadsheetValue(item.observaciones || ''),
+      solicitud_id: request.id,
+      created_at: request.created_at,
+      status: request.status,
+      canal_id: request.canal_id,
+      canal_name: request.canal_name,
+      region_id: request.region_id,
+      region_name: request.region_name,
+      subterritorio_id: request.subterritorio_id,
+      subterritorio_name: request.subterritorio_name,
+      pdv_id: request.pdv_id,
+      pdv_name: request.pdv_name,
+      campania_id: request.campania_id,
+      campania_name: request.campania_name,
+      prioridad: request.prioridad ?? '',
+      created_by: request.created_by,
+      created_by_name: request.created_by,
+      observaciones: request.observaciones || '',
+      item_id: item.id,
+      material_id: item.material_id,
+      material_name: item.material_name,
+      cantidad: item.cantidad,
+      medida_etiqueta: sanitizeSpreadsheetValue(item.medida_etiqueta || ''),
+      medida_custom: sanitizeSpreadsheetValue(item.medida_custom || ''),
+      item_observaciones: sanitizeSpreadsheetValue(item.observaciones || ''),
     })),
   );
-
-  return { requestRows, itemRows };
-};
 
 const startExport = async (filters = {}) => {
   ensureBootstrapped();
@@ -411,34 +400,15 @@ const startExport = async (filters = {}) => {
     throw new Error('No hay solicitudes para exportar');
   }
 
-  const { requestRows, itemRows } = buildExportRows(matching);
-  const workbook = XLSX.utils.book_new();
-  const requestsSheet = XLSX.utils.json_to_sheet(requestRows);
-  const itemsSheet = XLSX.utils.json_to_sheet(itemRows);
-  XLSX.utils.book_append_sheet(workbook, requestsSheet, 'Solicitudes');
-  XLSX.utils.book_append_sheet(workbook, itemsSheet, 'Items');
   const fileName = filters.fileName || `solicitudes_${new Date().toISOString().slice(0, 10)}.xlsx`;
-  saveWorkbook(workbook, fileName);
-
-  const jobs = getStorageItem(STORAGE_KEYS.fakeExports) || [];
-  const nextId = jobs.reduce((maxId, job) => Math.max(maxId, Number(job.id || 0)), 0) + 1;
-  const job = {
-    id: nextId,
-    status: 'completed',
-    file_name: fileName,
-    file_url: null,
-    created_at: safeDate(),
+  return {
+    rows: buildExportRows(matching),
+    fileName,
   };
-  setStorageItem(STORAGE_KEYS.fakeExports, [...jobs, job]);
-  return job;
 };
 
 const getExportJob = async (id) => {
-  ensureBootstrapped();
-  const jobs = getStorageItem(STORAGE_KEYS.fakeExports) || [];
-  const job = jobs.find((entry) => String(entry.id) === String(id));
-  if (!job) throw new Error('Export no encontrado');
-  return job;
+  throw new Error(`Export jobs no estan disponibles en descarga directa: ${id}`);
 };
 
 export const fakeProvider = {

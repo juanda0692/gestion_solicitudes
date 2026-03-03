@@ -476,7 +476,9 @@ select
   cp.nombre as campania_name,
   s.prioridad,
   s.created_by,
+  coalesce(pr.display_name, pr.email, s.created_by::text) as created_by_name,
   s.observaciones,
+  si.id as item_id,
   si.material_id,
   m.nombre as material_name,
   si.cantidad,
@@ -490,7 +492,8 @@ left join public.pdvs p on p.id = s.pdv_id
 left join public.regiones r on r.id = s.region_id
 left join public.subterritorios st on st.id = s.subterritorio_id
 left join public.canales c on c.id = s.canal_id
-left join public.campanias cp on cp.id = s.campania_id;
+left join public.campanias cp on cp.id = s.campania_id
+left join public.profiles pr on pr.id = s.created_by;
 
 create or replace function public.rpc_export_dataset(filters jsonb)
 returns setof public.v_solicitudes_export
@@ -506,6 +509,12 @@ as $$
     and (filters->>'pdv_id' is null or pdv_id = filters->>'pdv_id')
     and (filters->>'campania_id' is null or campania_id = filters->>'campania_id')
     and (filters->>'status' is null or status = filters->>'status')
+    and (
+      coalesce(jsonb_array_length(filters->'pdvIds'), 0) = 0
+      or pdv_id in (
+        select jsonb_array_elements_text(filters->'pdvIds')
+      )
+    )
 $$;
 
 create trigger trg_tenants_updated_at before update on public.tenants for each row execute function public.touch_updated_at();

@@ -19,8 +19,8 @@
 - `getSolicitudDetalle(id)`
 
 ## Exports
-- `startExport(filters)`
-- `getExportJob(id)`
+- `startExport(filters)` devuelve `{ rows, fileName }`
+- `getExportJob(id)` queda deprecated fuera del flujo interactivo
 
 ## Regla
 - `fakeProvider` y `supabaseProvider` deben devolver estructuras equivalentes.

@@ -296,7 +296,7 @@ const handleSelectCampaign = (campaignId) => {
 	};
 
 
-  // Validaciones rápidas coherentes con n8n
+  // Validaciones rápidas del formulario antes de crear la solicitud
   const clientErrors = [];
   if (!payload.pdv_id) clientErrors.push('Debes seleccionar un PDV');
   if (!payload.canal_id) clientErrors.push('Debes seleccionar un canal');

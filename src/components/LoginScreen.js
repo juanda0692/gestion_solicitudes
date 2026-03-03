@@ -33,9 +33,6 @@ const LoginScreen = ({ onLogin, providerLabel = 'fake' }) => {
       <TigoLogo className="h-12 mx-auto" />
       <div className="space-y-1">
         <h2 className="text-2xl font-semibold text-gray-800">Iniciar Sesion</h2>
-        <p className="text-xs uppercase tracking-[0.2em] text-gray-500">
-          {providerLabel === 'supabase' ? 'Modo Real / Supabase' : 'Modo Fake / Demo'}
-        </p>
       </div>
       {error && <p className="text-red-600 text-sm">{error}</p>}
       <input

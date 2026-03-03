@@ -1,4 +1,5 @@
 import { dataProvider } from '../data';
+import { downloadExportWorkbook } from './exportWorkbook';
 
 function buildFilters({ pdvIds, canalId, regionName, channelName, filename }) {
   return {
@@ -14,5 +15,8 @@ function buildFilters({ pdvIds, canalId, regionName, channelName, filename }) {
 
 export default async function exportToExcel(exportObj) {
   const result = await dataProvider.exports.startExport(buildFilters(exportObj || {}));
-  return Boolean(result);
+  return downloadExportWorkbook({
+    rows: result.rows || [],
+    fileName: result.fileName,
+  });
 }
