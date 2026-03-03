@@ -1,60 +1,66 @@
 import exportToExcel from '../utils/exportToExcel';
 import * as XLSX from 'xlsx';
+import { dataProvider } from '../data';
 
 jest.mock('xlsx', () => ({
   utils: {
     json_to_sheet: jest.fn(() => ({})),
-    sheet_add_aoa: jest.fn(),
     book_new: jest.fn(() => ({})),
     book_append_sheet: jest.fn(),
   },
   writeFile: jest.fn(),
 }));
 
+jest.mock('../data', () => ({
+  dataProvider: {
+    exports: {
+      startExport: jest.fn(),
+    },
+  },
+}));
+
 describe('exportToExcel', () => {
-  test('ordered headers and snapshot data', () => {
-    const exportObj = {
-      scope: 'Canal',
-      channelName: 'Canal X',
-      pdvs: [
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  test('builds workbook with requests and items sheets from exported rows', async () => {
+    dataProvider.exports.startExport.mockResolvedValue({
+      fileName: 'solicitudes_demo.xlsx',
+      rows: [
         {
-          id: 'pdv-1',
-          name: 'PDV Demo',
-          regionName: 'Region',
-          subterritoryName: 'Sub',
-          date: '2024-01-01',
-          requestType: 'SOLICITUD',
-          materials: [{ name: 'VOLANTES', quantity: 20, measure: 'A4' }],
-          pdvData: { contactName: 'Ana' },
+          solicitud_id: 101,
+          created_at: '2026-03-01T12:00:00.000Z',
+          status: 'submitted',
+          canal_name: 'Tiendas',
+          region_name: 'Bogota',
+          subterritorio_name: 'Bogota Zona 1',
+          pdv_id: 'pdv-001',
+          pdv_name: 'PDV Demo',
+          campania_name: 'Campania Verano 2026',
+          prioridad: 1,
+          created_by_name: 'Demo Tigo',
+          observaciones: 'Observacion general',
+          material_id: 'material-001',
+          material_name: 'Sticker POP 1',
+          cantidad: 10,
+          medida_etiqueta: '10x10cm',
+          medida_custom: null,
+          item_observaciones: 'Obs item',
         },
       ],
-    };
-    exportToExcel(exportObj);
+    });
 
-    const expectedHeaders = [
-      'Fecha',
-      'Tipo',
-      'Canal',
-      'Región',
-      'Subterritorio',
-      'PDV',
-      'Material',
-      'Medida',
-      'Cantidad',
-      'Zonas',
-      'Prioridad',
-      'Campaña',
-      'Contacto (PDV)',
-      'Teléfono (PDV)',
-      'Ciudad (PDV)',
-      'Dirección (PDV)',
-      'Notas internas (PDV)',
-    ];
+    const result = await exportToExcel({ canalId: 'tiendas' });
 
-    const call = XLSX.utils.json_to_sheet.mock.calls[0];
-    const rows = call[0];
-    const options = call[1];
-    expect(options.header).toEqual(expectedHeaders);
-    expect(rows[0]['Contacto (PDV)']).toBe('Ana');
+    expect(dataProvider.exports.startExport).toHaveBeenCalled();
+    expect(XLSX.utils.book_append_sheet).toHaveBeenCalledTimes(2);
+    expect(XLSX.writeFile).toHaveBeenCalledWith(undefined, 'solicitudes_demo.xlsx');
+    expect(result).toEqual({
+      ok: true,
+      fileName: 'solicitudes_demo.xlsx',
+      rows: 1,
+      sheets: ['Solicitudes', 'Items'],
+    });
   });
 });

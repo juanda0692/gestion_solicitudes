@@ -1,102 +1,231 @@
--- Datos de prueba para Base Destinatarios en Supabase
+-- Seed data de volumen para Base Destinatarios en Supabase
+-- Objetivo:
+-- - Aproximar el volumen esperado del MVP
+-- - Probar carga de catalogos, filtros, historial y detalle desde Supabase
+-- - Mantener consistencia con el schema actual de Supabase-schema-data.sql
+--
+-- Volumen aproximado generado:
+-- - 4 regiones
+-- - 16 subterritorios
+-- - 400 PDVs
+-- - 4 canales
+-- - 100 materiales
+-- - 7 campanas
+-- - 300 solicitudes
+-- - 900 items de solicitud
 
--- Insertar regiones
-INSERT INTO regiones (id, nombre) VALUES 
-('REG001', 'Región Norte'),
-('REG002', 'Región Centro'),
-('REG003', 'Región Sur');
+begin;
 
--- Insertar subterritorios
-INSERT INTO subterritorios (id, region_id, nombre) VALUES 
-('SUB001', 'REG001', 'Norte A'),
-('SUB002', 'REG001', 'Norte B'),
-('SUB003', 'REG002', 'Centro A'),
-('SUB004', 'REG002', 'Centro B'),
-('SUB005', 'REG003', 'Sur A'),
-('SUB006', 'REG003', 'Sur B');
+truncate table
+  solicitud_items,
+  solicitudes,
+  materiales_por_canal,
+  materiales,
+  campaÃ±as,
+  pdvs,
+  subterritorios,
+  regiones,
+  canales
+restart identity cascade;
 
--- Insertar PDVs
-INSERT INTO pdvs (id, subterritorio_id, nombre) VALUES 
-('PDV001', 'SUB001', 'Tienda Norte Plaza'),
-('PDV002', 'SUB001', 'Tienda Norte Mall'),
-('PDV003', 'SUB002', 'Tienda Norte Centro'),
-('PDV004', 'SUB003', 'Tienda Centro Principal'),
-('PDV005', 'SUB004', 'Tienda Centro Comercial'),
-('PDV006', 'SUB005', 'Tienda Sur Plaza'),
-('PDV007', 'SUB006', 'Tienda Sur Mall');
+-- Regiones base
+insert into regiones (id, nombre)
+values
+  ('REG001', 'Bogota'),
+  ('REG002', 'Andina'),
+  ('REG003', 'Costa'),
+  ('REG004', 'Sur');
 
--- Insertar canales
-INSERT INTO canales (id, nombre) VALUES 
-('CAN001', 'Retail'),
-('CAN002', 'Mayorista'),
-('CAN003', 'Digital'),
-('CAN004', 'Corporativo');
+-- Canales base
+insert into canales (id, nombre)
+values
+  ('CAN001', 'Tiendas'),
+  ('CAN002', 'FVD Home'),
+  ('CAN003', 'Islas'),
+  ('CAN004', 'Tigo Express');
 
--- Insertar materiales
-INSERT INTO materiales (id, nombre, descripcion, stock) VALUES 
-('MAT001', 'Banner 2x1m', 'Banner promocional 2x1 metros', 100),
-('MAT002', 'Volante A4', 'Volante promocional tamaño A4', 500),
-('MAT003', 'Póster A3', 'Póster promocional tamaño A3', 200),
-('MAT004', 'Sticker Redondo', 'Sticker promocional redondo', 1000),
-('MAT005', 'Brochure', 'Brochure informativo', 300),
-('MAT006', 'Display Mesa', 'Display para mesa', 50),
-('MAT007', 'Pendón 1x2m', 'Pendón vertical 1x2 metros', 75),
-('MAT008', 'Calcomanía', 'Calcomanía promocional', 800);
+-- 16 subterritorios, 4 por region
+insert into subterritorios (id, region_id, nombre)
+select
+  'SUB' || lpad(gs::text, 3, '0') as id,
+  case
+    when gs between 1 and 4 then 'REG001'
+    when gs between 5 and 8 then 'REG002'
+    when gs between 9 and 12 then 'REG003'
+    else 'REG004'
+  end as region_id,
+  case
+    when gs between 1 and 4 then 'Bogota Zona ' || gs
+    when gs between 5 and 8 then 'Andina Zona ' || (gs - 4)
+    when gs between 9 and 12 then 'Costa Zona ' || (gs - 8)
+    else 'Sur Zona ' || (gs - 12)
+  end as nombre
+from generate_series(1, 16) as gs;
 
--- Insertar campañas
-INSERT INTO campañas (id, nombre, prioridad) VALUES 
-('CAM001', 'Campaña Verano 2024', 1),
-('CAM002', 'Black Friday 2024', 2),
-('CAM003', 'Navidad 2024', 1),
-('CAM004', 'Año Nuevo 2025', 3),
-('CAM005', 'San Valentín 2025', 2);
+-- 400 PDVs distribuidos entre los 16 subterritorios
+insert into pdvs (id, subterritorio_id, nombre)
+select
+  'PDV' || lpad(gs::text, 4, '0') as id,
+  'SUB' || lpad((((gs - 1) % 16) + 1)::text, 3, '0') as subterritorio_id,
+  case
+    when (((gs - 1) % 16) + 1) between 1 and 4 then 'PDV Bogota '
+    when (((gs - 1) % 16) + 1) between 5 and 8 then 'PDV Andina '
+    when (((gs - 1) % 16) + 1) between 9 and 12 then 'PDV Costa '
+    else 'PDV Sur '
+  end || lpad(gs::text, 4, '0') as nombre
+from generate_series(1, 400) as gs;
 
--- Insertar materiales por canal
-INSERT INTO materiales_por_canal (material_id, canal_id, stock) VALUES 
--- Canal Retail
-('MAT001', 'CAN001', 50),
-('MAT002', 'CAN001', 200),
-('MAT003', 'CAN001', 100),
-('MAT004', 'CAN001', 500),
-('MAT005', 'CAN001', 150),
+-- 100 materiales con variedad de categorias y stock base
+insert into materiales (id, nombre, descripcion, stock)
+select
+  'MAT' || lpad(gs::text, 3, '0') as id,
+  case
+    when gs between 1 and 15 then 'Sticker POP ' || gs
+    when gs between 16 and 30 then 'Volante A4 ' || (gs - 15)
+    when gs between 31 and 45 then 'Afiche A3 ' || (gs - 30)
+    when gs between 46 and 60 then 'Banner Vertical ' || (gs - 45)
+    when gs between 61 and 75 then 'Display Mostrador ' || (gs - 60)
+    when gs between 76 and 90 then 'Vinilo Fachada ' || (gs - 75)
+    else 'Totem Promocional ' || (gs - 90)
+  end as nombre,
+  'Material fake para pruebas de UI, filtros y rendimiento #' || gs as descripcion,
+  case
+    when gs % 10 = 0 then 40
+    when gs % 7 = 0 then 75
+    when gs % 5 = 0 then 120
+    else 250
+  end as stock
+from generate_series(1, 100) as gs;
 
--- Canal Mayorista
-('MAT001', 'CAN002', 30),
-('MAT002', 'CAN002', 300),
-('MAT006', 'CAN002', 25),
-('MAT007', 'CAN002', 40),
-('MAT008', 'CAN002', 400),
+-- 7 campanas
+insert into campaÃ±as (id, nombre, prioridad)
+values
+  ('CAM001', 'CampaÃ±a Verano 2026', 1),
+  ('CAM002', 'Regreso a Clases 2026', 2),
+  ('CAM003', 'CampaÃ±a Hogares 2026', 2),
+  ('CAM004', 'Mid Year Boost 2026', 3),
+  ('CAM005', 'Black Friday 2026', 1),
+  ('CAM006', 'Navidad 2026', 1),
+  ('CAM007', 'Renovaciones Q1 2027', 3);
 
--- Canal Digital
-('MAT003', 'CAN003', 80),
-('MAT004', 'CAN003', 300),
-('MAT005', 'CAN003', 100),
+-- Materiales por canal
+-- Cada material queda disponible en 2 o 3 canales para simular catalogos reales
+insert into materiales_por_canal (material_id, canal_id, stock)
+select
+  m.id as material_id,
+  c.id as canal_id,
+  greatest(10, m.stock - (((row_number() over (partition by m.id order by c.id)) - 1) * 15)) as stock
+from materiales m
+join canales c
+  on (
+    ((substring(m.id from 4)::int + substring(c.id from 4)::int) % 2 = 0)
+    or c.id = 'CAN001'
+  );
 
--- Canal Corporativo
-('MAT001', 'CAN004', 20),
-('MAT005', 'CAN004', 50),
-('MAT006', 'CAN004', 15),
-('MAT007', 'CAN004', 35);
+-- 300 solicitudes distribuidas a lo largo del catalogo de PDVs y campanas
+insert into solicitudes (
+  region_id,
+  subterritorio_id,
+  pdv_id,
+  campaÃ±a_id,
+  prioridad,
+  zonas,
+  observaciones,
+  creado_por,
+  created_at,
+  updated_at
+)
+select
+  st.region_id,
+  p.subterritorio_id,
+  p.id as pdv_id,
+  'CAM' || lpad((((gs - 1) % 7) + 1)::text, 3, '0') as campaÃ±a_id,
+  (((gs - 1) % 3) + 1) as prioridad,
+  case
+    when gs % 3 = 0 then '["Fachada","Zona de experiencia"]'::jsonb
+    when gs % 3 = 1 then '["Mesas asesores"]'::jsonb
+    else '["Fachada","Mesas asesores"]'::jsonb
+  end as zonas,
+  'Solicitud fake #' || gs || ' para pruebas desde Supabase' as observaciones,
+  'usuario' || (((gs - 1) % 18) + 1) as creado_por,
+  now() - ((gs % 120) || ' days')::interval - ((gs % 11) || ' hours')::interval as created_at,
+  now() - ((gs % 120) || ' days')::interval - ((gs % 11) || ' hours')::interval as updated_at
+from generate_series(1, 300) as gs
+join pdvs p
+  on p.id = 'PDV' || lpad((((gs - 1) % 400) + 1)::text, 4, '0')
+join subterritorios st
+  on st.id = p.subterritorio_id;
 
--- Insertar algunas solicitudes de ejemplo
-INSERT INTO solicitudes (region_id, subterritorio_id, pdv_id, campaña_id, prioridad, zonas, observaciones, creado_por) VALUES 
-('REG001', 'SUB001', 'PDV001', 'CAM001', 1, '["Zona A", "Zona B"]'::jsonb, 'Solicitud urgente para campaña de verano', 'usuario1'),
-('REG002', 'SUB003', 'PDV004', 'CAM002', 2, '["Zona Centro"]'::jsonb, 'Material para Black Friday', 'usuario2'),
-('REG003', 'SUB005', 'PDV006', 'CAM003', 1, '["Zona Sur A", "Zona Sur B"]'::jsonb, 'Preparación navideña', 'usuario3');
+-- 3 items por solicitud = 900 items
+-- Se eligen materiales que existan para el canal derivado del PDV
+with pdv_channel as (
+  select
+    p.id as pdv_id,
+    case
+      when (substring(p.id from 4)::int % 4) = 1 then 'CAN001'
+      when (substring(p.id from 4)::int % 4) = 2 then 'CAN002'
+      when (substring(p.id from 4)::int % 4) = 3 then 'CAN003'
+      else 'CAN004'
+    end as canal_id
+  from pdvs p
+),
+solicitudes_base as (
+  select
+    s.id as solicitud_id,
+    s.pdv_id,
+    pc.canal_id
+  from solicitudes s
+  join pdv_channel pc on pc.pdv_id = s.pdv_id
+),
+materiales_canal_ranked as (
+  select
+    mpc.canal_id,
+    mpc.material_id,
+    row_number() over (partition by mpc.canal_id order by mpc.material_id) as rn,
+    count(*) over (partition by mpc.canal_id) as total_por_canal
+  from materiales_por_canal mpc
+),
+items_seed as (
+  select
+    sb.solicitud_id,
+    sb.canal_id,
+    idx.item_pos,
+    ((sb.solicitud_id + (idx.item_pos * 7)) % mcr.total_por_canal) + 1 as target_rn
+  from solicitudes_base sb
+  cross join (values (1), (2), (3)) as idx(item_pos)
+  join materiales_canal_ranked mcr on mcr.canal_id = sb.canal_id
+  group by sb.solicitud_id, sb.canal_id, idx.item_pos, mcr.total_por_canal
+)
+insert into solicitud_items (
+  solicitud_id,
+  material_id,
+  cantidad,
+  medida_etiqueta,
+  medida_custom,
+  observaciones,
+  created_at,
+  updated_at
+)
+select
+  i.solicitud_id,
+  mcr.material_id,
+  case
+    when i.item_pos = 1 then ((i.solicitud_id % 5) + 1) * 2
+    when i.item_pos = 2 then ((i.solicitud_id % 4) + 1) * 5
+    else ((i.solicitud_id % 3) + 1) * 8
+  end as cantidad,
+  case
+    when i.item_pos = 1 then 'unidades'
+    when i.item_pos = 2 then 'paquetes'
+    else 'kits'
+  end as medida_etiqueta,
+  null as medida_custom,
+  'Item fake ' || i.item_pos || ' de la solicitud ' || i.solicitud_id as observaciones,
+  now() - ((i.solicitud_id % 120) || ' days')::interval as created_at,
+  now() - ((i.solicitud_id % 120) || ' days')::interval as updated_at
+from items_seed i
+join materiales_canal_ranked mcr
+  on mcr.canal_id = i.canal_id
+ and mcr.rn = i.target_rn;
 
--- Insertar items de solicitud
-INSERT INTO solicitud_items (solicitud_id, material_id, cantidad, medida_etiqueta, observaciones) VALUES 
--- Items para solicitud 1
-(1, 'MAT001', 5, 'unidades', 'Para entrada principal'),
-(1, 'MAT002', 100, 'unidades', 'Distribución en tienda'),
-(1, 'MAT004', 50, 'unidades', 'Para productos destacados'),
-
--- Items para solicitud 2
-(2, 'MAT003', 10, 'unidades', 'Vitrinas principales'),
-(2, 'MAT005', 25, 'unidades', 'Información de ofertas'),
-(2, 'MAT007', 3, 'unidades', 'Entrada de tienda'),
-
--- Items para solicitud 3
-(3, 'MAT001', 8, 'unidades', 'Decoración navideña'),
-(3, 'MAT006', 2, 'unidades', 'Displays especiales'),
-(3, 'MAT008', 75, 'unidades', 'Productos navideños');
+commit;

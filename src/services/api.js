@@ -1,112 +1,90 @@
-// URL base para la API real. Si no está configurada, se utilizarán
-// los datos almacenados en LocalStorage (modo demo).
-import { getStorageItem, setStorageItem } from '../utils/storage';
-import {
-  regions as mockRegions,
-  subterritories as mockSubterritories,
-  pdvs as mockPdvs,
-} from '../mock/locationsNormalized';
-import { channels as mockChannels } from '../mock/channels';
-import { materials as mockMaterials } from '../mock/materials';
-import { channelMaterials as mockChannelMaterials } from '../mock/channelMaterials';
-import { campaigns as mockCampaigns } from '../mock/campaigns';
+import { dataProvider } from '../data';
 
-const API_BASE = process.env.REACT_APP_API_BASE_URL;
+const mapRegion = (region) => ({
+  id: region.id,
+  name: region.name,
+});
 
-export async function http(path, options = {}) {
-    const res = await fetch(`${API_BASE}${path}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': process.env.REACT_APP_API_KEY || process.env.VALID_API_KEYS,
-      ...(options.headers || {}),
-    },
-    ...options,
-  });
+const mapSubterritory = (subterritory) => ({
+  id: subterritory.id,
+  region_id: subterritory.regionId || subterritory.region_id,
+  name: subterritory.name,
+});
 
-  const text = await res.text(); 
+const mapPdv = (pdv) => ({
+  id: pdv.id,
+  subterritorio_id: pdv.subterritorioId || pdv.subterritorio_id,
+  canal_id: pdv.canalId || pdv.canal_id || '',
+  name: pdv.name,
+  codigo: pdv.code || pdv.codigo || pdv.id,
+});
 
-  if (!res.ok) {
-    let errBody;
-    try { errBody = JSON.parse(text); } catch { errBody = text || ''; }
-    const err = new Error(`HTTP ${res.status}`);
-    err.status = res.status;
-    err.body = errBody;
-    throw err;
-  }
+const mapChannel = (channel) => ({
+  id: channel.id,
+  name: channel.name,
+});
 
-  if (res.status === 204 || text.trim() === '') return null;
-  try { return JSON.parse(text); } catch {
-    return text;
-  }
+const mapCampaign = (campaign) => ({
+  id: campaign.id,
+  name: campaign.name,
+  prioridad: Number(campaign.priority || campaign.prioridad || 0),
+  status: campaign.status || 'active',
+});
+
+const mapMaterial = (material) => ({
+  id: material.materialId || material.material_id || material.id,
+  material_id: material.materialId || material.material_id || material.id,
+  canal_id: material.canalId || material.canal_id,
+  name: material.name,
+  description: material.description || material.descripcion || '',
+  stock: Number(material.stock || 0),
+  medida_estandar: material.medida_estandar || material.size || material.measures?.[0] || '',
+  size: material.medida_estandar || material.size || material.measures?.[0] || '',
+  measures: material.measures || [],
+});
+
+export async function http() {
+  throw new Error('http helper deprecated. Usa DataProvider/Supabase RPC en su lugar.');
 }
 
-
-
-// Helper para obtener/sembrar valores en LocalStorage
-const seed = (key, mock) => {
-  const current = getStorageItem(key);
-  if (current != null) return current;
-  setStorageItem(key, mock);
-  return mock;
+export const getRegions = async () => {
+  const regions = await dataProvider.catalogs.getRegiones();
+  return regions.map(mapRegion);
 };
 
-// ---------- Catálogos ----------
-export const getRegions = () => {
-  if (API_BASE) return http('/regions');
-  // TODO backend: reemplazar por llamada al API real
-  return Promise.resolve(seed('regions', mockRegions));
+export const getSubterritories = async (regionId) => {
+  const subterritories = await dataProvider.catalogs.getSubterritorios(regionId);
+  return subterritories.map(mapSubterritory);
 };
 
-export const getSubterritories = (regionId) => {
-  if (API_BASE)
-    return regionId
-      ? http(`/subterritories?region_id=${encodeURIComponent(regionId)}`)
-      : http('/subterritories');
-  // TODO backend: reemplazar por llamada al API real
-  const subs = seed('subterritories', mockSubterritories);
-  return Promise.resolve(regionId ? subs[regionId] || [] : Object.values(subs).flat());
+export const getPdvs = async (subId, options = {}) => {
+  const result = await dataProvider.catalogs.getPdvs(subId, options);
+  return (result.data || []).map(mapPdv);
 };
 
-
-export const getPdvs = (subId) => {
-  if (API_BASE)
-    return subId
-      ? http(`/pdvs?subterritorio_id=${encodeURIComponent(subId)}`)
-      : http('/pdvs');
-  // TODO backend: reemplazar por llamada al API real
-  const map = seed('pdvs', mockPdvs);
-  return Promise.resolve(subId ? map[subId] || [] : Object.values(map).flat());
+export const getChannels = async () => {
+  const channels = await dataProvider.catalogs.getCanales();
+  return channels.map(mapChannel);
 };
 
-export const getChannels = () => {
-  if (API_BASE) return http('/channels');
-  // TODO backend: reemplazar por llamada al API real
-  return Promise.resolve(seed('channels', mockChannels));
-};
-
-export const getMaterials = () => {
-  if (API_BASE) return http('/materials');
-  // TODO backend: reemplazar por llamada al API real
-  return Promise.resolve(seed('materials', mockMaterials));
-};
-
-export const getMaterialsByChannel = (channelId) => {
-  if (API_BASE)
-    return http(`/channel-materials?channel_id=${encodeURIComponent(channelId)}`);
-  // TODO backend: reemplazar por llamada al API real
-  const map = seed('channelMaterials', mockChannelMaterials);
-  const mats = seed('materials', mockMaterials);
-  const list = map[channelId] || [];
-  return Promise.resolve(
-    list.map(({ id, stock }) => ({
-      ...mats.find((m) => m.id === id),
-      stock,
-    })),
+export const getMaterials = async () => {
+  const channels = await dataProvider.catalogs.getCanales();
+  const materials = await Promise.all(
+    channels.map((channel) => dataProvider.catalogs.getMaterialesPorCanal(channel.id, { limit: 500 })),
   );
+  const deduped = new Map();
+  materials.flatMap((page) => page.data || []).forEach((material) => {
+    deduped.set(material.materialId || material.material_id || material.id, mapMaterial(material));
+  });
+  return Array.from(deduped.values());
 };
 
-export const getCampaigns = () => {
-  if (API_BASE) return http('/campaigns');
-  // TODO backend: reemplazar por llamada al API real
-  return Promise.resolve(seed('campaigns', mockCampaigns));
+export const getMaterialsByChannel = async (channelId, options = {}) => {
+  const result = await dataProvider.catalogs.getMaterialesPorCanal(channelId, options);
+  return (result.data || []).map(mapMaterial);
+};
+
+export const getCampaigns = async () => {
+  const campaigns = await dataProvider.catalogs.getCampanias();
+  return campaigns.map(mapCampaign);
 };

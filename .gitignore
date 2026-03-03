@@ -1,3 +1,22 @@
+# Dependencies
 node_modules/
+node_modules/.cache/
+
+# Production build output (CRA)
+build/
+
+# Env files (keep .env.example tracked)
 .env
+.env.*
+!.env.example
+
+# Logs & cache
+*.log
+.eslintcache
+
+# Local backend artifacts
 backend/storage/logs/
+# Local agent/workflow files
+AGENTS.md
+.agents/
+rollback_export_backup.sql
