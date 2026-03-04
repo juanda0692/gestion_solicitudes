@@ -429,6 +429,7 @@ const App = () => {
             onLogout={handleLogout}
             showManagement={selectedTradeType === 'nacional'}
             currentPage={currentPage}
+            tradeType={selectedTradeType}
           />
         )}
 
