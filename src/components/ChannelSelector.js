@@ -3,15 +3,7 @@ import { getChannels } from '../services/api';
 
 /**
  * Selector de canal.
- *
- * `channels` contiene datos simulados. Al integrar con backend,
- * este componente debería solicitar la lista de canales desde un
- * servicio y reemplazar la importación de mock.
  */
-
-// `onSelectChannel` cambia la vista al menú del canal seleccionado.
-// `onCreateCampaign` y `onExportData` son opcionales y permiten acceder
-// directamente a la creación de campañas o a la exportación de datos.
 const ChannelSelector = ({
   onSelectChannel,
   onCreateCampaign,
@@ -26,42 +18,39 @@ const ChannelSelector = ({
   }, []);
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-lg max-w-3xl mx-auto mt-8">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">Selecciona un Canal</h2>
+    <div className="ui-card p-5 sm:p-6 max-w-3xl w-full mx-auto">
+      <h2 className="ui-title text-2xl mb-1 text-center">Selecciona un canal</h2>
+      <p className="ui-subtitle mb-5 text-center">Elige el canal para continuar con la gestion de solicitudes</p>
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* TODO backend: obtener canales desde API real */}
         {channels.map((channel) => (
           <button
             key={channel.id}
+            type="button"
             onClick={() => onSelectChannel(channel.id)}
-            className="h-24 bg-white border border-gray-200 rounded-lg shadow-md flex items-center justify-center text-lg font-semibold text-gray-800 hover:bg-gray-50 transition-colors"
+            className="h-24 bg-white border border-slate-200 rounded-xl shadow-sm flex items-center justify-center text-lg font-semibold text-slate-800 hover:bg-slate-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-400 transition-colors"
           >
             {channel.name}
           </button>
         ))}
       </div>
+
       {(showCreateCampaign || onExportData) && (
-        <div className="mt-6 flex flex-col sm:flex-row gap-4">
+        <div className="mt-6 flex flex-col sm:flex-row gap-3">
           {showCreateCampaign && (
             <button
+              type="button"
               onClick={onCreateCampaign}
               disabled={!canCreateCampaign}
               title={!canCreateCampaign ? 'Disponible proximamente' : undefined}
-              className={`w-full text-white py-3 px-4 rounded-lg shadow-md transition-all duration-300 ease-in-out ${
-                canCreateCampaign
-                  ? 'bg-indigo-500 hover:bg-indigo-600 transform hover:scale-105'
-                  : 'bg-indigo-300 cursor-not-allowed opacity-70'
-              }`}
+              className={`ui-btn ${canCreateCampaign ? 'ui-btn-primary' : 'ui-btn-disabled'}`}
             >
-              Crear campaña
+              Crear campana
             </button>
           )}
           {onExportData && (
-            <button
-              onClick={onExportData}
-              className="w-full bg-gray-600 text-white py-3 px-4 rounded-lg shadow-md hover:bg-gray-700 transition-all duration-300 ease-in-out transform hover:scale-105"
-            >
-              Exportar Datos
+            <button type="button" onClick={onExportData} className="ui-btn ui-btn-secondary">
+              Exportar datos
             </button>
           )}
         </div>

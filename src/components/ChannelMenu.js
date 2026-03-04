@@ -2,10 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { getChannels } from '../services/api';
 
 /**
- * Menú principal de un canal.
- *
- * Desde aquí se puede continuar con la selección de PDV o
- * consultar el historial de solicitudes del canal.
+ * Menu principal de un canal.
  */
 const ChannelMenu = ({ channelId, onSelectPdv, onViewRequests, canViewRequests = true }) => {
   const [channelName, setChannelName] = useState(channelId);
@@ -19,26 +16,21 @@ const ChannelMenu = ({ channelId, onSelectPdv, onViewRequests, canViewRequests =
   }, [channelId]);
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto text-center">
-      <h2 className="text-2xl font-semibold text-gray-800 mb-6">{channelName}</h2>
-      <div className="space-y-4">
-        <button
-          onClick={onSelectPdv}
-          className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all duration-300 ease-in-out transform hover:scale-105"
-        >
-          Gestionar Solicitudes
+    <div className="ui-card p-6 sm:p-7 max-w-xl w-full mx-auto text-center">
+      <h2 className="ui-title text-3xl mb-2">{channelName}</h2>
+      <p className="ui-subtitle mb-6">Selecciona una accion para continuar</p>
+      <div className="space-y-3">
+        <button type="button" onClick={onSelectPdv} className="ui-btn ui-btn-primary">
+          Gestionar solicitudes
         </button>
         <button
+          type="button"
           onClick={onViewRequests}
           disabled={!canViewRequests}
           title={!canViewRequests ? 'Disponible proximamente' : undefined}
-          className={`w-full text-white py-3 px-4 rounded-lg shadow-md transition-all duration-300 ease-in-out ${
-            canViewRequests
-              ? 'bg-gray-500 hover:bg-gray-600 transform hover:scale-105'
-              : 'bg-gray-400 cursor-not-allowed opacity-70'
-          }`}
+          className={`ui-btn ${canViewRequests ? 'ui-btn-secondary' : 'ui-btn-disabled'}`}
         >
-          Ver Solicitudes del Canal
+          Ver solicitudes del canal
         </button>
       </div>
     </div>

@@ -29,31 +29,37 @@ const LoginScreen = ({ onLogin, providerLabel = 'fake' }) => {
   };
 
   return (
-    <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto text-center space-y-4">
+    <div className="ui-card p-6 sm:p-7 max-w-md mx-auto text-center space-y-4 sm:space-y-5">
       <TigoLogo className="h-12 mx-auto" />
       <div className="space-y-1">
-        <h2 className="text-2xl font-semibold text-gray-800">Iniciar Sesion</h2>
+        <h2 className="ui-title text-2xl">Iniciar sesion</h2>
+        <p className="ui-subtitle">Ingresa tus credenciales para continuar</p>
       </div>
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+
+      {error && (
+        <p role="alert" className="ui-banner-error text-left">
+          <span className="font-semibold">Error:</span> {error}
+        </p>
+      )}
+
       <input
         type="text"
+        aria-label="Usuario o correo"
         placeholder={providerLabel === 'supabase' ? 'Correo' : 'Usuario demo'}
         value={username}
         onChange={(event) => setUsername(event.target.value)}
-        className="w-full bg-gray-100 border border-gray-300 py-2 px-3 rounded-lg focus:outline-none"
+        className="ui-input"
       />
       <input
         type="password"
-        placeholder="Contrasena"
+        aria-label="Contrasena"
+        placeholder="Contraseña"
         value={password}
         onChange={(event) => setPassword(event.target.value)}
-        className="w-full bg-gray-100 border border-gray-300 py-2 px-3 rounded-lg focus:outline-none"
+        className="ui-input"
       />
-      <button
-        onClick={handleSubmit}
-        disabled={loading}
-        className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all duration-300 ease-in-out transform hover:scale-105 disabled:opacity-60 disabled:transform-none"
-      >
+      <button type="button" onClick={handleSubmit} disabled={loading} className="ui-btn ui-btn-primary flex items-center justify-center gap-2">
+        {loading && <span className="h-4 w-4 rounded-full border-2 border-white/80 border-t-transparent animate-spin" />}
         {loading ? 'Ingresando...' : 'Iniciar sesion'}
       </button>
     </div>
