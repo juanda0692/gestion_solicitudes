@@ -9,7 +9,7 @@ const LoginScreen = ({ onLogin, providerLabel = 'fake' }) => {
 
   const handleSubmit = async () => {
     if (!username.trim() || !password.trim()) {
-      setError('Usuario y contrasena requeridos');
+      setError('Usuario y contraseña requeridos');
       return;
     }
 

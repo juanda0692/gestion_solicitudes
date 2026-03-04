@@ -7,7 +7,7 @@ import { getChannels } from '../services/api';
  * Desde aquí se puede continuar con la selección de PDV o
  * consultar el historial de solicitudes del canal.
  */
-const ChannelMenu = ({ channelId, onSelectPdv, onViewRequests }) => {
+const ChannelMenu = ({ channelId, onSelectPdv, onViewRequests, canViewRequests = true }) => {
   const [channelName, setChannelName] = useState(channelId);
 
   useEffect(() => {
@@ -30,7 +30,13 @@ const ChannelMenu = ({ channelId, onSelectPdv, onViewRequests }) => {
         </button>
         <button
           onClick={onViewRequests}
-          className="w-full bg-gray-500 text-white py-3 px-4 rounded-lg shadow-md hover:bg-gray-600 transition-all duration-300 ease-in-out transform hover:scale-105"
+          disabled={!canViewRequests}
+          title={!canViewRequests ? 'Disponible proximamente' : undefined}
+          className={`w-full text-white py-3 px-4 rounded-lg shadow-md transition-all duration-300 ease-in-out ${
+            canViewRequests
+              ? 'bg-gray-500 hover:bg-gray-600 transform hover:scale-105'
+              : 'bg-gray-400 cursor-not-allowed opacity-70'
+          }`}
         >
           Ver Solicitudes del Canal
         </button>

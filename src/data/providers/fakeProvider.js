@@ -76,7 +76,7 @@ const signIn = async (input = {}) => {
   const username = String(input.username || input.email || '').trim();
   const password = String(input.password || '').trim();
   if (!username || !password) {
-    throw new Error('Usuario y contrasena requeridos');
+    throw new Error('Usuario y contraseña requeridos');
   }
   const session = buildSession(username);
   writeStoredSession(STORAGE_KEYS.demoSession, session);
