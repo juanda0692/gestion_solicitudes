@@ -111,13 +111,16 @@ const signIn = async (input = {}) => {
 
 const signOut = async () => {
   const session = await getSession();
-  if (session?.accessToken) {
-    await fetch(restUrl('/auth/v1/logout'), {
-      method: 'POST',
-      headers: buildHeaders(session),
-    });
+  try {
+    if (session?.accessToken) {
+      await fetch(restUrl('/auth/v1/logout'), {
+        method: 'POST',
+        headers: buildHeaders(session),
+      });
+    }
+  } finally {
+    writeStoredSession(STORAGE_KEYS.supabaseSession, null);
   }
-  writeStoredSession(STORAGE_KEYS.supabaseSession, null);
 };
 
 const queryView = async (viewName, search = '') => {
