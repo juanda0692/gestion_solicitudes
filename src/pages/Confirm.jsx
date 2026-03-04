@@ -24,9 +24,11 @@ export default function Confirm() {
                             navigate("/", {
                                 replace: true,
                                 state: {
-                                    view: "pdv-actions",
+                                    view: "channel-menu",
+                                    channelId: state?.channelId || "",
                                     pdvId: state?.pdvId,
                                     pdvName: state?.pdvName || "",
+                                    tradeType: state?.tradeType || "",
                                 },
                             })
                         }

@@ -343,8 +343,10 @@ const handleSelectCampaign = (campaignId) => {
           ok: true,
           solicitudId: res.solicitud_id || res.requestId,
           items: res.items_count ?? res.items ?? cart.length,
+          channelId: selectedChannelId,
           pdvId: selectedPdvId,
           pdvName: selectedPdvName,
+          tradeType,
         },
       });
 

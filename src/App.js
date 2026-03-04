@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 /**
  * Componente principal de la aplicación.
@@ -69,7 +69,7 @@ const App = () => {
   const addToast = useToast();
 
   const location = useLocation();
-  const [view, setView] = useState(location.state?.view || "default");
+  const navigate = useNavigate();
   const [selectedPdvId, setSelectedPdvId] = useState(location.state?.pdvId || "");
   const [selectedPdvName, setSelectedPdvName] = useState(location.state?.pdvName || "");
   const canViewChannelRequests = false;
@@ -116,6 +116,28 @@ const App = () => {
       alive = false;
     };
   }, []);
+
+  useEffect(() => {
+    const routeState = location.state;
+    if (!isLoggedIn || location.pathname !== '/' || !routeState?.view) {
+      return;
+    }
+
+    if (routeState.tradeType) {
+      setSelectedTradeType(routeState.tradeType);
+    }
+    if (routeState.channelId) {
+      setSelectedChannelId(routeState.channelId);
+    }
+    if (routeState.pdvId) {
+      setSelectedPdvId(routeState.pdvId);
+    }
+    if (routeState.pdvName) {
+      setSelectedPdvName(routeState.pdvName);
+    }
+    setCurrentPage(routeState.view);
+    navigate(location.pathname, { replace: true });
+  }, [isLoggedIn, location.pathname, location.state, navigate]);
 
   // Usuario selecciona si trabajará con Trade Nacional o Regional
   const handleSelectTrade = (type) => {
@@ -551,7 +573,7 @@ const App = () => {
           <ConfirmationMessage
             message={confirmationMessage}
             onGoHome={handleGoHome}
-            onStayInChannel={() => setCurrentPage('location-select')}
+            onStayInChannel={() => setCurrentPage('channel-menu')}
             onBackToPdv={() => setCurrentPage('pdv-actions')}
             pdvName={selectedPdvName}
           />
