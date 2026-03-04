@@ -38,6 +38,22 @@ const readJson = async (response) => {
   return data;
 };
 
+const isInvalidCredentialsError = (error) => {
+  const message = String(error?.message || '').toLowerCase();
+  const description = String(error?.body?.error_description || '').toLowerCase();
+  const status = Number(error?.status || 0);
+
+  return (
+    (status === 400 || status === 401) &&
+    (
+      message.includes('invalid login credentials') ||
+      description.includes('invalid login credentials') ||
+      message === 'http 400' ||
+      message === 'http 401'
+    )
+  );
+};
+
 const restUrl = (path) => `${SUPABASE_URL}${path}`;
 
 const getSession = async () => readStoredSession(STORAGE_KEYS.supabaseSession);
@@ -47,15 +63,25 @@ const signIn = async (input = {}) => {
   const email = String(input.email || input.username || '').trim();
   const password = String(input.password || '').trim();
   if (!email || !password) {
-    throw new Error('Usuario y contrasena requeridos');
+    throw new Error('Usuario y contraseña requeridos');
   }
 
-  const authResponse = await fetch(restUrl('/auth/v1/token?grant_type=password'), {
-    method: 'POST',
-    headers: buildHeaders(null),
-    body: JSON.stringify({ email, password }),
-  });
-  const authData = await readJson(authResponse);
+  let authData;
+  try {
+    const authResponse = await fetch(restUrl('/auth/v1/token?grant_type=password'), {
+      method: 'POST',
+      headers: buildHeaders(null),
+      body: JSON.stringify({ email, password }),
+    });
+    authData = await readJson(authResponse);
+  } catch (error) {
+    if (isInvalidCredentialsError(error)) {
+      const invalidCredentialsError = new Error('Usuario y/o contraseña incorrectos');
+      invalidCredentialsError.status = 401;
+      throw invalidCredentialsError;
+    }
+    throw error;
+  }
 
   const session = {
     accessToken: authData.access_token,

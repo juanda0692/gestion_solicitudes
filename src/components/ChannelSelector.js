@@ -12,7 +12,13 @@ import { getChannels } from '../services/api';
 // `onSelectChannel` cambia la vista al menú del canal seleccionado.
 // `onCreateCampaign` y `onExportData` son opcionales y permiten acceder
 // directamente a la creación de campañas o a la exportación de datos.
-const ChannelSelector = ({ onSelectChannel, onCreateCampaign, onExportData }) => {
+const ChannelSelector = ({
+  onSelectChannel,
+  onCreateCampaign,
+  onExportData,
+  showCreateCampaign = false,
+  canCreateCampaign = true,
+}) => {
   const [channels, setChannels] = useState([]);
 
   useEffect(() => {
@@ -34,12 +40,18 @@ const ChannelSelector = ({ onSelectChannel, onCreateCampaign, onExportData }) =>
           </button>
         ))}
       </div>
-      {(onCreateCampaign || onExportData) && (
+      {(showCreateCampaign || onExportData) && (
         <div className="mt-6 flex flex-col sm:flex-row gap-4">
-          {onCreateCampaign && (
+          {showCreateCampaign && (
             <button
               onClick={onCreateCampaign}
-              className="w-full bg-indigo-500 text-white py-3 px-4 rounded-lg shadow-md hover:bg-indigo-600 transition-all duration-300 ease-in-out transform hover:scale-105"
+              disabled={!canCreateCampaign}
+              title={!canCreateCampaign ? 'Disponible proximamente' : undefined}
+              className={`w-full text-white py-3 px-4 rounded-lg shadow-md transition-all duration-300 ease-in-out ${
+                canCreateCampaign
+                  ? 'bg-indigo-500 hover:bg-indigo-600 transform hover:scale-105'
+                  : 'bg-indigo-300 cursor-not-allowed opacity-70'
+              }`}
             >
               Crear campaña
             </button>

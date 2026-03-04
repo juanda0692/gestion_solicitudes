@@ -72,6 +72,9 @@ const App = () => {
   const [view, setView] = useState(location.state?.view || "default");
   const [selectedPdvId, setSelectedPdvId] = useState(location.state?.pdvId || "");
   const [selectedPdvName, setSelectedPdvName] = useState(location.state?.pdvName || "");
+  const canViewChannelRequests = false;
+  const canUpdatePdv = false;
+  const canViewPdvRequests = false;
 
   // Limpieza y saneamiento inicial de localStorage
   useEffect(() => {
@@ -156,16 +159,25 @@ const App = () => {
 
   // Navegar al formulario de actualización de información del PDV
   const handleUpdatePdv = () => {
+    if (!canUpdatePdv) {
+      return;
+    }
     setCurrentPage('update-pdv');
   };
 
   // Mostrar solicitudes o actualizaciones previas realizadas para el PDV
   const handleViewRequests = () => {
+    if (!canViewPdvRequests) {
+      return;
+    }
     setCurrentPage('previous-requests');
   };
 
   // Consultar todas las solicitudes hechas en un canal específico
   const handleViewChannelRequests = (channelId) => {
+    if (!canViewChannelRequests) {
+      return;
+    }
     setSelectedChannelId(channelId);
     setCurrentPage('channel-requests');
   };
@@ -413,6 +425,8 @@ const App = () => {
             onCreateCampaign={
               selectedTradeType === 'nacional' ? handleCreateCampaign : undefined
             }
+            showCreateCampaign={selectedTradeType === 'nacional'}
+            canCreateCampaign={false}
             onExportData={
               selectedTradeType === 'nacional' ? handleExportData : undefined
             }
@@ -425,6 +439,7 @@ const App = () => {
             channelId={selectedChannelId}
             onSelectPdv={handleManageChannel}
             onViewRequests={() => handleViewChannelRequests(selectedChannelId)}
+            canViewRequests={canViewChannelRequests}
           />
         )}
 
@@ -437,30 +452,42 @@ const App = () => {
         )}
 
         {/* Acciones disponibles para el PDV */}
-        {isLoggedIn && currentPage === 'pdv-actions' && (
-          <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto text-center">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-6">Acciones para {selectedPdvName}</h2>
-            <div className="space-y-4">
-              <button
+	      {isLoggedIn && currentPage === 'pdv-actions' && (
+	        <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto text-center">
+	          <h2 className="text-2xl font-semibold text-gray-800 mb-6">Acciones para {selectedPdvName}</h2>
+	          <div className="space-y-4">
+	            <button
                 onClick={handleRequestMaterial}
                 className="w-full bg-green-500 text-white py-3 px-4 rounded-lg shadow-md hover:bg-green-600 transition-all duration-300 ease-in-out transform hover:scale-105"
               >
                 Solicitar Material
               </button>
-              <button
-                onClick={handleUpdatePdv}
-                className="w-full bg-yellow-500 text-white py-3 px-4 rounded-lg shadow-md hover:bg-yellow-600 transition-all duration-300 ease-in-out transform hover:scale-105"
-              >
-                Actualizar Datos del PDV
-              </button>
-              <button
-                onClick={handleViewRequests}
-                className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all duration-300 ease-in-out transform hover:scale-105"
-              >
-                Ver Solicitudes Anteriores
-              </button>
-            </div>
-          </div>
+	            <button
+	              onClick={handleUpdatePdv}
+		              disabled={!canUpdatePdv}
+		              title={!canUpdatePdv ? 'Disponible proximamente' : undefined}
+		              className={`w-full text-white py-3 px-4 rounded-lg shadow-md transition-all duration-300 ease-in-out ${
+		                !canUpdatePdv
+		                  ? 'bg-yellow-300 cursor-not-allowed opacity-70'
+		                  : 'bg-yellow-500 hover:bg-yellow-600 transform hover:scale-105'
+		              }`}
+	            >
+	              Actualizar Datos del PDV
+	            </button>
+	            <button
+	              onClick={handleViewRequests}
+		              disabled={!canViewPdvRequests}
+		              title={!canViewPdvRequests ? 'Disponible proximamente' : undefined}
+		              className={`w-full text-white py-3 px-4 rounded-lg shadow-md transition-all duration-300 ease-in-out ${
+		                !canViewPdvRequests
+		                  ? 'bg-blue-300 cursor-not-allowed opacity-70'
+		                  : 'bg-tigo-blue hover:bg-[#00447e] transform hover:scale-105'
+		              }`}
+	            >
+	              Ver Solicitudes Anteriores
+	            </button>
+	          </div>
+	        </div>
         )}
 
         {/* Formulario para solicitar material */}
