@@ -20,3 +20,4 @@ backend/storage/logs/
 AGENTS.md
 .agents/
 rollback_export_backup.sql
+.cursorignore
