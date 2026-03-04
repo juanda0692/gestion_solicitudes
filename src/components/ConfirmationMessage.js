@@ -1,11 +1,8 @@
 import React from 'react';
 
 /**
- * Muestra un mensaje de confirmación después de enviar una
- * solicitud o actualización. Al pulsar el botón se vuelve al
- * inicio de la aplicación.
+ * Muestra un mensaje de confirmacion despues de enviar una solicitud o actualizacion.
  */
-
 const ConfirmationMessage = ({
   message,
   onGoHome,
@@ -14,31 +11,22 @@ const ConfirmationMessage = ({
   pdvName,
 }) => {
   return (
-    <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto mt-8 text-center">
-      <h2 className="text-3xl font-bold text-green-600 mb-4">¡Éxito!</h2>
-      <p className="text-gray-700 text-lg mb-6">{message}</p>
-      <div className="space-y-4">
+    <div className="ui-card p-6 sm:p-7 max-w-md w-full mx-auto mt-8 text-center">
+      <h2 className="text-3xl font-bold text-green-600 mb-3">Exito</h2>
+      <p className="text-slate-700 text-lg mb-6">{message}</p>
+      <div className="space-y-3">
         {onStayInChannel && (
-          <button
-            onClick={onStayInChannel}
-            className="w-full bg-tigo-cyan text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00a7d6] transition-all"
-          >
-          Volver al Canal
+          <button type="button" onClick={onStayInChannel} className="ui-btn ui-btn-cyan">
+            Volver al canal
           </button>
         )}
         {onBackToPdv && (
-          <button
-            onClick={onBackToPdv}
-            className="w-full bg-gray-200 text-gray-800 py-2 px-4 rounded-lg shadow hover:bg-gray-300"
-          >
+          <button type="button" onClick={onBackToPdv} className="ui-btn ui-btn-secondary">
             Volver al PDV {pdvName}
           </button>
         )}
-        <button
-          onClick={onGoHome}
-          className="w-full bg-tigo-blue text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#00447e] transition-all duration-300 ease-in-out transform hover:scale-105"
-        >
-          Volver al Inicio
+        <button type="button" onClick={onGoHome} className="ui-btn ui-btn-primary">
+          Volver al inicio
         </button>
       </div>
     </div>

@@ -428,6 +428,8 @@ const App = () => {
             onExport={handleExportData}
             onLogout={handleLogout}
             showManagement={selectedTradeType === 'nacional'}
+            currentPage={currentPage}
+            tradeType={selectedTradeType}
           />
         )}
 
@@ -475,42 +477,34 @@ const App = () => {
         )}
 
         {/* Acciones disponibles para el PDV */}
-	      {isLoggedIn && currentPage === 'pdv-actions' && (
-	        <div className="p-6 bg-white rounded-xl shadow-lg max-w-md mx-auto text-center">
-	          <h2 className="text-2xl font-semibold text-gray-800 mb-6">Acciones para {selectedPdvName}</h2>
-	          <div className="space-y-4">
-	            <button
-                onClick={handleRequestMaterial}
-                className="w-full bg-green-500 text-white py-3 px-4 rounded-lg shadow-md hover:bg-green-600 transition-all duration-300 ease-in-out transform hover:scale-105"
-              >
-                Solicitar Material
+        {isLoggedIn && currentPage === 'pdv-actions' && (
+          <div className="ui-card p-6 sm:p-7 max-w-xl w-full mx-auto text-center">
+            <h2 className="ui-title text-3xl mb-2">Acciones para {selectedPdvName}</h2>
+            <p className="ui-subtitle mb-6">Selecciona una accion para este punto de venta</p>
+            <div className="space-y-3">
+              <button type="button" onClick={handleRequestMaterial} className="ui-btn ui-btn-success">
+                Solicitar material
               </button>
-	            <button
-	              onClick={handleUpdatePdv}
-		              disabled={!canUpdatePdv}
-		              title={!canUpdatePdv ? 'Disponible proximamente' : undefined}
-		              className={`w-full text-white py-3 px-4 rounded-lg shadow-md transition-all duration-300 ease-in-out ${
-		                !canUpdatePdv
-		                  ? 'bg-yellow-300 cursor-not-allowed opacity-70'
-		                  : 'bg-yellow-500 hover:bg-yellow-600 transform hover:scale-105'
-		              }`}
-	            >
-	              Actualizar Datos del PDV
-	            </button>
-	            <button
-	              onClick={handleViewRequests}
-		              disabled={!canViewPdvRequests}
-		              title={!canViewPdvRequests ? 'Disponible proximamente' : undefined}
-		              className={`w-full text-white py-3 px-4 rounded-lg shadow-md transition-all duration-300 ease-in-out ${
-		                !canViewPdvRequests
-		                  ? 'bg-blue-300 cursor-not-allowed opacity-70'
-		                  : 'bg-tigo-blue hover:bg-[#00447e] transform hover:scale-105'
-		              }`}
-	            >
-	              Ver Solicitudes Anteriores
-	            </button>
-	          </div>
-	        </div>
+              <button
+                type="button"
+                onClick={handleUpdatePdv}
+                disabled={!canUpdatePdv}
+                title={!canUpdatePdv ? 'Disponible proximamente' : undefined}
+                className={`ui-btn ${canUpdatePdv ? 'ui-btn-warning' : 'ui-btn-disabled'}`}
+              >
+                Actualizar datos del PDV
+              </button>
+              <button
+                type="button"
+                onClick={handleViewRequests}
+                disabled={!canViewPdvRequests}
+                title={!canViewPdvRequests ? 'Disponible proximamente' : undefined}
+                className={`ui-btn ${canViewPdvRequests ? 'ui-btn-primary' : 'ui-btn-disabled'}`}
+              >
+                Ver solicitudes anteriores
+              </button>
+            </div>
+          </div>
         )}
 
         {/* Formulario para solicitar material */}
@@ -566,7 +560,7 @@ const App = () => {
 
         {/* Exportar datos */}
         {isLoggedIn && currentPage === 'export-data' && (
-          <ExportData onBack={handleBack} onExport={performExport} />
+          <ExportData onBack={handleGoHome} onExport={performExport} />
         )}
 
         {/* Mensaje de confirmación de acciones */}
