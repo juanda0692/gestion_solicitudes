@@ -99,8 +99,9 @@ const App = () => {
     getSession()
       .then((session) => {
         if (!alive) return;
-        setIsLoggedIn(Boolean(session));
-        setCurrentPage(session ? 'home' : 'login');
+        const hasValidSession = Boolean(session?.user?.id);
+        setIsLoggedIn(hasValidSession);
+        setCurrentPage(hasValidSession ? 'home' : 'login');
       })
       .catch((error) => {
         console.error(error);
