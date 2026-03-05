@@ -21,3 +21,4 @@ AGENTS.md
 .agents/
 rollback_export_backup.sql
 .cursorignore
+docs/uat-checklist-fase1.md

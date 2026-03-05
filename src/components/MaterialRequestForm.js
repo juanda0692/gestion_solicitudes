@@ -148,9 +148,6 @@ const MaterialRequestForm = ({
     quantity: quantity,
     notes: notes
   };
-  console.log(newItem);
-  
-
   setCart([...cart, newItem]);
   
   // Reset form
@@ -256,7 +253,7 @@ const handleSelectCampaign = (campaignId) => {
   //   region_id: selectedRegionId || null,
   //   subterritorio_id: selectedSubId || null,
   //   pdv_id: selectedPdvId,                                    // 🔴 requerido
-  //   campaña_id: selectedCampaign || null,                     // string id o null
+  //   campania_id: selectedCampaign || null,                    // string id o null
   //   prioridad: Number(selectedPriority) || 0,                 // conviértelo a número
   //   zonas: Array.isArray(selectedZones) ? selectedZones : null,
   //   observaciones: notes || '',
@@ -281,7 +278,7 @@ const handleSelectCampaign = (campaignId) => {
 	  subterritorio_id: selectedSubId || null,
 	  pdv_id: selectedPdvId,
 	  canal_id: selectedChannelId,
-  campaña_id: selectedCampaign || null,
+	  campania_id: selectedCampaign || null,
   prioridad: priorityFromCampaign || 1, // ← número
   zonas: Array.isArray(selectedZones) ? selectedZones : null,
   observaciones: notes || '',
@@ -314,7 +311,6 @@ const handleSelectCampaign = (campaignId) => {
   }
 
   try {
-      console.log('FE → payload', JSON.stringify(payload, null, 2));
 
       const res = await createRequest(payload);
 
@@ -677,14 +673,14 @@ const handleSelectCampaign = (campaignId) => {
       prioridad: c.prioridad
     }))}
     selectedId={selectedCampaign}
-    onSelect={(id) => {
-      const campaign = campaignList.find(c => c.id === id);
-      if (campaign) {
-        setSelectedCampaign(id);
-        setSelectedPriority(`Prioridad ${campaign.prioridad}`);
-      }
-      setShowCampaignModal(false);
-    }}
+	    onSelect={(id) => {
+	      const campaign = campaignList.find(c => c.id === id);
+	      if (campaign) {
+	        setSelectedCampaign(id);
+	        setSelectedPriority(Number(campaign.prioridad || 0));
+	      }
+	      setShowCampaignModal(false);
+	    }}
     search={campaignSearch}
     setSearch={setCampaignSearch}
     onClose={() => setShowCampaignModal(false)}

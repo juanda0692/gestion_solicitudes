@@ -1,5 +1,6 @@
 import { getStorageItem, setStorageItem, removeStorageItem } from './storage';
 import { bootstrapDemoData } from './bootstrapDemoData';
+import logger from './logger';
 
 export const LS_KEY_DATA = 'locations/imported';
 export const LS_KEY_SOURCE = 'locations/source';
@@ -40,10 +41,7 @@ export function getActiveLocations() {
   const source = getStorageItem(LS_KEY_SOURCE);
 
   if (source === 'imported' && hasImportedData(imported)) {
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.log('[locations] Usando dataset importado');
-    }
+    logger.debug('[locations] Usando dataset importado');
     return {
       regions: imported.regions,
       subterritories: imported.subterritories,
@@ -56,10 +54,7 @@ export function getActiveLocations() {
   // fallback a datos en LocalStorage sembrados por el modo demo
   bootstrapDemoData();
   setStorageItem(LS_KEY_SOURCE, 'bundled');
-  if (process.env.NODE_ENV === 'development') {
-    // eslint-disable-next-line no-console
-    console.log('[locations] Usando dataset base');
-  }
+  logger.debug('[locations] Usando dataset base');
   return {
     regions: getStorageItem('regions') || [],
     subterritories: getStorageItem('subterritories') || {},
@@ -94,10 +89,7 @@ export function getLocationsSource() {
   const source = getStorageItem(LS_KEY_SOURCE);
 
   if (source === 'imported' && hasImportedData(imported)) {
-    if (process.env.NODE_ENV === 'development') {
-      // eslint-disable-next-line no-console
-      console.log('[locations] Fuente actual: dataset importado');
-    }
+    logger.debug('[locations] Fuente actual: dataset importado');
     return 'imported';
   }
 
@@ -106,10 +98,7 @@ export function getLocationsSource() {
     setStorageItem(LS_KEY_SOURCE, 'bundled');
   }
 
-  if (process.env.NODE_ENV === 'development') {
-    // eslint-disable-next-line no-console
-    console.log('[locations] Fuente actual: dataset base');
-  }
+  logger.debug('[locations] Fuente actual: dataset base');
   return 'bundled';
 }
 
@@ -124,4 +113,3 @@ export function setLocationsSource(source) {
   setStorageItem(LS_KEY_SOURCE, 'bundled');
   return 'bundled';
 }
-

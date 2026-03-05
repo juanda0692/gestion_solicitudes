@@ -23,7 +23,7 @@
 
 ## Integraciones opcionales
 - `n8n` queda fuera del flujo interactivo actual.
-- `supabase/functions/export-start/index.ts` queda como legado o integracion futura, no como camino principal del frontend actual.
+- `supabase/functions/export-start/index.js` queda como legado o integracion futura, no como camino principal del frontend actual.
 
 ## Backend legado
 - El backend PHP queda descartado para el runtime productivo.

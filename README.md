@@ -26,6 +26,7 @@ Aplicacion React para gestionar solicitudes de materiales POP con arquitectura `
 - `REACT_APP_APP_ENV`
 
 No se requiere `REACT_APP_EXPORT_MODE` para el flujo actual.
+Si mantienes Edge Functions legacy desplegadas, define `EDGE_ALLOWED_ORIGINS` como allowlist explicita.
 
 ## Comandos
 ```bash
@@ -44,13 +45,18 @@ npm test -- --runInBand src/__tests__/exportBuild.spec.js
 - El flujo activo es `Frontend -> Supabase RPC -> XLSX en navegador`.
 - La funcion usada por el frontend es `public.rpc_export_dataset(jsonb)`.
 - La vista soporte es `public.v_solicitudes_export`.
-- `supabase/functions/export-start/index.ts` queda como codigo legado y no forma parte del flujo interactivo actual.
+- `supabase/functions/export-start/index.js` queda como codigo legado y no forma parte del flujo interactivo actual.
 
 ## Documentacion
 - `docs/arquitectura-supabase-first.md`
 - `docs/data-provider-contract.md`
 - `docs/naming.md`
 - `docs/smoke-tests.md`
+- `docs/operacion-fase1.md`
+- `docs/uat-checklist-fase1.md`
+
+## Calidad
+- CI minima en `.github/workflows/ci.yml` con tests y build.
 
 ## Notas
 - El backend PHP no forma parte del runtime objetivo.

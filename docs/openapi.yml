@@ -79,7 +79,7 @@ paths:
           name: pdv_id
           schema: { type: string }
         - in: query
-          name: campaña_id
+          name: campania_id
           schema: { type: string }
       responses:
         '200': { description: ok }

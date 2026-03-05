@@ -38,6 +38,7 @@ import { getSession, signIn, signOut } from './services/auth';
 import { getActiveLocations } from './utils/locationsSource';
 import { useToast } from './components/ui/ToastProvider';
 import { DATA_PROVIDER } from './app/env';
+import logger from './utils/logger';
 
 const App = () => {
   // Controla si el usuario ha iniciado sesión
@@ -84,14 +85,14 @@ const App = () => {
       .filter((p) => p.complete)
       .map((p) => p.id);
     const report = sanitizeOnBoot(validIds);
-    if (process.env.NODE_ENV === 'development') {
-      console.log('sanitizeOnBoot report', report);
-    }
+    logger.debug('sanitizeOnBoot completado', {
+      removedEntries: Number(report?.removed || 0),
+    });
   }, []);
 
   // Cargar canales disponibles desde LocalStorage
   useEffect(() => {
-    getChannels().then(setChannelList).catch(console.error);
+    getChannels().then(setChannelList).catch(logger.error);
   }, []);
 
   useEffect(() => {
@@ -104,7 +105,7 @@ const App = () => {
         setCurrentPage(hasValidSession ? 'home' : 'login');
       })
       .catch((error) => {
-        console.error(error);
+        logger.error(error);
         if (!alive) return;
         setIsLoggedIn(false);
         setCurrentPage('login');
@@ -252,7 +253,7 @@ const App = () => {
       if (!result?.ok) throw new Error('No se pudo generar el archivo');
       addToast(`Exportación completada: ${result.fileName}`);
     } catch (e) {
-      console.error(e);
+      logger.error(e);
       addToast(e.message || 'No se pudo generar el archivo. Intenta de nuevo.', 'error');
     }
   };

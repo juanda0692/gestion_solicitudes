@@ -24,7 +24,7 @@
 - `descripcion` TEXT
 - `stock` INT
 
-## campañas
+## campanias
 - `id` VARCHAR(32) PK
 - `nombre` VARCHAR(100)
 - `prioridad` INT (0=sin prioridad, 1 alta...)
@@ -39,7 +39,7 @@
 - `region_id` FK -> regiones.id
 - `subterritorio_id` FK -> subterritorios.id
 - `pdv_id` FK -> pdvs.id
-- `campaña_id` FK -> campañas.id
+- `campania_id` FK -> campanias.id
 - `prioridad` INT
 - `zonas` JSON
 - `observaciones` TEXT
