@@ -57,13 +57,62 @@ const isInvalidCredentialsError = (error) => {
 const restUrl = (path) => `${SUPABASE_URL}${path}`;
 
 const getSession = async () => readStoredSession(STORAGE_KEYS.supabaseSession);
+const clearSession = () => writeStoredSession(STORAGE_KEYS.supabaseSession, null);
+
+const buildUserFromAuth = (authUser = {}, fallbackUser = {}) => ({
+  id: authUser?.id || fallbackUser?.id || null,
+  email: authUser?.email || fallbackUser?.email || null,
+  displayName:
+    authUser?.user_metadata?.display_name ||
+    fallbackUser?.displayName ||
+    authUser?.email ||
+    fallbackUser?.email ||
+    null,
+  appRole: fallbackUser?.appRole || 'requester',
+});
+
+const buildSessionFromAuth = (authData = {}, previous = {}) => ({
+  accessToken: authData?.access_token || previous?.accessToken || null,
+  refreshToken: authData?.refresh_token || previous?.refreshToken || null,
+  tenantId: previous?.tenantId || null,
+  user: buildUserFromAuth(authData?.user, previous?.user),
+});
+
+const fetchAuthUser = async (session) => {
+  const response = await fetch(restUrl('/auth/v1/user'), {
+    headers: buildHeaders(session),
+  });
+  return readJson(response);
+};
+
+const fetchProfile = async (session, userId) => {
+  if (!userId) return null;
+  const response = await fetch(
+    restUrl(`/rest/v1/profiles?select=tenant_id,display_name,app_role&id=eq.${encodeURIComponent(userId)}`),
+    {
+      headers: buildHeaders(session),
+    },
+  );
+  const data = await readJson(response);
+  return Array.isArray(data) ? data[0] || null : null;
+};
+
+const applyProfileToSession = (session, profile = null) => ({
+  ...session,
+  tenantId: profile?.tenant_id || session?.tenantId || null,
+  user: {
+    ...(session?.user || {}),
+    displayName: profile?.display_name || session?.user?.displayName || session?.user?.email || null,
+    appRole: profile?.app_role || session?.user?.appRole || 'requester',
+  },
+});
 
 const signIn = async (input = {}) => {
   assertSupabaseEnv();
   const email = String(input.email || input.username || '').trim();
   const password = String(input.password || '').trim();
   if (!email || !password) {
-    throw new Error('Usuario y contraseña requeridos');
+    throw new Error('Usuario y contrasena requeridos');
   }
 
   let authData;
@@ -76,37 +125,70 @@ const signIn = async (input = {}) => {
     authData = await readJson(authResponse);
   } catch (error) {
     if (isInvalidCredentialsError(error)) {
-      const invalidCredentialsError = new Error('Usuario y/o contraseña incorrectos');
+      const invalidCredentialsError = new Error('Usuario y/o contrasena incorrectos');
       invalidCredentialsError.status = 401;
       throw invalidCredentialsError;
     }
     throw error;
   }
 
-  const session = {
-    accessToken: authData.access_token,
-    refreshToken: authData.refresh_token,
-    tenantId: null,
-    user: {
-      id: authData.user?.id,
-      email: authData.user?.email,
-      displayName: authData.user?.user_metadata?.display_name || authData.user?.email,
-    },
-  };
-
-  const profileResponse = await fetch(
-    restUrl(`/rest/v1/profiles?select=tenant_id,display_name,app_role&id=eq.${authData.user.id}`),
-    {
-      headers: buildHeaders(session),
-    },
-  );
-  const [profile] = await readJson(profileResponse);
-  session.tenantId = profile?.tenant_id || null;
-  session.user.displayName = profile?.display_name || session.user.displayName;
-  session.user.appRole = profile?.app_role || 'requester';
+  const baseSession = buildSessionFromAuth(authData);
+  if (!baseSession?.user?.id) {
+    throw new Error('No se pudo validar la sesion del usuario');
+  }
+  const profile = await fetchProfile(baseSession, baseSession.user.id);
+  const session = applyProfileToSession(baseSession, profile);
 
   writeStoredSession(STORAGE_KEYS.supabaseSession, session);
   return session;
+};
+
+const validateSession = async () => {
+  const storedSession = await getSession();
+  if (!storedSession?.accessToken) {
+    clearSession();
+    return null;
+  }
+
+  const validateWithSession = async (sessionCandidate) => {
+    const userData = await fetchAuthUser(sessionCandidate);
+    const mergedSession = {
+      ...sessionCandidate,
+      user: buildUserFromAuth(userData?.user, sessionCandidate?.user),
+    };
+    const profile = await fetchProfile(mergedSession, mergedSession?.user?.id);
+    const validSession = applyProfileToSession(mergedSession, profile);
+    writeStoredSession(STORAGE_KEYS.supabaseSession, validSession);
+    return validSession;
+  };
+
+  try {
+    return await validateWithSession(storedSession);
+  } catch (error) {
+    const shouldTryRefresh = Number(error?.status || 0) === 401 && Boolean(storedSession?.refreshToken);
+    if (!shouldTryRefresh) {
+      clearSession();
+      return null;
+    }
+
+    try {
+      const refreshResponse = await fetch(restUrl('/auth/v1/token?grant_type=refresh_token'), {
+        method: 'POST',
+        headers: buildHeaders(null),
+        body: JSON.stringify({ refresh_token: storedSession.refreshToken }),
+      });
+      const refreshData = await readJson(refreshResponse);
+      const refreshedSession = buildSessionFromAuth(refreshData, storedSession);
+      if (!refreshedSession?.accessToken) {
+        clearSession();
+        return null;
+      }
+      return await validateWithSession(refreshedSession);
+    } catch (_refreshError) {
+      clearSession();
+      return null;
+    }
+  }
 };
 
 const signOut = async () => {
@@ -119,7 +201,7 @@ const signOut = async () => {
       });
     }
   } finally {
-    writeStoredSession(STORAGE_KEYS.supabaseSession, null);
+    clearSession();
   }
 };
 
@@ -288,6 +370,7 @@ const getExportJob = async (id) => {
 export const supabaseProvider = {
   auth: {
     getSession,
+    validateSession,
     signIn,
     signOut,
   },

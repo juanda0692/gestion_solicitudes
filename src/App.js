@@ -34,10 +34,11 @@ import { getStorageItem, setStorageItem } from './utils/storage';
 import { sanitizeOnBoot } from './utils/cleanupLocalStorage';
 import exportToExcel from './utils/exportToExcel';
 import { getChannels } from './services/api';
-import { getSession, signIn, signOut } from './services/auth';
+import { validateSession, signIn, signOut } from './services/auth';
 import { getActiveLocations } from './utils/locationsSource';
 import { useToast } from './components/ui/ToastProvider';
 import { DATA_PROVIDER } from './app/env';
+import logger from './utils/logger';
 
 const App = () => {
   // Controla si el usuario ha iniciado sesión
@@ -84,29 +85,51 @@ const App = () => {
       .filter((p) => p.complete)
       .map((p) => p.id);
     const report = sanitizeOnBoot(validIds);
-    if (process.env.NODE_ENV === 'development') {
-      console.log('sanitizeOnBoot report', report);
-    }
+    logger.debug('sanitizeOnBoot completado', {
+      removedEntries: Number(report?.removed || 0),
+    });
   }, []);
 
   // Cargar canales disponibles desde LocalStorage
   useEffect(() => {
-    getChannels().then(setChannelList).catch(console.error);
+    getChannels().then(setChannelList).catch(logger.error);
   }, []);
 
   useEffect(() => {
     let alive = true;
-    getSession()
+    validateSession()
       .then((session) => {
         if (!alive) return;
-        const hasValidSession = Boolean(session?.user?.id);
+        const hasValidSession = Boolean(session?.user?.id && session?.accessToken);
         setIsLoggedIn(hasValidSession);
-        setCurrentPage(hasValidSession ? 'home' : 'login');
+        if (hasValidSession) {
+          setCurrentPage('home');
+          return;
+        }
+        setSelectedTradeType('');
+        setSelectedChannelId('');
+        setSelectedPdvId('');
+        setSelectedPdvName('');
+        setSelectedRegionId('');
+        setSelectedRegionName('');
+        setSelectedSubId('');
+        setSelectedSubName('');
+        setConfirmationMessage('');
+        setCurrentPage('login');
       })
       .catch((error) => {
-        console.error(error);
+        logger.error(error);
         if (!alive) return;
         setIsLoggedIn(false);
+        setSelectedTradeType('');
+        setSelectedChannelId('');
+        setSelectedPdvId('');
+        setSelectedPdvName('');
+        setSelectedRegionId('');
+        setSelectedRegionName('');
+        setSelectedSubId('');
+        setSelectedSubName('');
+        setConfirmationMessage('');
         setCurrentPage('login');
       })
       .finally(() => {
@@ -252,7 +275,7 @@ const App = () => {
       if (!result?.ok) throw new Error('No se pudo generar el archivo');
       addToast(`Exportación completada: ${result.fileName}`);
     } catch (e) {
-      console.error(e);
+      logger.error(e);
       addToast(e.message || 'No se pudo generar el archivo. Intenta de nuevo.', 'error');
     }
   };

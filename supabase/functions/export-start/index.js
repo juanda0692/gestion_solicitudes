@@ -1,23 +1,23 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { corsHeaders } from '../_shared/cors.ts';
+import { getCorsHeaders, isAllowedOrigin } from '../_shared/cors.js';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 const N8N_EXPORT_WEBHOOK_URL = Deno.env.get('N8N_EXPORT_WEBHOOK_URL') || '';
 const N8N_INTERNAL_TOKEN = Deno.env.get('N8N_INTERNAL_TOKEN') || '';
 
-const rateBucket = new Map<string, { count: number; ts: number }>();
+const rateBucket = new Map();
 
-const json = (body: unknown, status = 200) =>
+const json = (request, body, status = 200) =>
   new Response(JSON.stringify(body), {
     status,
     headers: {
-      ...corsHeaders,
+      ...getCorsHeaders(request.headers.get('origin') || ''),
       'Content-Type': 'application/json',
     },
   });
 
-const applyRateLimit = (key: string) => {
+const applyRateLimit = (key) => {
   const now = Date.now();
   const current = rateBucket.get(key);
   if (!current || now - current.ts > 60_000) {
@@ -32,17 +32,26 @@ const applyRateLimit = (key: string) => {
 
 Deno.serve(async (request) => {
   if (request.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    const origin = request.headers.get('origin') || '';
+    if (!isAllowedOrigin(origin)) {
+      return json(request, { error: 'origin_not_allowed' }, 403);
+    }
+    return new Response('ok', { headers: getCorsHeaders(origin) });
   }
 
   try {
+    const origin = request.headers.get('origin') || '';
+    if (origin && !isAllowedOrigin(origin)) {
+      return json(request, { error: 'origin_not_allowed' }, 403);
+    }
+
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !N8N_EXPORT_WEBHOOK_URL || !N8N_INTERNAL_TOKEN) {
-      return json({ error: 'missing_env' }, 500);
+      return json(request, { error: 'missing_env' }, 500);
     }
 
     const authHeader = request.headers.get('Authorization');
     if (!authHeader) {
-      return json({ error: 'missing_token' }, 401);
+      return json(request, { error: 'missing_token' }, 401);
     }
 
     const client = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
@@ -52,7 +61,7 @@ Deno.serve(async (request) => {
 
     const { data: userData, error: userError } = await client.auth.getUser();
     if (userError || !userData.user) {
-      return json({ error: 'invalid_session' }, 401);
+      return json(request, { error: 'invalid_session' }, 401);
     }
 
     applyRateLimit(userData.user.id);
@@ -71,7 +80,7 @@ Deno.serve(async (request) => {
 
     const { data: profile } = await client.from('profiles').select('tenant_id').eq('id', userData.user.id).single();
     if (!profile?.tenant_id) {
-      return json({ error: 'tenant_not_found' }, 403);
+      return json(request, { error: 'tenant_not_found' }, 403);
     }
 
     const { data: job, error: jobError } = await client
@@ -87,7 +96,7 @@ Deno.serve(async (request) => {
       .single();
 
     if (jobError || !job) {
-      return json({ error: 'job_insert_failed', details: jobError?.message }, 500);
+      return json(request, { error: 'job_insert_failed', details: jobError?.message }, 500);
     }
 
     const n8nResponse = await fetch(N8N_EXPORT_WEBHOOK_URL, {
@@ -106,18 +115,22 @@ Deno.serve(async (request) => {
 
     if (!n8nResponse.ok) {
       await client.from('export_jobs').update({ status: 'failed', error_message: `n8n ${n8nResponse.status}` }).eq('id', job.id);
-      return json({ error: 'n8n_error' }, 502);
+      return json(request, { error: 'n8n_error' }, 502);
     }
 
-    return json({
+    return json(request, {
       jobId: job.id,
       status: 'pending',
       fileName: job.file_name,
     });
   } catch (error) {
     if (error instanceof Error && error.message === 'rate_limited') {
-      return json({ error: 'rate_limited' }, 429);
+      return json(request, { error: 'rate_limited' }, 429);
     }
-    return json({ error: 'unexpected_error', message: error instanceof Error ? error.message : 'unknown' }, 500);
+    return json(
+      request,
+      { error: 'unexpected_error', message: error instanceof Error ? error.message : 'unknown' },
+      500,
+    );
   }
 });

@@ -3,6 +3,7 @@ import {
   getStorageItem,
   setStorageItem,
 } from '../utils/storage';
+import logger from '../utils/logger';
 
 /**
  * Formulario para actualizar los datos de un Punto de Venta.
@@ -134,11 +135,11 @@ const PdvUpdateForm = ({ selectedPdvId, onUpdateConfirm, channelId }) => {
     const idx = findSimilarDefaultsIndex(data, list);
     let newList;
     if (idx !== -1) {
-      console.log('Reemplazando set predeterminado existente en índice', idx);
+      logger.debug('Reemplazando set predeterminado existente', { idx });
       newList = [...list];
       newList[idx] = entry;
     } else {
-      console.log('Guardando nuevo set de datos predeterminados');
+      logger.debug('Guardando nuevo set de datos predeterminados');
       newList = [...list, entry];
     }
     setPdvDefaultsList(newList);
