@@ -1,12 +1,6 @@
-# SQL Assets
+# SQL Assets (Legacy)
 
-## Importar dump completo
-```bash
-mariadb -uroot -pBermudez2020* --host 127.0.0.1 --port 3307 < docs/sql/base_destinatarios_import_final.sql
-```
+Este directorio conserva SQL historico del flujo MySQL previo.
+No hace parte del runtime actual (`React + Supabase`).
 
-## Migraciones + seeds
-```bash
-mariadb -uroot -pBermudez2020* --host 127.0.0.1 --port 3307 base_dest < docs/sql/migrations/0001_init.sql
-mariadb -uroot -pBermudez2020* --host 127.0.0.1 --port 3307 base_dest < docs/sql/seeds/0001_bootstrap.sql
-```
+Si se usa para referencia, reemplaza credenciales locales por variables de entorno y ejecuta solo en ambientes aislados.
