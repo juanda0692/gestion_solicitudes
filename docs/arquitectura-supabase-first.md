@@ -28,3 +28,26 @@
 ## Backend legado
 - El backend PHP queda descartado para el runtime productivo.
 - No debe volver a conectarse desde la SPA.
+
+## Impacto de nuevos roles por capa
+Agregar roles (`requester`, `approver`, `admin`) no rompe el diseno base, pero exige cambios coordinados:
+
+1. Frontend
+- Habilitar/deshabilitar acciones por rol para UX.
+- Mantener claro que este gating es solo visual.
+
+2. Services y providers
+- Mantener contratos estables sin hardcode de rol en componentes.
+- Estandarizar manejo de `401/403` para evitar estados inconsistentes.
+
+3. Supabase (fuente de autorizacion real)
+- Actualizar politicas RLS por rol y por tenant.
+- Ajustar `GRANT/REVOKE EXECUTE` en RPCs sensibles.
+- Revisar funciones `SECURITY DEFINER` con `search_path` defensivo.
+
+4. QA y operacion
+- Agregar pruebas automatizadas allow/deny/cross-tenant.
+- Ejecutar smoke de authz en cada release.
+
+Regla de arquitectura:
+- La seguridad efectiva vive en Supabase (RLS + permisos SQL), no en la UI.

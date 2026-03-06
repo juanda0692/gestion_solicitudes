@@ -1,20 +1,21 @@
-# Sistema de Solicitudes Tigo
+# Sistema de Solicitudes POP
 
-Aplicacion React para gestionar solicitudes de materiales POP con arquitectura `Supabase-first`.
+Aplicacion React para gestion de solicitudes y exportaciones, con arquitectura `Supabase-first`.
 
 ## Stack activo
 - Frontend: React SPA
 - Datos y autenticacion: Supabase
 - Exportaciones interactivas: XLSX directo en navegador
 - Modo demo: `fakeProvider` con `localStorage`
+- Runtime actual sin API PHP/MySQL local.
 
 ## Modos de ejecucion
 - `REACT_APP_DATA_PROVIDER=fake`
-  - datos fake
-  - auth demo local
+  - datos mock
+  - autenticacion demo local
   - export local
 - `REACT_APP_DATA_PROVIDER=supabase`
-  - auth real
+  - autenticacion real
   - catalogos, historial y solicitudes sobre views/RPCs de Supabase
   - export directo usando `rpc_export_dataset`
 
@@ -25,29 +26,45 @@ Aplicacion React para gestionar solicitudes de materiales POP con arquitectura `
 - `REACT_APP_SUPABASE_ANON_KEY`
 - `REACT_APP_APP_ENV`
 
-No se requiere `REACT_APP_EXPORT_MODE` para el flujo actual.
-Si mantienes Edge Functions legacy desplegadas, define `EDGE_ALLOWED_ORIGINS` como allowlist explicita.
+Variables opcionales:
+- `EDGE_ALLOWED_ORIGINS` solo si se usa la Edge Function legacy `supabase/functions/export-start`.
 
 ## Comandos
 ```bash
 npm start
 npm run build
-npm test -- --runInBand src/__tests__/exportBuild.spec.js
+npm test
 ```
 
-## Supabase
-- Migracion principal: `supabase/migrations/20260228170000_supabase_first.sql`
-- Migracion incremental de medidas: `supabase/migrations/20260228200000_add_material_medida_estandar.sql`
-- Migracion de export directo: `supabase/migrations/20260302120000_export_direct_xlsx.sql`
-- Seed demo: `supabase/seed.sql`
+## Estructura del repositorio
+- `src/`
+  - UI, paginas y flujo de navegacion
+  - providers (`fake` y `supabase`)
+  - servicios y utilidades de negocio
+- `supabase/`
+  - `migrations/`: migraciones versionadas aplicables por CLI
+  - `functions/`: Edge Functions y utilidades compartidas
+  - `seed.sql`: datos seed para ambientes de prueba
+  - `Supabase-*.sql`: scripts SQL de referencia/manuales movidos desde root
+- `docs/`
+  - arquitectura, contratos, smoke tests y guias operativas
+- `.github/workflows/`
+  - pipeline CI (tests + build)
+
+## Supabase (archivos clave)
+- `supabase/migrations/20260228170000_supabase_first.sql`
+- `supabase/migrations/20260228200000_add_material_medida_estandar.sql`
+- `supabase/migrations/20260302120000_export_direct_xlsx.sql`
+- `supabase/migrations/20260305110000_harden_security_definer.sql`
+- `supabase/seed.sql`
 
 ## Export interactivo
-- El flujo activo es `Frontend -> Supabase RPC -> XLSX en navegador`.
-- La funcion usada por el frontend es `public.rpc_export_dataset(jsonb)`.
-- La vista soporte es `public.v_solicitudes_export`.
-- `supabase/functions/export-start/index.js` queda como codigo legado y no forma parte del flujo interactivo actual.
+- Flujo activo: `Frontend -> Supabase RPC -> XLSX en navegador`.
+- Funcion usada por frontend: `public.rpc_export_dataset(jsonb)`.
+- Vista soporte: `public.v_solicitudes_export`.
+- `supabase/functions/export-start/index.js` se mantiene como legado/integracion opcional.
 
-## Documentacion
+## Documentacion relevante
 - `docs/arquitectura-supabase-first.md`
 - `docs/data-provider-contract.md`
 - `docs/naming.md`
@@ -56,11 +73,3 @@ npm test -- --runInBand src/__tests__/exportBuild.spec.js
 - `docs/uat-checklist-fase1.md`
 - `docs/db-hardening-verification.md`
 - `docs/supabase-safe-migration-fake-to-real.md`
-
-## Calidad
-- CI minima en `.github/workflows/ci.yml` con tests y build.
-
-## Notas
-- El backend PHP no forma parte del runtime objetivo.
-- No deben exponerse secretos ni tokens internos al frontend.
-- `n8n` no es necesario para la exportacion interactiva.

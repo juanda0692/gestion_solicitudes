@@ -109,6 +109,10 @@ Smoke seguridad minimo:
 1. Usuario no accede data de otro tenant.
 2. RPC sensible denegada para `anon`.
 3. RLS activo en tablas de negocio.
+4. Caso permitido por rol objetivo (`requester`/`approver`/`admin`).
+5. Caso denegado por rol objetivo.
+6. Sesion expirada y refresh con fallback a login.
+7. Verificar ausencia de logs sensibles en build productivo.
 
 ## Fase 7 - Cutover
 1. Apuntar frontend al proyecto real (variables de entorno).
@@ -128,6 +132,40 @@ Escenarios:
    - restaurar data-only backup.
 3. Falla de permisos:
    - reaplicar hardening SQL y verificar con queries de seguridad.
+
+## Limites sin data real ni usuarios reales
+Lo que si se puede validar:
+1. Flujo funcional end-to-end.
+2. Contratos de request/response y compatibilidad de providers.
+3. Migraciones y hardening tecnico base.
+
+Lo que no se puede cerrar de forma confiable:
+1. Autorizacion real por rol con usuarios reales.
+2. Tenant isolation en casos de datos de negocio reales.
+3. Calidad de catalogos reales (duplicados, faltantes, jerarquias atipicas).
+4. Performance por volumen real.
+
+## Validaciones obligatorias al pasar a data real
+1. Allowed case por rol.
+2. Denied case por rol.
+3. Cross-tenant denied case.
+4. Export filtrado por tenant y filtros enviados.
+5. Sesion expirada, refresh y fallback a login.
+6. Confirmacion de no exponer payloads sensibles en logs.
+
+## Evolucion de roles (RBAC) sin romper arquitectura
+Agregar roles nuevos no requiere rehacer arquitectura, pero exige cambios coordinados en varias capas.
+
+| Capa | Cambio requerido | Riesgo si no se hace |
+|---|---|---|
+| Frontend | Gating visual por rol y mensajes de acceso denegado | Falsa sensacion de permiso, UX confusa |
+| Services/Providers | Contratos sin hardcode de rol, manejo consistente de 401/403 | Errores silenciosos y fallback incorrecto |
+| Supabase (RLS/RPC) | Politicas por rol, grants/revokes y checks en funciones sensibles | Escalada de privilegios o acceso indebido |
+| QA/Operacion | Tests allow/deny/cross-tenant + smoke en release | Regresiones de seguridad no detectadas |
+
+Principio obligatorio:
+1. El frontend nunca reemplaza autorizacion backend.
+2. La autorizacion efectiva vive en RLS, grants y funciones SQL/Edge.
 
 ## Go / No-Go (resumen)
 Go solo si:
