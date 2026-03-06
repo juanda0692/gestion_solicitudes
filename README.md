@@ -54,6 +54,8 @@ npm test -- --runInBand src/__tests__/exportBuild.spec.js
 - `docs/smoke-tests.md`
 - `docs/operacion-fase1.md`
 - `docs/uat-checklist-fase1.md`
+- `docs/db-hardening-verification.md`
+- `docs/supabase-safe-migration-fake-to-real.md`
 
 ## Calidad
 - CI minima en `.github/workflows/ci.yml` con tests y build.

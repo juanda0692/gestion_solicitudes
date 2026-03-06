@@ -22,3 +22,7 @@ AGENTS.md
 rollback_export_backup.sql
 .cursorignore
 docs/uat-checklist-fase1.md
+
+# Supabase local artifacts
+supabase/.temp/
+supabase/backups/

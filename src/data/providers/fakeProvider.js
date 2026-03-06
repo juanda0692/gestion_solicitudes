@@ -71,6 +71,16 @@ const getSession = async () => {
   return readStoredSession(STORAGE_KEYS.demoSession);
 };
 
+const validateSession = async () => {
+  ensureBootstrapped();
+  const session = await getSession();
+  if (session?.accessToken && session?.user?.id) {
+    return session;
+  }
+  writeStoredSession(STORAGE_KEYS.demoSession, null);
+  return null;
+};
+
 const signIn = async (input = {}) => {
   ensureBootstrapped();
   const username = String(input.username || input.email || '').trim();
@@ -414,6 +424,7 @@ const getExportJob = async (id) => {
 export const fakeProvider = {
   auth: {
     getSession,
+    validateSession,
     signIn,
     signOut,
   },

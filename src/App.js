@@ -34,7 +34,7 @@ import { getStorageItem, setStorageItem } from './utils/storage';
 import { sanitizeOnBoot } from './utils/cleanupLocalStorage';
 import exportToExcel from './utils/exportToExcel';
 import { getChannels } from './services/api';
-import { getSession, signIn, signOut } from './services/auth';
+import { validateSession, signIn, signOut } from './services/auth';
 import { getActiveLocations } from './utils/locationsSource';
 import { useToast } from './components/ui/ToastProvider';
 import { DATA_PROVIDER } from './app/env';
@@ -97,17 +97,39 @@ const App = () => {
 
   useEffect(() => {
     let alive = true;
-    getSession()
+    validateSession()
       .then((session) => {
         if (!alive) return;
-        const hasValidSession = Boolean(session?.user?.id);
+        const hasValidSession = Boolean(session?.user?.id && session?.accessToken);
         setIsLoggedIn(hasValidSession);
-        setCurrentPage(hasValidSession ? 'home' : 'login');
+        if (hasValidSession) {
+          setCurrentPage('home');
+          return;
+        }
+        setSelectedTradeType('');
+        setSelectedChannelId('');
+        setSelectedPdvId('');
+        setSelectedPdvName('');
+        setSelectedRegionId('');
+        setSelectedRegionName('');
+        setSelectedSubId('');
+        setSelectedSubName('');
+        setConfirmationMessage('');
+        setCurrentPage('login');
       })
       .catch((error) => {
         logger.error(error);
         if (!alive) return;
         setIsLoggedIn(false);
+        setSelectedTradeType('');
+        setSelectedChannelId('');
+        setSelectedPdvId('');
+        setSelectedPdvName('');
+        setSelectedRegionId('');
+        setSelectedRegionName('');
+        setSelectedSubId('');
+        setSelectedSubName('');
+        setConfirmationMessage('');
         setCurrentPage('login');
       })
       .finally(() => {
